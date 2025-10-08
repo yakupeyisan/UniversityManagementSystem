@@ -54,6 +54,18 @@ public class Faculty : AuditableEntity, ISoftDelete
         Name = name.Trim();
         Description = description?.Trim();
     }
+    public void Update(string name, string code, string? description)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException("Fakülte adı boş olamaz.");
+
+        if (string.IsNullOrWhiteSpace(code))
+            throw new DomainException("Fakülte kodu boş olamaz.");
+
+        Name = name.Trim();
+        Code = code.Trim().ToUpperInvariant();
+        Description = description?.Trim();
+    }
 
     public void AssignDean(Guid deanId)
     {

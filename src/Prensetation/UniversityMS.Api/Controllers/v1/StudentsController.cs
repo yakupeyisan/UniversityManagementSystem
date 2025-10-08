@@ -8,6 +8,9 @@ using UniversityMS.Application.Features.Faculties.Commands;
 using UniversityMS.Application.Features.Faculties.Queries;
 using UniversityMS.Application.Features.Students.Commands;
 using UniversityMS.Application.Features.Students.Queries;
+using UniversityMS.Application.Features.Enrollments.Commands;
+using UniversityMS.Application.Features.Grades.Commands;
+using UniversityMS.Application.Features.Attendances.Commands;
 using UniversityMS.Domain.Enums;
 
 namespace UniversityMS.Api.Controllers.v1;

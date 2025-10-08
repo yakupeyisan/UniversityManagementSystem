@@ -118,3 +118,153 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, R
         }
     }
 }
+
+
+public record UpdateCourseCommand(
+    Guid Id,
+    string Name,
+    int TheoreticalHours,
+    int PracticalHours,
+    int ECTS,
+    int NationalCredit,
+    int? Semester,
+    string? Description
+) : IRequest<Result<Guid>>;
+
+public class UpdateCourseCommandValidator : AbstractValidator<UpdateCourseCommand>
+{
+    public UpdateCourseCommandValidator()
+    {
+        RuleFor(x => x.Id)
+            .NotEmpty().WithMessage("Ders ID gereklidir.");
+
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Ders adı boş olamaz.")
+            .MaximumLength(200);
+
+        RuleFor(x => x.TheoreticalHours)
+            .GreaterThanOrEqualTo(0).WithMessage("Teorik saat negatif olamaz.");
+
+        RuleFor(x => x.PracticalHours)
+            .GreaterThanOrEqualTo(0).WithMessage("Uygulama saati negatif olamaz.");
+
+        RuleFor(x => x.ECTS)
+            .GreaterThan(0).WithMessage("ECTS en az 1 olmalıdır.");
+
+        RuleFor(x => x.Semester)
+            .InclusiveBetween(1, 8).When(x => x.Semester.HasValue)
+            .WithMessage("Dönem 1-8 arasında olmalıdır.");
+    }
+}
+
+public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, Result<Guid>>
+{
+    private readonly IRepository<Course> _courseRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<UpdateCourseCommandHandler> _logger;
+
+    public UpdateCourseCommandHandler(
+        IRepository<Course> courseRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<UpdateCourseCommandHandler> logger)
+    {
+        _courseRepository = courseRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result<Guid>> Handle(UpdateCourseCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var course = await _courseRepository.GetByIdAsync(request.Id, cancellationToken);
+            if (course == null)
+                return Result.Failure<Guid>("Ders bulunamadı.");
+
+            course.Update(
+                request.Name,
+                request.TheoreticalHours,
+                request.PracticalHours,
+                request.ECTS,
+                request.NationalCredit,
+                request.Semester,
+                request.Description
+            );
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Course updated: {CourseId}", course.Id);
+            return Result.Success(course.Id, "Ders başarıyla güncellendi.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating course");
+            return Result.Failure<Guid>("Ders güncellenirken bir hata oluştu.", ex.Message);
+        }
+    }
+}
+
+public record AddPrerequisiteCommand(
+    Guid CourseId,
+    Guid PrerequisiteCourseId
+) : IRequest<Result>;
+
+public class AddPrerequisiteCommandValidator : AbstractValidator<AddPrerequisiteCommand>
+{
+    public AddPrerequisiteCommandValidator()
+    {
+        RuleFor(x => x.CourseId)
+            .NotEmpty().WithMessage("Ders ID gereklidir.");
+
+        RuleFor(x => x.PrerequisiteCourseId)
+            .NotEmpty().WithMessage("Ön koşul ders ID gereklidir.");
+
+        RuleFor(x => x)
+            .Must(x => x.CourseId != x.PrerequisiteCourseId)
+            .WithMessage("Bir ders kendisinin ön koşulu olamaz.");
+    }
+}
+
+public class AddPrerequisiteCommandHandler : IRequestHandler<AddPrerequisiteCommand, Result>
+{
+    private readonly IRepository<Course> _courseRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<AddPrerequisiteCommandHandler> _logger;
+
+    public AddPrerequisiteCommandHandler(
+        IRepository<Course> courseRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<AddPrerequisiteCommandHandler> logger)
+    {
+        _courseRepository = courseRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result> Handle(AddPrerequisiteCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var course = await _courseRepository.GetByIdAsync(request.CourseId, cancellationToken);
+            if (course == null)
+                return Result.Failure("Ders bulunamadı.");
+
+            var prerequisiteCourse = await _courseRepository.GetByIdAsync(request.PrerequisiteCourseId, cancellationToken);
+            if (prerequisiteCourse == null)
+                return Result.Failure("Ön koşul ders bulunamadı.");
+
+            course.AddPrerequisite(request.PrerequisiteCourseId);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Prerequisite added to course: {CourseId} - {PrerequisiteCourseId}",
+                request.CourseId, request.PrerequisiteCourseId);
+
+            return Result.Success("Ön koşul başarıyla eklendi.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding prerequisite");
+            return Result.Failure("Ön koşul eklenirken bir hata oluştu.", ex.Message);
+        }
+    }
+}

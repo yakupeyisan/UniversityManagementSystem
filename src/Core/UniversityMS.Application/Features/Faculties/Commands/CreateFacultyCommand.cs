@@ -70,3 +70,72 @@ public class CreateFacultyCommandHandler : IRequestHandler<CreateFacultyCommand,
         }
     }
 }
+
+public record UpdateFacultyCommand(
+    Guid Id,
+    string Name,
+    string Code,
+    string? Description
+) : IRequest<Result<Guid>>;
+
+public class UpdateFacultyCommandValidator : AbstractValidator<UpdateFacultyCommand>
+{
+    public UpdateFacultyCommandValidator()
+    {
+        RuleFor(x => x.Id)
+            .NotEmpty().WithMessage("Fakülte ID gereklidir.");
+
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Fakülte adı boş olamaz.")
+            .MaximumLength(200);
+
+        RuleFor(x => x.Code)
+            .NotEmpty().WithMessage("Fakülte kodu boş olamaz.")
+            .MaximumLength(10);
+    }
+}
+
+public class UpdateFacultyCommandHandler : IRequestHandler<UpdateFacultyCommand, Result<Guid>>
+{
+    private readonly IRepository<Faculty> _facultyRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<UpdateFacultyCommandHandler> _logger;
+
+    public UpdateFacultyCommandHandler(
+        IRepository<Faculty> facultyRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<UpdateFacultyCommandHandler> logger)
+    {
+        _facultyRepository = facultyRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result<Guid>> Handle(UpdateFacultyCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var faculty = await _facultyRepository.GetByIdAsync(request.Id, cancellationToken);
+            if (faculty == null)
+                return Result.Failure<Guid>("Fakülte bulunamadı.");
+
+            var existingFaculty = await _facultyRepository.FirstOrDefaultAsync(
+                f => f.Code == request.Code.Trim().ToUpperInvariant() && f.Id != request.Id,
+                cancellationToken);
+
+            if (existingFaculty != null)
+                return Result.Failure<Guid>($"'{request.Code}' kodu başka bir fakülte tarafından kullanılıyor.");
+
+            faculty.Update(request.Name, request.Code, request.Description);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Faculty updated: {FacultyId}", faculty.Id);
+            return Result.Success(faculty.Id, "Fakülte başarıyla güncellendi.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating faculty");
+            return Result.Failure<Guid>("Fakülte güncellenirken bir hata oluştu.", ex.Message);
+        }
+    }
+}

@@ -10,10 +10,7 @@
     <Folder Include="Features\Departments\Queries\" />
     <Folder Include="Features\Staff\Commands\" />
     <Folder Include="Features\Staff\Queries\" />
-    <Folder Include="Features\Grades\Commands\" />
-    <Folder Include="Features\Grades\DTOs\" />
     <Folder Include="Features\Grades\Queries\" />
-    <Folder Include="Features\Enrollments\Commands\" />
     <Folder Include="Features\Enrollments\DTOs\" />
     <Folder Include="Features\Enrollments\Queries\" />
   </ItemGroup>

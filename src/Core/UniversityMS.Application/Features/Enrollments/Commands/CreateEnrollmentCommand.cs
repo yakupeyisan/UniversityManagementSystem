@@ -1,6 +1,8 @@
-﻿using FluentValidation;
+﻿using AutoMapper;
+using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Domain.Entities.AcademicAggregate;
 using UniversityMS.Domain.Entities.EnrollmentAggregate;
@@ -194,6 +196,166 @@ public class RejectEnrollmentCommandHandler : IRequestHandler<RejectEnrollmentCo
         {
             _logger.LogError(ex, "Error rejecting enrollment");
             return Result.Failure("Kayıt reddedilirken bir hata oluştu.", ex.Message);
+        }
+    }
+}
+public record RemoveCourseFromEnrollmentCommand(
+    Guid EnrollmentId,
+    Guid CourseId
+) : IRequest<Result>;
+
+public class RemoveCourseFromEnrollmentCommandValidator : AbstractValidator<RemoveCourseFromEnrollmentCommand>
+{
+    public RemoveCourseFromEnrollmentCommandValidator()
+    {
+        RuleFor(x => x.EnrollmentId)
+            .NotEmpty().WithMessage("Kayıt ID gereklidir.");
+
+        RuleFor(x => x.CourseId)
+            .NotEmpty().WithMessage("Ders ID gereklidir.");
+    }
+}
+
+public class RemoveCourseFromEnrollmentCommandHandler : IRequestHandler<RemoveCourseFromEnrollmentCommand, Result>
+{
+    private readonly IRepository<Enrollment> _enrollmentRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<RemoveCourseFromEnrollmentCommandHandler> _logger;
+
+    public RemoveCourseFromEnrollmentCommandHandler(
+        IRepository<Enrollment> enrollmentRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<RemoveCourseFromEnrollmentCommandHandler> logger)
+    {
+        _enrollmentRepository = enrollmentRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result> Handle(RemoveCourseFromEnrollmentCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var enrollment = await _enrollmentRepository.GetByIdAsync(request.EnrollmentId, cancellationToken);
+            if (enrollment == null)
+                return Result.Failure("Kayıt bulunamadı.");
+
+            enrollment.RemoveCourse(request.CourseId);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Course removed from enrollment: {EnrollmentId} - {CourseId}",
+                request.EnrollmentId, request.CourseId);
+
+            return Result.Success("Ders kayıttan başarıyla çıkarıldı.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing course from enrollment");
+            return Result.Failure("Ders çıkarılırken bir hata oluştu.", ex.Message);
+        }
+    }
+}
+public record SubmitEnrollmentCommand(Guid EnrollmentId) : IRequest<Result>;
+
+public class SubmitEnrollmentCommandValidator : AbstractValidator<SubmitEnrollmentCommand>
+{
+    public SubmitEnrollmentCommandValidator()
+    {
+        RuleFor(x => x.EnrollmentId)
+            .NotEmpty().WithMessage("Kayıt ID gereklidir.");
+    }
+}
+
+public class SubmitEnrollmentCommandHandler : IRequestHandler<SubmitEnrollmentCommand, Result>
+{
+    private readonly IRepository<Enrollment> _enrollmentRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<SubmitEnrollmentCommandHandler> _logger;
+
+    public SubmitEnrollmentCommandHandler(
+        IRepository<Enrollment> enrollmentRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<SubmitEnrollmentCommandHandler> logger)
+    {
+        _enrollmentRepository = enrollmentRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result> Handle(SubmitEnrollmentCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var enrollment = await _enrollmentRepository.GetByIdAsync(request.EnrollmentId, cancellationToken);
+            if (enrollment == null)
+                return Result.Failure("Kayıt bulunamadı.");
+
+            enrollment.Submit();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Enrollment submitted: {EnrollmentId}", request.EnrollmentId);
+            return Result.Success("Kayıt danışman onayına gönderildi.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error submitting enrollment");
+            return Result.Failure("Kayıt gönderilirken bir hata oluştu.", ex.Message);
+        }
+    }
+}
+public record ApproveEnrollmentCommand(
+    Guid EnrollmentId,
+    Guid AdvisorId
+) : IRequest<Result>;
+
+public class ApproveEnrollmentCommandValidator : AbstractValidator<ApproveEnrollmentCommand>
+{
+    public ApproveEnrollmentCommandValidator()
+    {
+        RuleFor(x => x.EnrollmentId)
+            .NotEmpty().WithMessage("Kayıt ID gereklidir.");
+
+        RuleFor(x => x.AdvisorId)
+            .NotEmpty().WithMessage("Danışman ID gereklidir.");
+    }
+}
+
+public class ApproveEnrollmentCommandHandler : IRequestHandler<ApproveEnrollmentCommand, Result>
+{
+    private readonly IRepository<Enrollment> _enrollmentRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<ApproveEnrollmentCommandHandler> _logger;
+
+    public ApproveEnrollmentCommandHandler(
+        IRepository<Enrollment> enrollmentRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<ApproveEnrollmentCommandHandler> logger)
+    {
+        _enrollmentRepository = enrollmentRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result> Handle(ApproveEnrollmentCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var enrollment = await _enrollmentRepository.GetByIdAsync(request.EnrollmentId, cancellationToken);
+            if (enrollment == null)
+                return Result.Failure("Kayıt bulunamadı.");
+
+            enrollment.Approve(request.AdvisorId);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Enrollment approved: {EnrollmentId} by {AdvisorId}",
+                request.EnrollmentId, request.AdvisorId);
+
+            return Result.Success("Kayıt başarıyla onaylandı.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error approving enrollment");
+            return Result.Failure("Kayıt onaylanırken bir hata oluştu.", ex.Message);
         }
     }
 }

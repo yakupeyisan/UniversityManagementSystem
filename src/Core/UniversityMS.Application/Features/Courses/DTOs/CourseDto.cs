@@ -16,8 +16,9 @@ public class CourseDto
     public int TotalWeeklyHours { get; set; }
     public int ECTS { get; set; }
     public int NationalCredit { get; set; }
-    public int? Semester { get; set; }
     public EducationLevel EducationLevel { get; set; }
+    public int? Semester { get; set; }
     public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
     public List<PrerequisiteCourseDto> Prerequisites { get; set; } = new();
 }

@@ -136,8 +136,13 @@ public class FacultiesController : BaseApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetFaculty(Guid id)
     {
-        // GetFacultyByIdQuery implementation
-        return Ok();
+        var query = new GetFacultyByIdQuery(id);
+        var result = await Mediator.Send(query);
+
+        if (!result.IsSuccess)
+            return NotFound(result);
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -165,8 +170,15 @@ public class FacultiesController : BaseApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateFaculty(Guid id, [FromBody] UpdateFacultyCommand command)
     {
-        // UpdateFacultyCommand implementation
-        return Ok();
+        if (id != command.Id)
+            return BadRequest("ID uyuşmazlığı");
+
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -177,11 +189,16 @@ public class FacultiesController : BaseApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteFaculty(Guid id)
     {
-        // DeleteFacultyCommand implementation
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";
+        var command = new DeleteFacultyCommand(id, userId);
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return NotFound(result);
+
         return NoContent();
     }
 }
-
 
 [Authorize]
 public class DepartmentsController : BaseApiController

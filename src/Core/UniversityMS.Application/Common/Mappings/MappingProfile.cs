@@ -1,16 +1,18 @@
 ﻿using AutoMapper;
 using System.Data;
-using System.Net;
+using UniversityMS.Application.Features.Attendances.DTOs;
 using UniversityMS.Application.Features.Authentication.DTOs;
 using UniversityMS.Application.Features.Courses.DTOs;
 using UniversityMS.Application.Features.Departments.DTOs;
+using UniversityMS.Application.Features.Enrollments.DTOs;
 using UniversityMS.Application.Features.Faculties.DTOs;
+using UniversityMS.Application.Features.Grades.DTOs;
 using UniversityMS.Application.Features.Staff.DTOs;
 using UniversityMS.Application.Features.Students.DTOs;
 using UniversityMS.Domain.Entities.AcademicAggregate;
+using UniversityMS.Domain.Entities.EnrollmentAggregate;
 using UniversityMS.Domain.Entities.IdentityAggregate;
 using UniversityMS.Domain.Entities.PersonAggregate;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace UniversityMS.Application.Common.Mappings;
 public class MappingProfile : Profile
@@ -69,5 +71,20 @@ public class MappingProfile : Profile
                 CourseName = p.PrerequisiteCourse.Name,
                 CourseCode = p.PrerequisiteCourse.Code
             })));
+
+        // Enrollment Mappings
+        CreateMap<Enrollment, EnrollmentDto>();
+
+        CreateMap<CourseRegistration, CourseRegistrationDto>()
+            .ForMember(d => d.CourseName, opt => opt.MapFrom(s => s.Course.Name))
+            .ForMember(d => d.CourseCode, opt => opt.MapFrom(s => s.Course.Code));
+
+        // Grade Mappings
+        CreateMap<Grade, GradeDto>()
+            .ForMember(d => d.CourseName, opt => opt.MapFrom(s => s.CourseRegistration.Course.Name))
+            .ForMember(d => d.CourseCode, opt => opt.MapFrom(s => s.CourseRegistration.Course.Code));
+
+        // Attendance Mappings
+        CreateMap<Attendance, AttendanceDto>();
     }
 }

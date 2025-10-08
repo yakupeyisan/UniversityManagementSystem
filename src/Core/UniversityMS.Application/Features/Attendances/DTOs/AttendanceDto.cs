@@ -2,5 +2,6 @@
 
 public record AttendanceDto(
     Guid StudentId,
+    Guid CourseRegistrationId,
     bool IsPresent
 );

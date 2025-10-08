@@ -13,11 +13,10 @@ public record CreateGradeCommand(
     Guid CourseRegistrationId,
     Guid StudentId,
     Guid CourseId,
-    Guid? InstructorId,
     GradeType GradeType,
     double NumericScore,
-    string LetterGrade,
-    double GradePoint
+    double Weight,
+    Guid? InstructorId = null
 ) : IRequest<Result<Guid>>;
 
 public class CreateGradeCommandValidator : AbstractValidator<CreateGradeCommand>
@@ -36,12 +35,8 @@ public class CreateGradeCommandValidator : AbstractValidator<CreateGradeCommand>
         RuleFor(x => x.NumericScore)
             .InclusiveBetween(0, 100).WithMessage("Not 0-100 arasında olmalıdır.");
 
-        RuleFor(x => x.LetterGrade)
-            .NotEmpty().WithMessage("Harf notu gereklidir.")
-            .MaximumLength(2);
-
-        RuleFor(x => x.GradePoint)
-            .InclusiveBetween(0, 4).WithMessage("Not ortalaması 0-4 arasında olmalıdır.");
+        RuleFor(x => x.Weight)
+            .InclusiveBetween(0, 1).WithMessage("Ağırlık 0-1 arasında olmalıdır.");
     }
 }
 
@@ -69,11 +64,10 @@ public class CreateGradeCommandHandler : IRequestHandler<CreateGradeCommand, Res
                 request.CourseRegistrationId,
                 request.StudentId,
                 request.CourseId,
-                request.InstructorId,
                 request.GradeType,
                 request.NumericScore,
-                request.LetterGrade,
-                request.GradePoint
+                request.Weight,
+                request.InstructorId
             );
 
             await _gradeRepository.AddAsync(grade, cancellationToken);
@@ -117,12 +111,8 @@ public class BulkCreateGradesCommandValidator : AbstractValidator<BulkCreateGrad
             grade.RuleFor(x => x.NumericScore)
                 .InclusiveBetween(0, 100).WithMessage("Not 0-100 arasında olmalıdır.");
 
-            grade.RuleFor(x => x.LetterGrade)
-                .NotEmpty().WithMessage("Harf notu gereklidir.")
-                .MaximumLength(2);
-
-            grade.RuleFor(x => x.GradePoint)
-                .InclusiveBetween(0, 4).WithMessage("Not ortalaması 0-4 arasında olmalıdır.");
+            grade.RuleFor(x => x.Weight)
+                .InclusiveBetween(0, 1).WithMessage("Ağırlık 0-1 arasında olmalıdır.");
         });
     }
 }
@@ -155,11 +145,10 @@ public class BulkCreateGradesCommandHandler : IRequestHandler<BulkCreateGradesCo
                     gradeDto.CourseRegistrationId,
                     gradeDto.StudentId,
                     gradeDto.CourseId,
-                    gradeDto.InstructorId,
                     gradeDto.GradeType,
                     gradeDto.NumericScore,
-                    gradeDto.LetterGrade,
-                    gradeDto.GradePoint
+                    gradeDto.Weight,
+                    gradeDto.InstructorId
                 );
                 grades.Add(grade);
             }

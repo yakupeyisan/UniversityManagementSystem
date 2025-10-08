@@ -4,14 +4,17 @@ using Microsoft.Extensions.Logging;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.Attendances.DTOs;
 using UniversityMS.Domain.Entities.EnrollmentAggregate;
+using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Interfaces;
 
 namespace UniversityMS.Application.Features.Attendances.Commands;
+
 
 public record TakeAttendanceCommand(
     Guid CourseId,
     Guid InstructorId,
     DateTime AttendanceDate,
+    int WeekNumber,
     List<AttendanceDto> Attendances
 ) : IRequest<Result<int>>;
 
@@ -29,6 +32,9 @@ public class TakeAttendanceCommandValidator : AbstractValidator<TakeAttendanceCo
             .NotEmpty().WithMessage("Yoklama tarihi gereklidir.")
             .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Yoklama tarihi gelecekte olamaz.");
 
+        RuleFor(x => x.WeekNumber)
+            .InclusiveBetween(1, 16).WithMessage("Hafta numarası 1-16 arasında olmalıdır.");
+
         RuleFor(x => x.Attendances)
             .NotEmpty().WithMessage("En az bir öğrenci yoklaması girilmelidir.");
 
@@ -36,6 +42,9 @@ public class TakeAttendanceCommandValidator : AbstractValidator<TakeAttendanceCo
         {
             attendance.RuleFor(x => x.StudentId)
                 .NotEmpty().WithMessage("Öğrenci ID gereklidir.");
+
+            attendance.RuleFor(x => x.CourseRegistrationId)
+                .NotEmpty().WithMessage("Ders kayıt ID gereklidir.");
         });
     }
 }
@@ -65,12 +74,13 @@ public class TakeAttendanceCommandHandler : IRequestHandler<TakeAttendanceComman
             foreach (var attendanceDto in request.Attendances)
             {
                 var attendance = Attendance.Create(
-                    Guid.NewGuid(), // CourseRegistrationId - should be fetched properly
+                    attendanceDto.CourseRegistrationId,
                     attendanceDto.StudentId,
                     request.CourseId,
-                    request.InstructorId,
                     request.AttendanceDate,
-                    attendanceDto.IsPresent
+                    request.WeekNumber,
+                    attendanceDto.IsPresent,
+                    AttendanceMethod.Manual
                 );
                 attendances.Add(attendance);
             }
@@ -98,7 +108,9 @@ public class TakeAttendanceCommandHandler : IRequestHandler<TakeAttendanceComman
 public record QRCheckInCommand(
     Guid StudentId,
     Guid CourseId,
-    string QRCode
+    Guid CourseRegistrationId,
+    string QRCode,
+    int WeekNumber
 ) : IRequest<Result>;
 
 public class QRCheckInCommandValidator : AbstractValidator<QRCheckInCommand>
@@ -111,8 +123,14 @@ public class QRCheckInCommandValidator : AbstractValidator<QRCheckInCommand>
         RuleFor(x => x.CourseId)
             .NotEmpty().WithMessage("Ders ID gereklidir.");
 
+        RuleFor(x => x.CourseRegistrationId)
+            .NotEmpty().WithMessage("Ders kayıt ID gereklidir.");
+
         RuleFor(x => x.QRCode)
             .NotEmpty().WithMessage("QR kodu gereklidir.");
+
+        RuleFor(x => x.WeekNumber)
+            .InclusiveBetween(1, 16).WithMessage("Hafta numarası 1-16 arasında olmalıdır.");
     }
 }
 
@@ -137,15 +155,17 @@ public class QRCheckInCommandHandler : IRequestHandler<QRCheckInCommand, Result>
         try
         {
             // TODO: Validate QR code and check expiration
-            // TODO: Get CourseRegistrationId properly
+            // QR kod formatı: COURSE_ID|DATE|HASH şeklinde olabilir
+            // Hash doğrulaması yapılmalı
 
             var attendance = Attendance.Create(
-                Guid.NewGuid(), // CourseRegistrationId - should be fetched properly
+                request.CourseRegistrationId,
                 request.StudentId,
                 request.CourseId,
-                null, // InstructorId - can be null for QR check-in
                 DateTime.UtcNow,
-                true
+                request.WeekNumber,
+                true, // QR ile giriş yapıldığı için present
+                AttendanceMethod.QRCode
             );
 
             await _attendanceRepository.AddAsync(attendance, cancellationToken);

@@ -2,8 +2,8 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
+using UniversityMS.Application.Common.Extensions;
 using UniversityMS.Application.Common.Models;
-using UniversityMS.Application.Extensions;
 using UniversityMS.Application.Features.Courses.DTOs;
 using UniversityMS.Domain.Entities.AcademicAggregate;
 using UniversityMS.Domain.Interfaces;

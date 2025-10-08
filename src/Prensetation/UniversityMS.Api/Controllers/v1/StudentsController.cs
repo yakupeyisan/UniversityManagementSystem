@@ -1,26 +1,28 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using UniversityMS.Application.Features.Attendances.Commands;
+using UniversityMS.Application.Features.Attendances.Queries;
 using UniversityMS.Application.Features.Courses.Commands;
 using UniversityMS.Application.Features.Courses.Queries;
 using UniversityMS.Application.Features.Departments.Commands;
+using UniversityMS.Application.Features.Departments.Queries;
+using UniversityMS.Application.Features.Enrollments.Commands;
+using UniversityMS.Application.Features.Enrollments.Queries;
 using UniversityMS.Application.Features.Faculties.Commands;
 using UniversityMS.Application.Features.Faculties.Queries;
+using UniversityMS.Application.Features.Grades.Commands;
+using UniversityMS.Application.Features.Grades.Queries;
 using UniversityMS.Application.Features.Students.Commands;
 using UniversityMS.Application.Features.Students.Queries;
-using UniversityMS.Application.Features.Enrollments.Commands;
-using UniversityMS.Application.Features.Grades.Commands;
-using UniversityMS.Application.Features.Attendances.Commands;
 using UniversityMS.Domain.Enums;
 
 namespace UniversityMS.Api.Controllers.v1;
 
+
 [Authorize]
 public class StudentsController : BaseApiController
 {
-    /// <summary>
-    /// Tüm öğrencileri listele (sayfalama ile)
-    /// </summary>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStudents(
@@ -39,9 +41,6 @@ public class StudentsController : BaseApiController
         return Ok(result);
     }
 
-    /// <summary>
-    /// ID'ye göre öğrenci getir
-    /// </summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -56,9 +55,6 @@ public class StudentsController : BaseApiController
         return Ok(result);
     }
 
-    /// <summary>
-    /// Yeni öğrenci oluştur
-    /// </summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -72,13 +68,8 @@ public class StudentsController : BaseApiController
         return CreatedAtAction(nameof(GetStudent), new { id = result.Data }, result);
     }
 
-    /// <summary>
-    /// Öğrenci bilgilerini güncelle
-    /// </summary>
     [HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateStudent(Guid id, [FromBody] UpdateStudentCommand command)
     {
         if (id != command.Id)
@@ -92,26 +83,18 @@ public class StudentsController : BaseApiController
         return Ok(result);
     }
 
-    /// <summary>
-    /// Öğrenci sil (soft delete)
-    /// </summary>
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteStudent(Guid id)
     {
-        // DeleteStudentCommand will be implemented
+        // TODO: DeleteStudentCommand implement edilecek
         return NoContent();
     }
 }
 
-
 [Authorize]
 public class FacultiesController : BaseApiController
 {
-    /// <summary>
-    /// Tüm fakülteleri listele
-    /// </summary>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFaculties(
@@ -128,9 +111,6 @@ public class FacultiesController : BaseApiController
         return Ok(result);
     }
 
-    /// <summary>
-    /// ID'ye göre fakülte getir
-    /// </summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -145,12 +125,8 @@ public class FacultiesController : BaseApiController
         return Ok(result);
     }
 
-    /// <summary>
-    /// Yeni fakülte oluştur
-    /// </summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateFaculty([FromBody] CreateFacultyCommand command)
     {
         var result = await Mediator.Send(command);
@@ -161,13 +137,8 @@ public class FacultiesController : BaseApiController
         return CreatedAtAction(nameof(GetFaculty), new { id = result.Data }, result);
     }
 
-    /// <summary>
-    /// Fakülte güncelle
-    /// </summary>
     [HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateFaculty(Guid id, [FromBody] UpdateFacultyCommand command)
     {
         if (id != command.Id)
@@ -181,15 +152,11 @@ public class FacultiesController : BaseApiController
         return Ok(result);
     }
 
-    /// <summary>
-    /// Fakülte sil (soft delete)
-    /// </summary>
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteFaculty(Guid id)
     {
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "System";
         var command = new DeleteFacultyCommand(id, userId);
         var result = await Mediator.Send(command);
 
@@ -203,9 +170,6 @@ public class FacultiesController : BaseApiController
 [Authorize]
 public class DepartmentsController : BaseApiController
 {
-    /// <summary>
-    /// Tüm bölümleri listele
-    /// </summary>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDepartments(
@@ -214,28 +178,31 @@ public class DepartmentsController : BaseApiController
         [FromQuery] Guid? facultyId = null,
         [FromQuery] bool? isActive = null)
     {
-        // GetDepartmentListQuery implementation
-        return Ok();
+        var query = new GetDepartmentListQuery(pageNumber, pageSize, facultyId, isActive);
+        var result = await Mediator.Send(query);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// ID'ye göre bölüm getir
-    /// </summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetDepartment(Guid id)
     {
-        // GetDepartmentByIdQuery implementation
-        return Ok();
+        var query = new GetDepartmentByIdQuery(id);
+        var result = await Mediator.Send(query);
+
+        if (!result.IsSuccess)
+            return NotFound(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// Yeni bölüm oluştur
-    /// </summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateDepartment([FromBody] CreateDepartmentCommand command)
     {
         var result = await Mediator.Send(command);
@@ -246,25 +213,25 @@ public class DepartmentsController : BaseApiController
         return CreatedAtAction(nameof(GetDepartment), new { id = result.Data }, result);
     }
 
-    /// <summary>
-    /// Bölüme başkan ata
-    /// </summary>
     [HttpPost("{id:guid}/assign-head")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> AssignHead(Guid id, [FromBody] AssignDepartmentHeadCommand command)
     {
-        // AssignDepartmentHeadCommand implementation
-        return Ok();
+        if (id != command.DepartmentId)
+            return BadRequest("ID uyuşmazlığı");
+
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 }
-
 
 [Authorize]
 public class CoursesController : BaseApiController
 {
-    /// <summary>
-    /// Tüm dersleri listele
-    /// </summary>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCourses(
@@ -283,24 +250,22 @@ public class CoursesController : BaseApiController
         return Ok(result);
     }
 
-    /// <summary>
-    /// ID'ye göre ders getir
-    /// </summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCourse(Guid id)
     {
-        // GetCourseByIdQuery implementation
-        return Ok();
+        var query = new GetCourseByIdQuery(id);
+        var result = await Mediator.Send(query);
+
+        if (!result.IsSuccess)
+            return NotFound(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// Yeni ders oluştur
-    /// </summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateCourse([FromBody] CreateCourseCommand command)
     {
         var result = await Mediator.Send(command);
@@ -311,230 +276,285 @@ public class CoursesController : BaseApiController
         return CreatedAtAction(nameof(GetCourse), new { id = result.Data }, result);
     }
 
-    /// <summary>
-    /// Ders güncelle
-    /// </summary>
     [HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseCommand command)
     {
-        // UpdateCourseCommand implementation
-        return Ok();
+        if (id != command.Id)
+            return BadRequest("ID uyuşmazlığı");
+
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// Derse ön koşul ekle
-    /// </summary>
     [HttpPost("{id:guid}/prerequisites")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> AddPrerequisite(Guid id, [FromBody] AddPrerequisiteCommand command)
     {
-        // AddPrerequisiteCommand implementation
-        return Ok();
+        if (id != command.CourseId)
+            return BadRequest("ID uyuşmazlığı");
+
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// Dersin ön koşullarını getir
-    /// </summary>
     [HttpGet("{id:guid}/prerequisites")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPrerequisites(Guid id)
     {
-        // GetCoursePrerequisitesQuery implementation
-        return Ok();
+        var query = new GetCoursePrerequisitesQuery(id);
+        var result = await Mediator.Send(query);
+
+        if (!result.IsSuccess)
+            return NotFound(result);
+
+        return Ok(result);
     }
 }
-
 
 [Authorize]
 public class EnrollmentsController : BaseApiController
 {
-    /// <summary>
-    /// Öğrenci için yeni kayıt oluştur (ders seçim taslağı)
-    /// </summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateEnrollment([FromBody] CreateEnrollmentCommand command)
     {
-        // CreateEnrollmentCommand implementation
-        return Ok();
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return CreatedAtAction(nameof(GetEnrollment), new { id = result.Data }, result);
     }
 
-    /// <summary>
-    /// Kayda ders ekle
-    /// </summary>
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetEnrollment(Guid id)
+    {
+        var query = new GetEnrollmentByIdQuery(id);
+        var result = await Mediator.Send(query);
+
+        if (!result.IsSuccess)
+            return NotFound(result);
+
+        return Ok(result);
+    }
+
     [HttpPost("{enrollmentId:guid}/courses")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> AddCourseToEnrollment(
         Guid enrollmentId,
         [FromBody] AddCourseToEnrollmentCommand command)
     {
-        // AddCourseToEnrollmentCommand implementation
-        return Ok();
+        if (enrollmentId != command.EnrollmentId)
+            return BadRequest("ID uyuşmazlığı");
+
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// Kayıttan ders çıkar
-    /// </summary>
     [HttpDelete("{enrollmentId:guid}/courses/{courseId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> RemoveCourseFromEnrollment(Guid enrollmentId, Guid courseId)
     {
-        // RemoveCourseFromEnrollmentCommand implementation
-        return Ok();
+        var command = new RemoveCourseFromEnrollmentCommand(enrollmentId, courseId);
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// Kaydı danışman onayına gönder
-    /// </summary>
     [HttpPost("{enrollmentId:guid}/submit")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SubmitEnrollment(Guid enrollmentId)
     {
-        // SubmitEnrollmentCommand implementation
-        return Ok();
+        var command = new SubmitEnrollmentCommand(enrollmentId);
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// Danışman olarak kaydı onayla
-    /// </summary>
     [HttpPost("{enrollmentId:guid}/approve")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ApproveEnrollment(Guid enrollmentId)
     {
         var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "");
-        // ApproveEnrollmentCommand implementation
-        return Ok();
+        var command = new ApproveEnrollmentCommand(enrollmentId, userId);
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// Danışman olarak kaydı reddet
-    /// </summary>
     [HttpPost("{enrollmentId:guid}/reject")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> RejectEnrollment(Guid enrollmentId, [FromBody] RejectEnrollmentCommand command)
     {
-        // RejectEnrollmentCommand implementation
-        return Ok();
+        if (enrollmentId != command.EnrollmentId)
+            return BadRequest("ID uyuşmazlığı");
+
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// Öğrencinin mevcut kayıtlarını getir
-    /// </summary>
     [HttpGet("my-enrollments")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMyEnrollments()
+    public async Task<IActionResult> GetMyEnrollments([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         var studentId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "");
-        // GetStudentEnrollmentsQuery implementation
-        return Ok();
+        var query = new GetStudentEnrollmentsQuery(studentId, pageNumber, pageSize);
+        var result = await Mediator.Send(query);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 }
-
 
 [Authorize]
 public class GradesController : BaseApiController
 {
-    /// <summary>
-    /// Ders için not gir
-    /// </summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateGrade([FromBody] CreateGradeCommand command)
     {
-        // CreateGradeCommand implementation
-        return Ok();
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return CreatedAtAction(nameof(GetStudentGrades), new { studentId = command.StudentId }, result);
     }
 
-    /// <summary>
-    /// Toplu not girişi (Excel upload)
-    /// </summary>
     [HttpPost("bulk")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> BulkCreateGrades([FromBody] BulkCreateGradesCommand command)
     {
-        // BulkCreateGradesCommand implementation
-        return Ok();
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// Öğrencinin tüm notlarını getir
-    /// </summary>
     [HttpGet("student/{studentId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetStudentGrades(Guid studentId)
+    public async Task<IActionResult> GetStudentGrades(Guid studentId, [FromQuery] Guid? courseId = null)
     {
-        // GetStudentGradesQuery implementation
-        return Ok();
+        var query = new GetStudentGradesQuery(studentId, courseId);
+        var result = await Mediator.Send(query);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// Ders için tüm öğrenci notlarını getir
-    /// </summary>
     [HttpGet("course/{courseId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetCourseGrades(Guid courseId)
+    public async Task<IActionResult> GetCourseGrades(Guid courseId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 50)
     {
-        // GetCourseGradesQuery implementation
-        return Ok();
+        var query = new GetCourseGradesQuery(courseId, pageNumber, pageSize);
+        var result = await Mediator.Send(query);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// Not istatistikleri (ortalama, dağılım, vb.)
-    /// </summary>
     [HttpGet("course/{courseId:guid}/statistics")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetGradeStatistics(Guid courseId)
     {
-        // GetGradeStatisticsQuery implementation
-        return Ok();
+        var query = new GetGradeStatisticsQuery(courseId);
+        var result = await Mediator.Send(query);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 }
 
 [Authorize]
 public class AttendancesController : BaseApiController
 {
-    /// <summary>
-    /// Yoklama al (Manuel)
-    /// </summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> TakeAttendance([FromBody] TakeAttendanceCommand command)
     {
-        // TakeAttendanceCommand implementation
-        return Ok();
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// QR Kod ile yoklama (öğrenci tarafından)
-    /// </summary>
     [HttpPost("qr-check-in")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> QRCheckIn([FromBody] QRCheckInCommand command)
     {
-        // QRCheckInCommand implementation
-        return Ok();
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// Öğrencinin devamsızlık durumunu getir
-    /// </summary>
     [HttpGet("student/{studentId:guid}/course/{courseId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStudentAttendance(Guid studentId, Guid courseId)
     {
-        // GetStudentAttendanceQuery implementation
-        return Ok();
+        var query = new GetStudentAttendanceQuery(studentId, courseId);
+        var result = await Mediator.Send(query);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
-    /// <summary>
-    /// Ders için devamsızlık raporu
-    /// </summary>
     [HttpGet("course/{courseId:guid}/report")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAttendanceReport(Guid courseId)
+    public async Task<IActionResult> GetAttendanceReport(
+        Guid courseId,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null)
     {
-        // GetAttendanceReportQuery implementation
-        return Ok();
+        var query = new GetAttendanceReportQuery(courseId, startDate, endDate);
+        var result = await Mediator.Send(query);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 }

@@ -2,8 +2,8 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
+using UniversityMS.Application.Common.Extensions;
 using UniversityMS.Application.Common.Models;
-using UniversityMS.Application.Extensions;
 using UniversityMS.Application.Features.Departments.DTOs;
 using UniversityMS.Domain.Entities.AcademicAggregate;
 using UniversityMS.Domain.Interfaces;
@@ -17,6 +17,8 @@ public record GetDepartmentListQuery(
     Guid? FacultyId = null,
     bool? IsActive = null
 ) : IRequest<Result<PaginatedList<DepartmentDto>>>;
+
+public record GetDepartmentByIdQuery(Guid Id) : IRequest<Result<DepartmentDto>>;
 
 public class GetDepartmentListQueryHandler : IRequestHandler<GetDepartmentListQuery, Result<PaginatedList<DepartmentDto>>>
 {
@@ -76,8 +78,6 @@ public class GetDepartmentListQueryHandler : IRequestHandler<GetDepartmentListQu
         }
     }
 }
-
-public record GetDepartmentByIdQuery(Guid Id) : IRequest<Result<DepartmentDto>>;
 
 public class GetDepartmentByIdQueryHandler : IRequestHandler<GetDepartmentByIdQuery, Result<DepartmentDto>>
 {

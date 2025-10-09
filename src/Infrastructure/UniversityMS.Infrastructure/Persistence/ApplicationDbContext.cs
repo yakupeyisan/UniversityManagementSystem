@@ -47,6 +47,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<CourseRegistration> CourseRegistrations => Set<CourseRegistration>();
     public DbSet<Grade> Grades => Set<Grade>();
     public DbSet<Attendance> Attendances => Set<Attendance>();
+    public DbSet<GradeObjection> GradeObjections => Set<GradeObjection>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -88,6 +89,17 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
                 case EntityState.Modified:
                     entry.Entity.UpdatedBy = _currentUserService.Username;
                     entry.Entity.UpdatedAt = _dateTime.UtcNow;
+                    break;
+
+                case EntityState.Deleted:
+                    if (entry.Entity is ISoftDelete softDeleteEntity)
+                    {
+                        entry.State = EntityState.Modified;
+                        softDeleteEntity.IsDeleted = true;
+                        softDeleteEntity.DeletedAt = DateTime.UtcNow;
+                        softDeleteEntity.DeletedBy = _currentUserService.Username;
+
+                    }
                     break;
             }
         }

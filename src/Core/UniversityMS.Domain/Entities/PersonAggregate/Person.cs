@@ -87,7 +87,7 @@ public abstract class Person : AuditableEntity, ISoftDelete
         EmergencyContact = contact;
     }
 
-    public void Delete(string deletedBy)
+    public void Delete(string? deletedBy = null)
     {
         IsDeleted = true;
         DeletedAt = DateTime.UtcNow;
@@ -248,6 +248,93 @@ public class Student : Person
         // Mezuniyet için gereken minimum CGPA: 2.0
         // Tüm kredilerin tamamlanması gerekli
         return CGPA >= 2.0 && CompletedCredits >= TotalCredits && TotalCredits > 0;
+    }
+    /// <summary>
+    /// Öğrenci durumunu günceller
+    /// </summary>
+    public void UpdateStatus(StudentStatus status)
+    {
+        if (IsDeleted)
+            throw new DomainException("Silinmiş öğrencinin durumu değiştirilemez.");
+
+        Status = status;
+    }
+
+    /// <summary>
+    /// Öğrenci kayıt dondurma
+    /// </summary>
+    public void Freeze()
+    {
+        if (Status == StudentStatus.Frozen)
+            throw new DomainException("Öğrenci zaten kayıt dondurmuş.");
+
+        Status = StudentStatus.Frozen;
+    }
+
+    /// <summary>
+    /// Kayıt dondurma kaldırma
+    /// </summary>
+    public void Unfreeze()
+    {
+        if (Status != StudentStatus.Frozen)
+            throw new DomainException("Öğrencinin kayıt dondurmması yok.");
+
+        Status = StudentStatus.Active;
+    }
+
+    /// <summary>
+    /// Öğrenciyi mezun et
+    /// </summary>
+    public void Graduate()
+    {
+        if (Status == StudentStatus.Graduate)
+            throw new DomainException("Öğrenci zaten mezun.");
+
+        Status = StudentStatus.Graduate;
+    }
+
+    /// <summary>
+    /// Öğrencinin CGPA'sını güncelle
+    /// </summary>
+    public void UpdateCGPA(double cgpa)
+    {
+        if (cgpa < 0 || cgpa > 4.0)
+            throw new DomainException("CGPA 0-4.0 arasında olmalıdır.");
+
+        CGPA = cgpa;
+    }
+
+    /// <summary>
+    /// Öğrencinin SGPA'sını güncelle
+    /// </summary>
+    public void UpdateSGPA(double sgpa)
+    {
+        if (sgpa < 0 || sgpa > 4.0)
+            throw new DomainException("SGPA 0-4.0 arasında olmalıdır.");
+
+        SGPA = sgpa;
+    }
+
+    /// <summary>
+    /// Tamamlanan kredi güncellemesi
+    /// </summary>
+    public void UpdateCompletedCredits(int credits)
+    {
+        if (credits < 0)
+            throw new DomainException("Kredi negatif olamaz.");
+
+        CompletedCredits = credits;
+    }
+
+    /// <summary>
+    /// Dönem güncellemesi
+    /// </summary>
+    public void AdvanceSemester()
+    {
+        if (CurrentSemester >= 8)
+            throw new DomainException("Maksimum dönem sayısına ulaşıldı.");
+
+        CurrentSemester++;
     }
 }
 

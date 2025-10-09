@@ -13,7 +13,9 @@ public enum StudentStatus
     Suspended = 3,
     Graduated = 4,
     Withdrawn = 5,
-    OnLeave = 6
+    OnLeave = 6,
+    Frozen = 7,
+    Graduate = 8
 }
 public enum CourseType
 {
@@ -80,4 +82,12 @@ public enum AttendanceMethod
     QRCode = 2,      // QR kod ile
     Card = 3,        // Kart okutma ile
     Biometric = 4    // Biyometrik
+}
+
+public enum ObjectionStatus
+{
+    Pending = 0,
+    Approved = 1,
+    Rejected = 2,
+    UnderReview = 3
 }

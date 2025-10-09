@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using UniversityMS.Domain.Entities.AcademicAggregate;
 using UniversityMS.Domain.Entities.EnrollmentAggregate;
 using UniversityMS.Domain.Entities.IdentityAggregate;
 using UniversityMS.Domain.Entities.PersonAggregate;
@@ -426,5 +427,277 @@ public class AttendanceConfiguration : IEntityTypeConfiguration<Attendance>
         builder.Property(a => a.CreatedBy).HasMaxLength(100);
 
         builder.Ignore(a => a.DomainEvents);
+    }
+}
+
+public class CourseConfiguration : IEntityTypeConfiguration<Course>
+{
+    public void Configure(EntityTypeBuilder<Course> builder)
+    {
+        builder.ToTable("Courses");
+
+        builder.HasKey(c => c.Id);
+
+        builder.Property(c => c.Name)
+            .IsRequired()
+            .HasMaxLength(200);
+
+        builder.Property(c => c.Code)
+            .IsRequired()
+            .HasMaxLength(20);
+
+        builder.HasIndex(c => c.Code).IsUnique();
+
+        builder.Property(c => c.Description)
+            .HasMaxLength(1000);
+
+        builder.Property(c => c.CourseType).IsRequired();
+        builder.Property(c => c.TheoreticalHours).IsRequired();
+        builder.Property(c => c.PracticalHours).IsRequired();
+        builder.Property(c => c.ECTS).IsRequired();
+        builder.Property(c => c.NationalCredit).IsRequired();
+        builder.Property(c => c.EducationLevel).IsRequired();
+        builder.Property(c => c.Semester);
+        builder.Property(c => c.IsActive).IsRequired().HasDefaultValue(true);
+
+        // Soft Delete
+        builder.Property(c => c.IsDeleted).IsRequired().HasDefaultValue(false);
+
+        // Audit fields
+        builder.Property(c => c.CreatedAt).IsRequired();
+        builder.Property(c => c.CreatedBy).HasMaxLength(100);
+        builder.Property(c => c.UpdatedAt);
+        builder.Property(c => c.UpdatedBy).HasMaxLength(100);
+
+        // Relationships
+        builder.HasOne(c => c.Department)
+            .WithMany(d => d.Courses)
+            .HasForeignKey(c => c.DepartmentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(c => c.Prerequisites)
+            .WithOne(p => p.Course)
+            .HasForeignKey(p => p.CourseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Ignore(c => c.DomainEvents);
+    }
+}
+
+public class PrerequisiteConfiguration : IEntityTypeConfiguration<Prerequisite>
+{
+    public void Configure(EntityTypeBuilder<Prerequisite> builder)
+    {
+        builder.ToTable("Prerequisites");
+
+        builder.HasKey(p => p.Id);
+
+        builder.Property(p => p.CourseId).IsRequired();
+        builder.Property(p => p.PrerequisiteCourseId).IsRequired();
+
+        // Aynı ders için aynı önkoşul tekrar eklenemez
+        builder.HasIndex(p => new { p.CourseId, p.PrerequisiteCourseId }).IsUnique();
+
+        // Audit fields
+        builder.Property(p => p.CreatedAt).IsRequired();
+        builder.Property(p => p.CreatedBy).HasMaxLength(100);
+
+        // Relationships
+        builder.HasOne(p => p.Course)
+            .WithMany(c => c.Prerequisites)
+            .HasForeignKey(p => p.CourseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(p => p.PrerequisiteCourse)
+            .WithMany()
+            .HasForeignKey(p => p.PrerequisiteCourseId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Ignore(p => p.DomainEvents);
+    }
+}
+
+public class CurriculumConfiguration : IEntityTypeConfiguration<Curriculum>
+{
+    public void Configure(EntityTypeBuilder<Curriculum> builder)
+    {
+        builder.ToTable("Curriculums");
+
+        builder.HasKey(c => c.Id);
+
+        builder.Property(c => c.Name)
+            .IsRequired()
+            .HasMaxLength(200);
+
+        builder.Property(c => c.Code)
+            .IsRequired()
+            .HasMaxLength(20);
+
+        builder.HasIndex(c => c.Code).IsUnique();
+
+        builder.Property(c => c.AcademicYear)
+            .IsRequired()
+            .HasMaxLength(10); // Örn: "2024-2025"
+
+        builder.Property(c => c.EducationLevel).IsRequired();
+        builder.Property(c => c.TotalECTS).IsRequired();
+        builder.Property(c => c.IsActive).IsRequired().HasDefaultValue(true);
+
+        // Soft Delete
+        builder.Property(c => c.IsDeleted).IsRequired().HasDefaultValue(false);
+
+        // Audit fields
+        builder.Property(c => c.CreatedAt).IsRequired();
+        builder.Property(c => c.CreatedBy).HasMaxLength(100);
+        builder.Property(c => c.UpdatedAt);
+        builder.Property(c => c.UpdatedBy).HasMaxLength(100);
+
+        // Relationships
+        builder.HasOne(c => c.Department)
+            .WithMany()
+            .HasForeignKey(c => c.DepartmentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(c => c.CurriculumCourses)
+            .WithOne(cc => cc.Curriculum)
+            .HasForeignKey(cc => cc.CurriculumId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Ignore(c => c.DomainEvents);
+    }
+}
+
+public class CurriculumCourseConfiguration : IEntityTypeConfiguration<CurriculumCourse>
+{
+    public void Configure(EntityTypeBuilder<CurriculumCourse> builder)
+    {
+        builder.ToTable("CurriculumCourses");
+
+        builder.HasKey(cc => cc.Id);
+
+        builder.Property(cc => cc.Semester).IsRequired();
+        builder.Property(cc => cc.CourseType).IsRequired();
+        builder.Property(cc => cc.IsElective).IsRequired();
+
+        // Aynı müfredatta aynı ders tekrar eklenemez
+        builder.HasIndex(cc => new { cc.CurriculumId, cc.CourseId }).IsUnique();
+
+        // Audit fields
+        builder.Property(cc => cc.CreatedAt).IsRequired();
+        builder.Property(cc => cc.CreatedBy).HasMaxLength(100);
+
+        // Relationships
+        builder.HasOne(cc => cc.Curriculum)
+            .WithMany(c => c.CurriculumCourses)
+            .HasForeignKey(cc => cc.CurriculumId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(cc => cc.Course)
+            .WithMany()
+            .HasForeignKey(cc => cc.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Ignore(cc => cc.DomainEvents);
+    }
+}
+
+public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
+{
+    public void Configure(EntityTypeBuilder<Enrollment> builder)
+    {
+        builder.ToTable("Enrollments");
+
+        builder.HasKey(e => e.Id);
+
+        builder.Property(e => e.AcademicYear)
+            .IsRequired()
+            .HasMaxLength(10); // Örn: "2024-2025"
+
+        builder.Property(e => e.Semester)
+            .IsRequired();
+
+        builder.Property(e => e.Status).IsRequired();
+        builder.Property(e => e.EnrollmentDate).IsRequired();
+        builder.Property(e => e.ApprovalDate);
+        builder.Property(e => e.ApprovedBy);
+        builder.Property(e => e.TotalECTS).IsRequired().HasDefaultValue(0);
+        builder.Property(e => e.TotalNationalCredit).IsRequired().HasDefaultValue(0);
+
+        // Bir öğrencinin aynı dönem için sadece bir kaydı olabilir
+        builder.HasIndex(e => new { e.StudentId, e.AcademicYear, e.Semester }).IsUnique();
+
+        // Soft Delete
+        builder.Property(e => e.IsDeleted).IsRequired().HasDefaultValue(false);
+
+        // Audit fields
+        builder.Property(e => e.CreatedAt).IsRequired();
+        builder.Property(e => e.CreatedBy).HasMaxLength(100);
+        builder.Property(e => e.UpdatedAt);
+        builder.Property(e => e.UpdatedBy).HasMaxLength(100);
+
+        // Relationships
+        builder.HasOne(e => e.Student)
+            .WithMany()
+            .HasForeignKey(e => e.StudentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(e => e.CourseRegistrations)
+            .WithOne(cr => cr.Enrollment)
+            .HasForeignKey(cr => cr.EnrollmentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Ignore(e => e.DomainEvents);
+    }
+}
+
+public class CourseRegistrationConfiguration : IEntityTypeConfiguration<CourseRegistration>
+{
+    public void Configure(EntityTypeBuilder<CourseRegistration> builder)
+    {
+        builder.ToTable("CourseRegistrations");
+
+        builder.HasKey(cr => cr.Id);
+
+        builder.Property(cr => cr.InstructorId);
+        builder.Property(cr => cr.ECTS).IsRequired();
+        builder.Property(cr => cr.NationalCredit).IsRequired();
+        builder.Property(cr => cr.Status).IsRequired();
+        builder.Property(cr => cr.RegistrationDate).IsRequired();
+        builder.Property(cr => cr.DropDate);
+
+        // Bir kayıtta aynı ders tekrar eklenemez
+        builder.HasIndex(cr => new { cr.EnrollmentId, cr.CourseId }).IsUnique();
+
+        // Soft Delete
+        builder.Property(cr => cr.IsDeleted).IsRequired().HasDefaultValue(false);
+
+        // Audit fields
+        builder.Property(cr => cr.CreatedAt).IsRequired();
+        builder.Property(cr => cr.CreatedBy).HasMaxLength(100);
+        builder.Property(cr => cr.UpdatedAt);
+        builder.Property(cr => cr.UpdatedBy).HasMaxLength(100);
+
+        // Relationships
+        builder.HasOne(cr => cr.Enrollment)
+            .WithMany(e => e.CourseRegistrations)
+            .HasForeignKey(cr => cr.EnrollmentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(cr => cr.Course)
+            .WithMany()
+            .HasForeignKey(cr => cr.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(cr => cr.Grades)
+            .WithOne(g => g.CourseRegistration)
+            .HasForeignKey(g => g.CourseRegistrationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(cr => cr.Attendances)
+            .WithOne(a => a.CourseRegistration)
+            .HasForeignKey(a => a.CourseRegistrationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Ignore(cr => cr.DomainEvents);
     }
 }

@@ -38,3 +38,22 @@ public class GradeDistributionDto
     public int Count { get; set; }
     public double Percentage { get; set; }
 }
+
+public class GradeObjectionDto
+{
+    public Guid Id { get; set; }
+    public Guid GradeId { get; set; }
+    public Guid StudentId { get; set; }
+    public string StudentName { get; set; } = string.Empty;
+    public Guid CourseId { get; set; }
+    public string CourseName { get; set; } = string.Empty;
+    public string Reason { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public DateTime ObjectionDate { get; set; }
+    public Guid? ReviewedBy { get; set; }
+    public string? ReviewedByName { get; set; }
+    public DateTime? ReviewDate { get; set; }
+    public string? ReviewNotes { get; set; }
+    public double? OldScore { get; set; }
+    public double? NewScore { get; set; }
+}

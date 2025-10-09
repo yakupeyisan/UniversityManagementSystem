@@ -115,12 +115,12 @@ public class User : AuditableEntity, ISoftDelete
             _userRoles.Remove(userRole);
     }
 
-    public void Delete(string deletedBy)
+    public void Delete(string? deletedBy)
     {
         IsDeleted = true;
         DeletedAt = DateTime.UtcNow;
-        DeletedBy = deletedBy;
         IsActive = false;
+        DeletedBy = deletedBy;
     }
 
     public void Restore()

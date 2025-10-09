@@ -83,12 +83,12 @@ public class Faculty : AuditableEntity, ISoftDelete
     public void Activate() => IsActive = true;
     public void Deactivate() => IsActive = false;
 
-    public void Delete(string deletedBy)
+    public void Delete(string? deletedBy)
     {
         IsDeleted = true;
         DeletedAt = DateTime.UtcNow;
-        DeletedBy = deletedBy;
         IsActive = false;
+        DeletedBy = deletedBy;
     }
 
     public void Restore()
@@ -171,12 +171,12 @@ public class Department : AuditableEntity, ISoftDelete
     public void Activate() => IsActive = true;
     public void Deactivate() => IsActive = false;
 
-    public void Delete(string deletedBy)
+    public void Delete(string? deletedBy)
     {
         IsDeleted = true;
         DeletedAt = DateTime.UtcNow;
-        DeletedBy = deletedBy;
         IsActive = false;
+        DeletedBy = deletedBy;
     }
 
     public void Restore()
@@ -267,14 +267,68 @@ public class Course : AuditableEntity, ISoftDelete
             educationLevel, semester, description?.Trim());
     }
 
-    public void Update(string name, int theoreticalHours, int practicalHours,
-        int ects, int nationalCredit, int? semester, string? description)
+    /// <summary>
+    /// Dersi aktif hale getirir
+    /// </summary>
+    public void Activate()
+    {
+        if (IsDeleted)
+            throw new DomainException("Silinmiş ders aktif edilemez.");
+
+        IsActive = true;
+    }
+
+    /// <summary>
+    /// Dersi pasif hale getirir
+    /// </summary>
+    public void Deactivate()
+    {
+        IsActive = false;
+    }
+
+    /// <summary>
+    /// Dersi siler (soft delete)
+    /// </summary>
+    public void Delete(string? deletedBy = null)
+    {
+        IsDeleted = true;
+        DeletedAt = DateTime.UtcNow;
+        IsActive = false;
+        DeletedBy = deletedBy;
+    }
+
+    /// <summary>
+    /// Silinen dersi geri yükler
+    /// </summary>
+    public void Restore()
+    {
+        if (!IsDeleted)
+            throw new DomainException("Ders zaten aktif durumda.");
+
+        IsDeleted = false;
+        DeletedAt = null;
+    }
+
+    /// <summary>
+    /// Ders bilgilerini günceller
+    /// </summary>
+    public void Update(
+        string name,
+        int theoreticalHours,
+        int practicalHours,
+        int ects,
+        int nationalCredit,
+        int? semester = null,
+        string? description = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new DomainException("Ders adı boş olamaz.");
 
-        if (theoreticalHours < 0 || practicalHours < 0)
-            throw new DomainException("Ders saatleri negatif olamaz.");
+        if (theoreticalHours < 0)
+            throw new DomainException("Teorik saat negatif olamaz.");
+
+        if (practicalHours < 0)
+            throw new DomainException("Uygulama saati negatif olamaz.");
 
         if (ects <= 0)
             throw new DomainException("ECTS en az 1 olmalıdır.");
@@ -282,59 +336,78 @@ public class Course : AuditableEntity, ISoftDelete
         if (semester.HasValue && (semester < 1 || semester > 8))
             throw new DomainException("Dönem 1-8 arasında olmalıdır.");
 
-        Name = name.Trim();
+        Name = name;
         TheoreticalHours = theoreticalHours;
         PracticalHours = practicalHours;
         ECTS = ects;
         NationalCredit = nationalCredit;
         Semester = semester;
-        Description = description?.Trim();
+        Description = description;
     }
 
+    /// <summary>
+    /// Derse ön koşul ekler
+    /// </summary>
     public void AddPrerequisite(Guid prerequisiteCourseId)
     {
-        if (prerequisiteCourseId == Guid.Empty)
-            throw new DomainException("Geçersiz ön koşul ders ID.");
-
-        if (prerequisiteCourseId == Id)
-            throw new DomainException("Ders kendisinin ön koşulu olamaz.");
+        if (Id == prerequisiteCourseId)
+            throw new DomainException("Bir ders kendisinin ön koşulu olamaz.");
 
         if (_prerequisites.Any(p => p.PrerequisiteCourseId == prerequisiteCourseId))
-            throw new DomainException("Bu ön koşul zaten ekli.");
+            throw new DomainException("Bu ön koşul zaten eklenmiş.");
 
-        _prerequisites.Add(Prerequisite.Create(Id, prerequisiteCourseId));
+        var prerequisite = Prerequisite.Create(Id, prerequisiteCourseId);
+        _prerequisites.Add(prerequisite);
     }
 
+    /// <summary>
+    /// Dersten ön koşul kaldırır
+    /// </summary>
     public void RemovePrerequisite(Guid prerequisiteCourseId)
     {
         var prerequisite = _prerequisites.FirstOrDefault(p => p.PrerequisiteCourseId == prerequisiteCourseId);
-        if (prerequisite != null)
-            _prerequisites.Remove(prerequisite);
+
+        if (prerequisite == null)
+            throw new DomainException("Belirtilen ön koşul bulunamadı.");
+
+        _prerequisites.Remove(prerequisite);
     }
 
-    public int GetTotalWeeklyHours() => TheoreticalHours + PracticalHours;
-
-    public void Activate() => IsActive = true;
-    public void Deactivate() => IsActive = false;
-
-    public void Delete(string deletedBy)
+    /// <summary>
+    /// Toplam haftalık ders saatini hesaplar
+    /// </summary>
+    public int GetTotalWeeklyHours()
     {
-        IsDeleted = true;
-        DeletedAt = DateTime.UtcNow;
-        DeletedBy = deletedBy;
-        IsActive = false;
+        return TheoreticalHours + PracticalHours;
     }
 
-    public void Restore()
+    /// <summary>
+    /// Dersin zorunlu mu seçmeli mi olduğunu belirler
+    /// </summary>
+    public bool IsCompulsory()
     {
-        IsDeleted = false;
-        DeletedAt = null;
-        DeletedBy = null;
-        IsActive = true;
+        return CourseType == CourseType.Compulsory;
     }
+
+    /// <summary>
+    /// Dersin ön koşulları var mı kontrol eder
+    /// </summary>
+    public bool HasPrerequisites()
+    {
+        return _prerequisites.Any();
+    }
+
+    /// <summary>
+    /// Belirli bir ön koşulun var olup olmadığını kontrol eder
+    /// </summary>
+    public bool HasPrerequisite(Guid prerequisiteCourseId)
+    {
+        return _prerequisites.Any(p => p.PrerequisiteCourseId == prerequisiteCourseId);
+    }
+
 }
 
-public class Prerequisite : BaseEntity
+public class Prerequisite : AuditableEntity
 {
     public Guid CourseId { get; private set; }
     public Guid PrerequisiteCourseId { get; private set; }

@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Security.Claims;
+using UniversityMS.Domain.Entities.AcademicAggregate;
+using UniversityMS.Domain.Entities.EnrollmentAggregate;
 using UniversityMS.Domain.Entities.IdentityAggregate;
 using UniversityMS.Domain.Entities.PersonAggregate;
 
@@ -45,6 +47,18 @@ public interface IApplicationDbContext
     DbSet<Staff> Staffs { get; }
     DbSet<Address> Addresses { get; }
     DbSet<EmergencyContact> EmergencyContacts { get; }
+
+    public DbSet<Faculty> Faculties { get; }
+    public DbSet<Department> Departments { get; }
+    public DbSet<Course> Courses { get; }
+    public DbSet<Prerequisite> Prerequisites { get; }
+    public DbSet<Curriculum> Curriculums { get; }
+    public DbSet<CurriculumCourse> CurriculumCourses { get; }
+    public DbSet<Enrollment> Enrollments { get; }
+    public DbSet<CourseRegistration> CourseRegistrations { get; }
+    public DbSet<Grade> Grades { get; }
+    public DbSet<Attendance> Attendances { get; }
+    public DbSet<GradeObjection> GradeObjections { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

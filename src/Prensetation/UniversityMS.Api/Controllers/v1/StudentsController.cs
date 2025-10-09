@@ -83,12 +83,75 @@ public class StudentsController : BaseApiController
         return Ok(result);
     }
 
+    /// <summary>
+    /// Öğrenci sil (soft delete)
+    /// </summary>
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteStudent(Guid id)
     {
-        // TODO: DeleteStudentCommand implement edilecek
+        var command = new DeleteStudentCommand(id);
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
         return NoContent();
+    }
+
+    /// <summary>
+    /// Öğrenci durumunu güncelle
+    /// </summary>
+    [HttpPatch("{id:guid}/status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateStudentStatus(
+        Guid id,
+        [FromBody] UpdateStudentStatusCommand command)
+    {
+        if (id != command.StudentId)
+            return BadRequest("ID uyuşmazlığı");
+
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Öğrenci kayıt dondurma
+    /// </summary>
+    [HttpPost("{id:guid}/freeze")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> FreezeStudent(Guid id)
+    {
+        var command = new FreezeStudentCommand(id);
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Öğrenciyi mezun et
+    /// </summary>
+    [HttpPost("{id:guid}/graduate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GraduateStudent(Guid id)
+    {
+        var command = new GraduateStudentCommand(id);
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 }
 
@@ -318,6 +381,59 @@ public class CoursesController : BaseApiController
 
         return Ok(result);
     }
+    /// <summary>
+    /// Ders sil (soft delete)
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DeleteCourse(Guid id)
+    {
+        var command = new DeleteCourseCommand(id);
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Dersi aktif/pasif yap
+    /// </summary>
+    [HttpPatch("{id:guid}/active")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ToggleCourseActive(
+        Guid id,
+        [FromBody] ToggleCourseActiveCommand command)
+    {
+        if (id != command.CourseId)
+            return BadRequest("ID uyuşmazlığı");
+
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Ön koşul kaldır
+    /// </summary>
+    [HttpDelete("{id:guid}/prerequisites/{prerequisiteId:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> RemovePrerequisite(Guid id, Guid prerequisiteId)
+    {
+        var command = new RemovePrerequisiteCommand(id, prerequisiteId);
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
 }
 
 [Authorize]
@@ -499,6 +615,121 @@ public class GradesController : BaseApiController
             return BadRequest(result);
 
         return Ok(result);
+    }
+    /// <summary>
+    /// Not güncelle
+    /// </summary>
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateGrade(Guid id, [FromBody] UpdateGradeCommand command)
+    {
+        if (id != command.Id)
+            return BadRequest("ID uyuşmazlığı");
+
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Not sil
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteGrade(Guid id)
+    {
+        var command = new DeleteGradeCommand(id);
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Toplu not girişi
+    /// </summary>
+    [HttpPost("bulk")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> BulkCreateGrades([FromBody] BulkCreateGradesCommand command)
+    {
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Not itirazı oluştur
+    /// </summary>
+    [HttpPost("objections")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public async Task<IActionResult> CreateGradeObjection([FromBody] CreateGradeObjectionCommand command)
+    {
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return CreatedAtAction(nameof(GetGradeObjection), new { id = result.Data }, result);
+    }
+
+    /// <summary>
+    /// Not itirazını incele (onayla/reddet)
+    /// </summary>
+    [HttpPost("objections/{id:guid}/review")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ReviewGradeObjection(
+        Guid id,
+        [FromBody] ReviewGradeObjectionCommand command)
+    {
+        if (id != command.ObjectionId)
+            return BadRequest("ID uyuşmazlığı");
+
+        var result = await Mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Not itirazını getir
+    /// </summary>
+    [HttpGet("objections/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetGradeObjection(Guid id)
+    {
+        // GetGradeObjectionQuery implementation
+        // var query = new GetGradeObjectionQuery(id);
+        // var result = await Mediator.Send(query);
+
+        return Ok(new { message = "Not itirazı endpoint - implement edilecek" });
+    }
+
+    /// <summary>
+    /// Bekleyen not itirazlarını listele
+    /// </summary>
+    [HttpGet("objections/pending")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPendingGradeObjections(
+        [FromQuery] Guid? courseId = null,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        // GetPendingGradeObjectionsQuery implementation
+        return Ok(new { message = "Bekleyen itirazlar endpoint - implement edilecek" });
     }
 }
 

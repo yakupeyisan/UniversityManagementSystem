@@ -95,6 +95,6 @@ public interface ISoftDelete
     DateTime? DeletedAt { get; set; }
     string? DeletedBy { get; set; }
 
-    void Delete(string deletedBy);
+    void Delete(string? deletedBy = null);
     void Restore();
 }

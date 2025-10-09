@@ -338,3 +338,64 @@ public class Attendance : AuditableEntity
         Notes = notes;
     }
 }
+
+public class GradeObjection : AuditableEntity
+{
+    public Guid GradeId { get; private set; }
+    public Guid StudentId { get; private set; }
+    public Guid CourseId { get; private set; }
+    public string Reason { get; private set; }
+    public ObjectionStatus Status { get; private set; }
+    public DateTime ObjectionDate { get; private set; }
+    public Guid? ReviewedBy { get; private set; }
+    public DateTime? ReviewDate { get; private set; }
+    public string? ReviewNotes { get; private set; }
+    public double? OldScore { get; private set; }
+    public double? NewScore { get; private set; }
+
+    // Navigation
+    public Grade Grade { get; private set; } = null!;
+
+    private GradeObjection() { }
+
+    private GradeObjection(Guid gradeId, Guid studentId, Guid courseId, string reason)
+    {
+        GradeId = gradeId;
+        StudentId = studentId;
+        CourseId = courseId;
+        Reason = reason;
+        Status = ObjectionStatus.Pending;
+        ObjectionDate = DateTime.UtcNow;
+    }
+
+    public static GradeObjection Create(Guid gradeId, Guid studentId, Guid courseId, string reason)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new DomainException("İtiraz nedeni belirtilmelidir.");
+
+        return new GradeObjection(gradeId, studentId, courseId, reason);
+    }
+
+    public void Approve(Guid reviewedBy, double newScore, string? notes = null)
+    {
+        if (Status != ObjectionStatus.Pending)
+            throw new DomainException("Sadece beklemedeki itirazlar onaylanabilir.");
+
+        Status = ObjectionStatus.Approved;
+        ReviewedBy = reviewedBy;
+        ReviewDate = DateTime.UtcNow;
+        ReviewNotes = notes;
+        NewScore = newScore;
+    }
+
+    public void Reject(Guid reviewedBy, string? notes = null)
+    {
+        if (Status != ObjectionStatus.Pending)
+            throw new DomainException("Sadece beklemedeki itirazlar reddedilebilir.");
+
+        Status = ObjectionStatus.Rejected;
+        ReviewedBy = reviewedBy;
+        ReviewDate = DateTime.UtcNow;
+        ReviewNotes = notes;
+    }
+}

@@ -171,3 +171,325 @@ public class BulkCreateGradesCommandHandler : IRequestHandler<BulkCreateGradesCo
         }
     }
 }
+
+public record UpdateGradeCommand(
+    Guid Id,
+    double NumericScore,
+    string? Notes = null
+) : IRequest<Result>;
+
+public class UpdateGradeCommandValidator : AbstractValidator<UpdateGradeCommand>
+{
+    public UpdateGradeCommandValidator()
+    {
+        RuleFor(x => x.Id)
+            .NotEmpty().WithMessage("Not ID gereklidir.");
+
+        RuleFor(x => x.NumericScore)
+            .InclusiveBetween(0, 100).WithMessage("Not 0-100 arasında olmalıdır.");
+
+        RuleFor(x => x.Notes)
+            .MaximumLength(500).WithMessage("Notlar en fazla 500 karakter olabilir.");
+    }
+}
+
+public class UpdateGradeCommandHandler : IRequestHandler<UpdateGradeCommand, Result>
+{
+    private readonly IRepository<Grade> _gradeRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<UpdateGradeCommandHandler> _logger;
+
+    public UpdateGradeCommandHandler(
+        IRepository<Grade> gradeRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<UpdateGradeCommandHandler> logger)
+    {
+        _gradeRepository = gradeRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result> Handle(UpdateGradeCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var grade = await _gradeRepository.GetByIdAsync(request.Id, cancellationToken);
+
+            if (grade == null)
+            {
+                _logger.LogWarning("Grade not found for update. GradeId: {GradeId}", request.Id);
+                return Result.Failure("Not kaydı bulunamadı.");
+            }
+
+            // Update grade
+            grade.Update(request.NumericScore, request.Notes);
+
+            await _gradeRepository.UpdateAsync(grade, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Grade updated successfully. GradeId: {GradeId}, NewScore: {Score}",
+                request.Id, request.NumericScore);
+
+            return Result.Success("Not başarıyla güncellendi.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while updating grade. GradeId: {GradeId}", request.Id);
+            return Result.Failure("Not güncellenirken bir hata oluştu.", ex.Message);
+        }
+    }
+}
+
+public record DeleteGradeCommand(Guid Id) : IRequest<Result>;
+
+public class DeleteGradeCommandValidator : AbstractValidator<DeleteGradeCommand>
+{
+    public DeleteGradeCommandValidator()
+    {
+        RuleFor(x => x.Id)
+            .NotEmpty().WithMessage("Not ID gereklidir.");
+    }
+}
+
+public class DeleteGradeCommandHandler : IRequestHandler<DeleteGradeCommand, Result>
+{
+    private readonly IRepository<Grade> _gradeRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<DeleteGradeCommandHandler> _logger;
+
+    public DeleteGradeCommandHandler(
+        IRepository<Grade> gradeRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<DeleteGradeCommandHandler> logger)
+    {
+        _gradeRepository = gradeRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result> Handle(DeleteGradeCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var grade = await _gradeRepository.GetByIdAsync(request.Id, cancellationToken);
+
+            if (grade == null)
+            {
+                _logger.LogWarning("Grade not found for deletion. GradeId: {GradeId}", request.Id);
+                return Result.Failure("Not kaydı bulunamadı.");
+            }
+
+            await _gradeRepository.DeleteAsync(grade, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Grade deleted successfully. GradeId: {GradeId}", request.Id);
+
+            return Result.Success("Not başarıyla silindi.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while deleting grade. GradeId: {GradeId}", request.Id);
+            return Result.Failure("Not silinirken bir hata oluştu.", ex.Message);
+        }
+    }
+}
+
+public record CreateGradeObjectionCommand(
+    Guid GradeId,
+    Guid StudentId,
+    Guid CourseId,
+    string Reason
+) : IRequest<Result<Guid>>;
+
+public class CreateGradeObjectionCommandValidator : AbstractValidator<CreateGradeObjectionCommand>
+{
+    public CreateGradeObjectionCommandValidator()
+    {
+        RuleFor(x => x.GradeId)
+            .NotEmpty().WithMessage("Not ID gereklidir.");
+
+        RuleFor(x => x.StudentId)
+            .NotEmpty().WithMessage("Öğrenci ID gereklidir.");
+
+        RuleFor(x => x.CourseId)
+            .NotEmpty().WithMessage("Ders ID gereklidir.");
+
+        RuleFor(x => x.Reason)
+            .NotEmpty().WithMessage("İtiraz nedeni belirtilmelidir.")
+            .MinimumLength(10).WithMessage("İtiraz nedeni en az 10 karakter olmalıdır.")
+            .MaximumLength(1000).WithMessage("İtiraz nedeni en fazla 1000 karakter olabilir.");
+    }
+}
+
+public class CreateGradeObjectionCommandHandler : IRequestHandler<CreateGradeObjectionCommand, Result<Guid>>
+{
+    private readonly IRepository<Grade> _gradeRepository;
+    // private readonly IRepository<GradeObjection> _objectionRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<CreateGradeObjectionCommandHandler> _logger;
+
+    public CreateGradeObjectionCommandHandler(
+        IRepository<Grade> gradeRepository,
+        // IRepository<GradeObjection> objectionRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<CreateGradeObjectionCommandHandler> logger)
+    {
+        _gradeRepository = gradeRepository;
+        // _objectionRepository = objectionRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result<Guid>> Handle(CreateGradeObjectionCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Verify grade exists
+            var grade = await _gradeRepository.GetByIdAsync(request.GradeId, cancellationToken);
+            if (grade == null)
+                return Result.Failure<Guid>("Not kaydı bulunamadı.");
+
+            // Verify student owns the grade
+            if (grade.StudentId != request.StudentId)
+                return Result.Failure<Guid>("Bu nota itiraz etme yetkiniz yok.");
+
+            /*
+            // Check if objection already exists
+            var existingObjection = await _objectionRepository.FirstOrDefaultAsync(
+                o => o.GradeId == request.GradeId && o.Status == ObjectionStatus.Pending,
+                cancellationToken);
+
+            if (existingObjection != null)
+                return Result.Failure<Guid>("Bu not için zaten bekleyen bir itiraz var.");
+
+            // Create objection
+            var objection = GradeObjection.Create(
+                request.GradeId,
+                request.StudentId,
+                request.CourseId,
+                request.Reason
+            );
+
+            await _objectionRepository.AddAsync(objection, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Grade objection created. ObjectionId: {ObjectionId}, GradeId: {GradeId}",
+                objection.Id, request.GradeId);
+
+            return Result.Success(objection.Id, "Not itirazı başarıyla oluşturuldu.");
+            */
+
+            // Placeholder until GradeObjection entity is added
+            _logger.LogInformation("Grade objection request received for GradeId: {GradeId}", request.GradeId);
+            return Result.Success(Guid.NewGuid(), "Not itirazı alındı. (Geçici yanıt)");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating grade objection");
+            return Result.Failure<Guid>("Not itirazı oluşturulurken bir hata oluştu.", ex.Message);
+        }
+    }
+}
+
+public record ReviewGradeObjectionCommand(
+    Guid ObjectionId,
+    Guid ReviewedBy,
+    bool IsApproved,
+    double? NewScore = null,
+    string? ReviewNotes = null
+) : IRequest<Result>;
+
+public class ReviewGradeObjectionCommandValidator : AbstractValidator<ReviewGradeObjectionCommand>
+{
+    public ReviewGradeObjectionCommandValidator()
+    {
+        RuleFor(x => x.ObjectionId)
+            .NotEmpty().WithMessage("İtiraz ID gereklidir.");
+
+        RuleFor(x => x.ReviewedBy)
+            .NotEmpty().WithMessage("İncelemeyi yapan kişi belirtilmelidir.");
+
+        RuleFor(x => x.NewScore)
+            .InclusiveBetween(0, 100)
+            .When(x => x.IsApproved && x.NewScore.HasValue)
+            .WithMessage("Yeni not 0-100 arasında olmalıdır.");
+
+        RuleFor(x => x.NewScore)
+            .NotNull()
+            .When(x => x.IsApproved)
+            .WithMessage("İtiraz onaylanıyorsa yeni not girilmelidir.");
+
+        RuleFor(x => x.ReviewNotes)
+            .MaximumLength(1000).WithMessage("İnceleme notları en fazla 1000 karakter olabilir.");
+    }
+}
+
+public class ReviewGradeObjectionCommandHandler : IRequestHandler<ReviewGradeObjectionCommand, Result>
+{
+    // private readonly IRepository<GradeObjection> _objectionRepository;
+    private readonly IRepository<Grade> _gradeRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<ReviewGradeObjectionCommandHandler> _logger;
+
+    public ReviewGradeObjectionCommandHandler(
+        // IRepository<GradeObjection> objectionRepository,
+        IRepository<Grade> gradeRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<ReviewGradeObjectionCommandHandler> logger)
+    {
+        // _objectionRepository = objectionRepository;
+        _gradeRepository = gradeRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result> Handle(ReviewGradeObjectionCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            /*
+            var objection = await _objectionRepository.GetByIdAsync(request.ObjectionId, cancellationToken);
+            if (objection == null)
+                return Result.Failure("İtiraz kaydı bulunamadı.");
+
+            if (request.IsApproved)
+            {
+                // Approve objection and update grade
+                objection.Approve(request.ReviewedBy, request.NewScore!.Value, request.ReviewNotes);
+
+                var grade = await _gradeRepository.GetByIdAsync(objection.GradeId, cancellationToken);
+                if (grade != null)
+                {
+                    objection.OldScore = grade.NumericScore;
+                    grade.Update(request.NewScore!.Value, $"İtiraz sonucu güncellendi. {request.ReviewNotes}");
+                    await _gradeRepository.UpdateAsync(grade, cancellationToken);
+                }
+            }
+            else
+            {
+                // Reject objection
+                objection.Reject(request.ReviewedBy, request.ReviewNotes);
+            }
+
+            await _objectionRepository.UpdateAsync(objection, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            var action = request.IsApproved ? "onaylandı" : "reddedildi";
+            _logger.LogInformation("Grade objection {Action}. ObjectionId: {ObjectionId}",
+                action, request.ObjectionId);
+
+            return Result.Success($"Not itirazı {action}.");
+            */
+
+            // Placeholder
+            var action = request.IsApproved ? "onaylandı" : "reddedildi";
+            _logger.LogInformation("Grade objection review: {ObjectionId} - {Action}", request.ObjectionId, action);
+            return Result.Success($"Not itirazı {action}. (Geçici yanıt)");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reviewing grade objection");
+            return Result.Failure("Not itirazı incelenirken bir hata oluştu.", ex.Message);
+        }
+    }
+}

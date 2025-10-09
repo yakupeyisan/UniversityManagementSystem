@@ -13,12 +13,11 @@ public class CourseDto
     public CourseType CourseType { get; set; }
     public int TheoreticalHours { get; set; }
     public int PracticalHours { get; set; }
-    public int TotalWeeklyHours { get; set; }
     public int ECTS { get; set; }
     public int NationalCredit { get; set; }
     public EducationLevel EducationLevel { get; set; }
     public int? Semester { get; set; }
     public bool IsActive { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public int TotalWeeklyHours { get; set; }
     public List<PrerequisiteCourseDto> Prerequisites { get; set; } = new();
 }

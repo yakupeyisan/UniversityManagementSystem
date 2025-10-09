@@ -10,9 +10,7 @@ public class EnrollmentDto
     public int Semester { get; set; }
     public EnrollmentStatus Status { get; set; }
     public DateTime EnrollmentDate { get; set; }
-    public DateTime? ApprovalDate { get; set; }
-    public Guid? ApprovedBy { get; set; }
-    public int TotalECTS { get; set; }
-    public int TotalNationalCredit { get; set; }
-    public List<CourseRegistrationDto> CourseRegistrations { get; set; } = new();
+    public DateTime? ApprovedDate { get; set; }
+    public DateTime? DroppedDate { get; set; }
 }
+

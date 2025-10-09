@@ -228,6 +228,15 @@ public class FacultiesController : BaseApiController
 
         return NoContent();
     }
+    [HttpGet]
+    public async Task<IActionResult> GetFaculties(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var result = await Mediator.Send(new GetFacultyListQuery(pageNumber, pageSize));
+        return Ok(result);
+    }
+
 }
 
 [Authorize]
@@ -290,6 +299,17 @@ public class DepartmentsController : BaseApiController
 
         return Ok(result);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetDepartments(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] Guid? facultyId = null)
+    {
+        var result = await Mediator.Send(new GetDepartmentListQuery(pageNumber, pageSize, facultyId));
+        return Ok(result);
+    }
+
 }
 
 [Authorize]
@@ -432,6 +452,17 @@ public class CoursesController : BaseApiController
         if (!result.IsSuccess)
             return BadRequest(result);
 
+        return Ok(result);
+    }
+    [HttpGet]
+    public async Task<IActionResult> GetCourses(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] Guid? departmentId = null,
+        [FromQuery] string? searchTerm = null)
+    {
+        var result = await Mediator.Send(new GetCourseListQuery(
+            pageNumber, pageSize, departmentId, searchTerm));
         return Ok(result);
     }
 }
@@ -624,7 +655,7 @@ public class GradesController : BaseApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateGrade(Guid id, [FromBody] UpdateGradeCommand command)
     {
-        if (id != command.Id)
+        if (id != command.GradeId)
             return BadRequest("ID uyuşmazlığı");
 
         var result = await Mediator.Send(command);
@@ -714,6 +745,45 @@ public class GradesController : BaseApiController
     {
         // GetPendingGradeObjectionsQuery implementation
         return Ok(new { message = "Bekleyen itirazlar endpoint - implement edilecek" });
+    }
+    [HttpPost]
+    public async Task<IActionResult> SubmitGrade([FromBody] SubmitGradeCommand command)
+    {
+        var result = await Mediator.Send(command);
+        if (!result.IsSuccess)
+            return BadRequest(result);
+        return Ok(result);
+    }
+
+
+    [HttpGet("course/{courseId:guid}")]
+    public async Task<IActionResult> GetCourseGrades(Guid courseId)
+    {
+        var result = await Mediator.Send(new GetCourseGradesQuery(courseId));
+        return Ok(result);
+    }
+
+    [HttpGet("transcript/{studentId:guid}")]
+    public async Task<IActionResult> GetTranscript(Guid studentId)
+    {
+        var result = await Mediator.Send(new GetTranscriptQuery(studentId));
+        return result.IsSuccess ? Ok(result) : NotFound(result);
+    }
+
+    [HttpPost("objection")]
+    public async Task<IActionResult> ObjectToGrade([FromBody] ObjectToGradeCommand command)
+    {
+        var result = await Mediator.Send(command);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpPut("objection/{objectionId:guid}/review")]
+    public async Task<IActionResult> ReviewObjection(Guid objectionId, [FromBody] ReviewGradeObjectionCommand command)
+    {
+        if (objectionId != command.ObjectionId)
+            return BadRequest("ID mismatch");
+        var result = await Mediator.Send(command);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
 }
 

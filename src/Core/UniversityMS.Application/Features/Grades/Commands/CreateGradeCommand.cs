@@ -174,7 +174,7 @@ public class BulkCreateGradesCommandHandler : IRequestHandler<BulkCreateGradesCo
 }
 
 public record UpdateGradeCommand(
-    Guid Id,
+    Guid GradeId,
     double NumericScore,
     string? Notes = null
 ) : IRequest<Result>;
@@ -183,14 +183,8 @@ public class UpdateGradeCommandValidator : AbstractValidator<UpdateGradeCommand>
 {
     public UpdateGradeCommandValidator()
     {
-        RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Not ID gereklidir.");
-
-        RuleFor(x => x.NumericScore)
-            .InclusiveBetween(0, 100).WithMessage("Not 0-100 arasında olmalıdır.");
-
-        RuleFor(x => x.Notes)
-            .MaximumLength(500).WithMessage("Notlar en fazla 500 karakter olabilir.");
+        RuleFor(x => x.GradeId).NotEmpty();
+        RuleFor(x => x.NumericScore).InclusiveBetween(0, 100);
     }
 }
 
@@ -214,29 +208,20 @@ public class UpdateGradeCommandHandler : IRequestHandler<UpdateGradeCommand, Res
     {
         try
         {
-            var grade = await _gradeRepository.GetByIdAsync(request.Id, cancellationToken);
-
+            var grade = await _gradeRepository.GetByIdAsync(request.GradeId, cancellationToken);
             if (grade == null)
-            {
-                _logger.LogWarning("Grade not found for update. GradeId: {GradeId}", request.Id);
-                return Result.Failure("Not kaydı bulunamadı.");
-            }
+                return Result.Failure("Not bulunamadı.");
 
-            // Update grade
             grade.Update(request.NumericScore, request.Notes);
-
             await _gradeRepository.UpdateAsync(grade, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Grade updated successfully. GradeId: {GradeId}, NewScore: {Score}",
-                request.Id, request.NumericScore);
-
-            return Result.Success("Not başarıyla güncellendi.");
+            return Result.Success("Not güncellendi.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while updating grade. GradeId: {GradeId}", request.Id);
-            return Result.Failure("Not güncellenirken bir hata oluştu.", ex.Message);
+            _logger.LogError(ex, "Error updating grade");
+            return Result.Failure("Not güncellenirken hata oluştu.");
         }
     }
 }
@@ -404,41 +389,28 @@ public class ReviewGradeObjectionCommandValidator : AbstractValidator<ReviewGrad
 {
     public ReviewGradeObjectionCommandValidator()
     {
-        RuleFor(x => x.ObjectionId)
-            .NotEmpty().WithMessage("İtiraz ID gereklidir.");
-
-        RuleFor(x => x.ReviewedBy)
-            .NotEmpty().WithMessage("İncelemeyi yapan kişi belirtilmelidir.");
-
+        RuleFor(x => x.ObjectionId).NotEmpty();
+        RuleFor(x => x.ReviewedBy).NotEmpty();
         RuleFor(x => x.NewScore)
             .InclusiveBetween(0, 100)
-            .When(x => x.IsApproved && x.NewScore.HasValue)
-            .WithMessage("Yeni not 0-100 arasında olmalıdır.");
-
-        RuleFor(x => x.NewScore)
-            .NotNull()
-            .When(x => x.IsApproved)
-            .WithMessage("İtiraz onaylanıyorsa yeni not girilmelidir.");
-
-        RuleFor(x => x.ReviewNotes)
-            .MaximumLength(1000).WithMessage("İnceleme notları en fazla 1000 karakter olabilir.");
+            .When(x => x.IsApproved && x.NewScore.HasValue);
     }
 }
 
 public class ReviewGradeObjectionCommandHandler : IRequestHandler<ReviewGradeObjectionCommand, Result>
 {
-    // private readonly IRepository<GradeObjection> _objectionRepository;
+    private readonly IRepository<GradeObjection> _objectionRepository;
     private readonly IRepository<Grade> _gradeRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<ReviewGradeObjectionCommandHandler> _logger;
 
     public ReviewGradeObjectionCommandHandler(
-        // IRepository<GradeObjection> objectionRepository,
+        IRepository<GradeObjection> objectionRepository,
         IRepository<Grade> gradeRepository,
         IUnitOfWork unitOfWork,
         ILogger<ReviewGradeObjectionCommandHandler> logger)
     {
-        // _objectionRepository = objectionRepository;
+        _objectionRepository = objectionRepository;
         _gradeRepository = gradeRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
@@ -448,52 +420,42 @@ public class ReviewGradeObjectionCommandHandler : IRequestHandler<ReviewGradeObj
     {
         try
         {
-            /*
             var objection = await _objectionRepository.GetByIdAsync(request.ObjectionId, cancellationToken);
             if (objection == null)
-                return Result.Failure("İtiraz kaydı bulunamadı.");
+                return Result.Failure("İtiraz bulunamadı.");
 
             if (request.IsApproved)
             {
-                // Approve objection and update grade
-                objection.Approve(request.ReviewedBy, request.NewScore!.Value, request.ReviewNotes);
+                if (!request.NewScore.HasValue)
+                    return Result.Failure("Yeni not belirtilmelidir.");
+
+                objection.Approve(request.ReviewedBy, request.NewScore.Value, request.ReviewNotes);
 
                 var grade = await _gradeRepository.GetByIdAsync(objection.GradeId, cancellationToken);
                 if (grade != null)
                 {
-                    objection.OldScore = grade.NumericScore;
-                    grade.Update(request.NewScore!.Value, $"İtiraz sonucu güncellendi. {request.ReviewNotes}");
+                    grade.Update(request.NewScore.Value, request.ReviewNotes);
                     await _gradeRepository.UpdateAsync(grade, cancellationToken);
                 }
             }
             else
             {
-                // Reject objection
                 objection.Reject(request.ReviewedBy, request.ReviewNotes);
             }
 
             await _objectionRepository.UpdateAsync(objection, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var action = request.IsApproved ? "onaylandı" : "reddedildi";
-            _logger.LogInformation("Grade objection {Action}. ObjectionId: {ObjectionId}",
-                action, request.ObjectionId);
-
-            return Result.Success($"Not itirazı {action}.");
-            */
-
-            // Placeholder
-            var action = request.IsApproved ? "onaylandı" : "reddedildi";
-            _logger.LogInformation("Grade objection review: {ObjectionId} - {Action}", request.ObjectionId, action);
-            return Result.Success($"Not itirazı {action}. (Geçici yanıt)");
+            return Result.Success(request.IsApproved ? "İtiraz onaylandı." : "İtiraz reddedildi.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error reviewing grade objection");
-            return Result.Failure("Not itirazı incelenirken bir hata oluştu.", ex.Message);
+            _logger.LogError(ex, "Error reviewing objection");
+            return Result.Failure("İtiraz işlenirken hata oluştu.");
         }
     }
 }
+
 
 public record ToggleCourseActiveCommand(
     Guid CourseId,
@@ -619,6 +581,162 @@ public class RemovePrerequisiteCommandHandler : IRequestHandler<RemovePrerequisi
         {
             _logger.LogError(ex, "Error removing prerequisite. CourseId: {CourseId}", request.CourseId);
             return Result.Failure("Ön koşul kaldırılırken bir hata oluştu.", ex.Message);
+        }
+    }
+}
+
+public record SubmitGradeCommand(
+    Guid CourseRegistrationId,
+    Guid StudentId,
+    Guid CourseId,
+    GradeType GradeType,
+    double NumericScore,
+    double Weight,
+    Guid? InstructorId = null,
+    string? Notes = null
+) : IRequest<Result<Guid>>;
+
+public class SubmitGradeCommandValidator : AbstractValidator<SubmitGradeCommand>
+{
+    public SubmitGradeCommandValidator()
+    {
+        RuleFor(x => x.CourseRegistrationId)
+            .NotEmpty().WithMessage("Ders kayıt ID gereklidir.");
+
+        RuleFor(x => x.StudentId)
+            .NotEmpty().WithMessage("Öğrenci ID gereklidir.");
+
+        RuleFor(x => x.CourseId)
+            .NotEmpty().WithMessage("Ders ID gereklidir.");
+
+        RuleFor(x => x.NumericScore)
+            .InclusiveBetween(0, 100).WithMessage("Not 0-100 arasında olmalıdır.");
+
+        RuleFor(x => x.Weight)
+            .InclusiveBetween(0, 1).WithMessage("Ağırlık 0-1 arasında olmalıdır.");
+    }
+}
+
+public class SubmitGradeCommandHandler : IRequestHandler<SubmitGradeCommand, Result<Guid>>
+{
+    private readonly IRepository<Grade> _gradeRepository;
+    private readonly IRepository<CourseRegistration> _courseRegistrationRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<SubmitGradeCommandHandler> _logger;
+
+    public SubmitGradeCommandHandler(
+        IRepository<Grade> gradeRepository,
+        IRepository<CourseRegistration> courseRegistrationRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<SubmitGradeCommandHandler> logger)
+    {
+        _gradeRepository = gradeRepository;
+        _courseRegistrationRepository = courseRegistrationRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result<Guid>> Handle(SubmitGradeCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Verify course registration exists
+            var courseRegistration = await _courseRegistrationRepository.GetByIdAsync(
+                request.CourseRegistrationId, cancellationToken);
+
+            if (courseRegistration == null)
+                return Result.Failure<Guid>("Ders kaydı bulunamadı.");
+
+            // Check if grade already exists for this type
+            var existingGrade = await _gradeRepository.FirstOrDefaultAsync(
+                g => g.CourseRegistrationId == request.CourseRegistrationId &&
+                     g.GradeType == request.GradeType,
+                cancellationToken);
+
+            if (existingGrade != null)
+                return Result.Failure<Guid>("Bu sınav türü için not zaten girilmiş.");
+
+            var grade = Grade.Create(
+                request.CourseRegistrationId,
+                request.StudentId,
+                request.CourseId,
+                request.GradeType,
+                request.NumericScore,
+                request.Weight,
+                request.InstructorId
+            );
+
+            if (!string.IsNullOrWhiteSpace(request.Notes))
+                grade.Update(request.NumericScore, request.Notes);
+
+            await _gradeRepository.AddAsync(grade, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Grade submitted: {GradeId} for student {StudentId}",
+                grade.Id, request.StudentId);
+
+            return Result.Success(grade.Id, "Not başarıyla kaydedildi.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error submitting grade");
+            return Result.Failure<Guid>("Not kaydedilirken bir hata oluştu.", ex.Message);
+        }
+    }
+}
+public record ObjectToGradeCommand(
+    Guid GradeId,
+    Guid StudentId,
+    Guid CourseId,
+    string Reason
+) : IRequest<Result<Guid>>;
+
+public class ObjectToGradeCommandValidator : AbstractValidator<ObjectToGradeCommand>
+{
+    public ObjectToGradeCommandValidator()
+    {
+        RuleFor(x => x.GradeId).NotEmpty();
+        RuleFor(x => x.StudentId).NotEmpty();
+        RuleFor(x => x.Reason).NotEmpty().MinimumLength(20).MaximumLength(1000);
+    }
+}
+
+public class ObjectToGradeCommandHandler : IRequestHandler<ObjectToGradeCommand, Result<Guid>>
+{
+    private readonly IRepository<GradeObjection> _objectionRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<ObjectToGradeCommandHandler> _logger;
+
+    public ObjectToGradeCommandHandler(
+        IRepository<GradeObjection> objectionRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<ObjectToGradeCommandHandler> logger)
+    {
+        _objectionRepository = objectionRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result<Guid>> Handle(ObjectToGradeCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var objection = GradeObjection.Create(
+                request.GradeId,
+                request.StudentId,
+                request.CourseId,
+                request.Reason
+            );
+
+            await _objectionRepository.AddAsync(objection, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return Result.Success(objection.Id, "İtiraz kaydedildi.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating objection");
+            return Result.Failure<Guid>("İtiraz kaydedilemedi.");
         }
     }
 }

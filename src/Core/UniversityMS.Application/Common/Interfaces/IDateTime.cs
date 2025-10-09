@@ -47,19 +47,19 @@ public interface IApplicationDbContext
     DbSet<Staff> Staffs { get; }
     DbSet<Address> Addresses { get; }
     DbSet<EmergencyContact> EmergencyContacts { get; }
+    DbSet<Faculty> Faculties { get; }
+    DbSet<Department> Departments { get; }
+    DbSet<Course> Courses { get; }
+    DbSet<Prerequisite> Prerequisites { get; }
+    DbSet<Curriculum> Curriculums { get; }
+    DbSet<CurriculumCourse> CurriculumCourses { get; }
+    DbSet<Enrollment> Enrollments { get; }
+    DbSet<CourseRegistration> CourseRegistrations { get; }
+    DbSet<Grade> Grades { get; }
+    DbSet<Attendance> Attendances { get; }
+    DbSet<GradeObjection> GradeObjections { get; }
 
-    public DbSet<Faculty> Faculties { get; }
-    public DbSet<Department> Departments { get; }
-    public DbSet<Course> Courses { get; }
-    public DbSet<Prerequisite> Prerequisites { get; }
-    public DbSet<Curriculum> Curriculums { get; }
-    public DbSet<CurriculumCourse> CurriculumCourses { get; }
-    public DbSet<Enrollment> Enrollments { get; }
-    public DbSet<CourseRegistration> CourseRegistrations { get; }
-    public DbSet<Grade> Grades { get; }
-    public DbSet<Attendance> Attendances { get; }
-    public DbSet<GradeObjection> GradeObjections { get; }
-
+    DbSet<T> Set<T>() where T : class;
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
 

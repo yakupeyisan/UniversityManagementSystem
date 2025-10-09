@@ -12,8 +12,58 @@ public record CreateDepartmentCommand(
     string Name,
     string Code,
     Guid FacultyId,
-    string? Description
+    string? Description = null
 ) : IRequest<Result<Guid>>;
+
+public class CreateDepartmentCommandValidator : AbstractValidator<CreateDepartmentCommand>
+{
+    public CreateDepartmentCommandValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Code).NotEmpty().MaximumLength(20);
+        RuleFor(x => x.FacultyId).NotEmpty();
+    }
+}
+
+public class CreateDepartmentCommandHandler : IRequestHandler<CreateDepartmentCommand, Result<Guid>>
+{
+    private readonly IRepository<Department> _departmentRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<CreateDepartmentCommandHandler> _logger;
+
+    public CreateDepartmentCommandHandler(
+        IRepository<Department> departmentRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<CreateDepartmentCommandHandler> logger)
+    {
+        _departmentRepository = departmentRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result<Guid>> Handle(CreateDepartmentCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var department = Department.Create(
+                request.Name,
+                request.Code,
+                request.FacultyId,
+                request.Description
+            );
+
+            await _departmentRepository.AddAsync(department, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return Result.Success(department.Id, "Bölüm oluşturuldu.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating department");
+            return Result.Failure<Guid>("Bölüm oluşturulamadı.");
+        }
+    }
+}
 
 
 public record AssignDepartmentHeadCommand(

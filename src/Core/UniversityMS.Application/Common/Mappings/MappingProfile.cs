@@ -82,7 +82,8 @@ public class MappingProfile : Profile
         // Grade Mappings
         CreateMap<Grade, GradeDto>()
             .ForMember(d => d.CourseName, opt => opt.MapFrom(s => s.CourseRegistration.Course.Name))
-            .ForMember(d => d.CourseCode, opt => opt.MapFrom(s => s.CourseRegistration.Course.Code));
+            .ForMember(d => d.CourseCode, opt => opt.MapFrom(s => s.CourseRegistration.Course.Code))
+            .ForMember(d => d.InstructorId, opt => opt.MapFrom(s => s.InstructorId)); ;
 
         // Attendance Mappings
         CreateMap<Attendance, AttendanceDto>();

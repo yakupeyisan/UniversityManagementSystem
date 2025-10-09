@@ -15,7 +15,7 @@ public static class DependencyInjection
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
 
         // AutoMapper
-        services.AddAutoMapper(assembly);
+        services.AddAutoMapper(cfg => { }, assembly);
 
         // FluentValidation
         services.AddValidatorsFromAssembly(assembly);

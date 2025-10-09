@@ -86,8 +86,8 @@ public enum AttendanceMethod
 
 public enum ObjectionStatus
 {
-    Pending = 0,
-    Approved = 1,
-    Rejected = 2,
-    UnderReview = 3
+    Pending = 0,        // Beklemede
+    UnderReview = 1,    // İnceleme altında
+    Approved = 2,       // Onaylandı
+    Rejected = 3        // Reddedildi
 }

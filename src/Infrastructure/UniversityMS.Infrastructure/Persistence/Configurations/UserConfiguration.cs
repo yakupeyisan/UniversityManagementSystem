@@ -540,11 +540,17 @@ public class CurriculumConfiguration : IEntityTypeConfiguration<Curriculum>
             .HasMaxLength(10); // Örn: "2024-2025"
 
         builder.Property(c => c.EducationLevel).IsRequired();
+        builder.Property(c => c.StartYear).IsRequired();
+        builder.Property(c => c.EndYear);
         builder.Property(c => c.TotalECTS).IsRequired();
+        builder.Property(c => c.TotalRequiredECTS).IsRequired();
+        builder.Property(c => c.TotalRequiredNationalCredit).IsRequired();
         builder.Property(c => c.IsActive).IsRequired().HasDefaultValue(true);
 
         // Soft Delete
         builder.Property(c => c.IsDeleted).IsRequired().HasDefaultValue(false);
+        builder.Property(c => c.DeletedAt);
+        builder.Property(c => c.DeletedBy).HasMaxLength(100);
 
         // Audit fields
         builder.Property(c => c.CreatedAt).IsRequired();
@@ -585,6 +591,8 @@ public class CurriculumCourseConfiguration : IEntityTypeConfiguration<Curriculum
         // Audit fields
         builder.Property(cc => cc.CreatedAt).IsRequired();
         builder.Property(cc => cc.CreatedBy).HasMaxLength(100);
+        builder.Property(cc => cc.UpdatedAt);
+        builder.Property(cc => cc.UpdatedBy).HasMaxLength(100);
 
         // Relationships
         builder.HasOne(cc => cc.Curriculum)
@@ -628,6 +636,8 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
 
         // Soft Delete
         builder.Property(e => e.IsDeleted).IsRequired().HasDefaultValue(false);
+        builder.Property(e => e.DeletedAt);
+        builder.Property(e => e.DeletedBy).HasMaxLength(100);
 
         // Audit fields
         builder.Property(e => e.CreatedAt).IsRequired();
@@ -670,6 +680,8 @@ public class CourseRegistrationConfiguration : IEntityTypeConfiguration<CourseRe
 
         // Soft Delete
         builder.Property(cr => cr.IsDeleted).IsRequired().HasDefaultValue(false);
+        builder.Property(cr => cr.DeletedAt);
+        builder.Property(cr => cr.DeletedBy).HasMaxLength(100);
 
         // Audit fields
         builder.Property(cr => cr.CreatedAt).IsRequired();
@@ -699,5 +711,48 @@ public class CourseRegistrationConfiguration : IEntityTypeConfiguration<CourseRe
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Ignore(cr => cr.DomainEvents);
+    }
+}
+
+public class GradeObjectionConfiguration : IEntityTypeConfiguration<GradeObjection>
+{
+    public void Configure(EntityTypeBuilder<GradeObjection> builder)
+    {
+        builder.ToTable("GradeObjections");
+
+        builder.HasKey(go => go.Id);
+
+        builder.Property(go => go.Reason)
+            .IsRequired()
+            .HasMaxLength(1000);
+
+        builder.Property(go => go.Status).IsRequired();
+        builder.Property(go => go.ObjectionDate).IsRequired();
+
+        builder.Property(go => go.ReviewNotes)
+            .HasMaxLength(1000);
+
+        builder.Property(go => go.OldScore)
+            .HasColumnType("decimal(5,2)");
+
+        builder.Property(go => go.NewScore)
+            .HasColumnType("decimal(5,2)");
+
+        // Bir not için aynı anda sadece bir aktif itiraz olabilir
+        builder.HasIndex(go => new { go.GradeId, go.Status });
+
+        // Audit fields
+        builder.Property(go => go.CreatedAt).IsRequired();
+        builder.Property(go => go.CreatedBy).HasMaxLength(100);
+        builder.Property(go => go.UpdatedAt);
+        builder.Property(go => go.UpdatedBy).HasMaxLength(100);
+
+        // Relationships
+        builder.HasOne(go => go.Grade)
+            .WithMany()
+            .HasForeignKey(go => go.GradeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Ignore(go => go.DomainEvents);
     }
 }

@@ -244,3 +244,179 @@ public class DeleteStudentCommandHandler : IRequestHandler<DeleteStudentCommand,
         }
     }
 }
+
+public record UpdateStudentStatusCommand(
+    Guid StudentId,
+    StudentStatus Status
+) : IRequest<Result>;
+
+public class UpdateStudentStatusCommandValidator : AbstractValidator<UpdateStudentStatusCommand>
+{
+    public UpdateStudentStatusCommandValidator()
+    {
+        RuleFor(x => x.StudentId)
+            .NotEmpty().WithMessage("Öğrenci ID gereklidir.");
+
+        RuleFor(x => x.Status)
+            .IsInEnum().WithMessage("Geçersiz durum.");
+    }
+}
+
+public class UpdateStudentStatusCommandHandler : IRequestHandler<UpdateStudentStatusCommand, Result>
+{
+    private readonly IRepository<Student> _studentRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<UpdateStudentStatusCommandHandler> _logger;
+
+    public UpdateStudentStatusCommandHandler(
+        IRepository<Student> studentRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<UpdateStudentStatusCommandHandler> logger)
+    {
+        _studentRepository = studentRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result> Handle(UpdateStudentStatusCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var student = await _studentRepository.GetByIdAsync(request.StudentId, cancellationToken);
+
+            if (student == null)
+            {
+                _logger.LogWarning("Student not found. StudentId: {StudentId}", request.StudentId);
+                return Result.Failure("Öğrenci bulunamadı.");
+            }
+
+            student.UpdateStatus(request.Status);
+
+            await _studentRepository.UpdateAsync(student, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Student status updated. StudentId: {StudentId}, Status: {Status}",
+                request.StudentId, request.Status);
+
+            return Result.Success("Öğrenci durumu güncellendi.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating student status. StudentId: {StudentId}", request.StudentId);
+            return Result.Failure("Öğrenci durumu güncellenirken bir hata oluştu.", ex.Message);
+        }
+    }
+}
+
+
+public record FreezeStudentCommand(Guid StudentId) : IRequest<Result>;
+
+public class FreezeStudentCommandValidator : AbstractValidator<FreezeStudentCommand>
+{
+    public FreezeStudentCommandValidator()
+    {
+        RuleFor(x => x.StudentId)
+            .NotEmpty().WithMessage("Öğrenci ID gereklidir.");
+    }
+}
+
+public class FreezeStudentCommandHandler : IRequestHandler<FreezeStudentCommand, Result>
+{
+    private readonly IRepository<Student> _studentRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<FreezeStudentCommandHandler> _logger;
+
+    public FreezeStudentCommandHandler(
+        IRepository<Student> studentRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<FreezeStudentCommandHandler> logger)
+    {
+        _studentRepository = studentRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result> Handle(FreezeStudentCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var student = await _studentRepository.GetByIdAsync(request.StudentId, cancellationToken);
+
+            if (student == null)
+            {
+                _logger.LogWarning("Student not found. StudentId: {StudentId}", request.StudentId);
+                return Result.Failure("Öğrenci bulunamadı.");
+            }
+
+            student.Freeze();
+
+            await _studentRepository.UpdateAsync(student, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Student frozen. StudentId: {StudentId}", request.StudentId);
+
+            return Result.Success("Öğrenci kaydı donduruldu.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error freezing student. StudentId: {StudentId}", request.StudentId);
+            return Result.Failure("Öğrenci dondurulamadı.", ex.Message);
+        }
+    }
+}
+
+public record GraduateStudentCommand(Guid StudentId) : IRequest<Result>;
+
+public class GraduateStudentCommandValidator : AbstractValidator<GraduateStudentCommand>
+{
+    public GraduateStudentCommandValidator()
+    {
+        RuleFor(x => x.StudentId)
+            .NotEmpty().WithMessage("Öğrenci ID gereklidir.");
+    }
+}
+
+public class GraduateStudentCommandHandler : IRequestHandler<GraduateStudentCommand, Result>
+{
+    private readonly IRepository<Student> _studentRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<GraduateStudentCommandHandler> _logger;
+
+    public GraduateStudentCommandHandler(
+        IRepository<Student> studentRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<GraduateStudentCommandHandler> logger)
+    {
+        _studentRepository = studentRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result> Handle(GraduateStudentCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var student = await _studentRepository.GetByIdAsync(request.StudentId, cancellationToken);
+
+            if (student == null)
+            {
+                _logger.LogWarning("Student not found. StudentId: {StudentId}", request.StudentId);
+                return Result.Failure("Öğrenci bulunamadı.");
+            }
+
+            student.Graduate();
+
+            await _studentRepository.UpdateAsync(student, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Student graduated. StudentId: {StudentId}", request.StudentId);
+
+            return Result.Success("Öğrenci mezun edildi.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error graduating student. StudentId: {StudentId}", request.StudentId);
+            return Result.Failure("Öğrenci mezun edilirken bir hata oluştu.", ex.Message);
+        }
+    }
+}

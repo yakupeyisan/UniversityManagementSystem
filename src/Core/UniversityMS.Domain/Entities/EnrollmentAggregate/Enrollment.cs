@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using UniversityMS.Domain.Entities.AcademicAggregate;
 using UniversityMS.Domain.Entities.Common;
+using UniversityMS.Domain.Entities.PersonAggregate;
 using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Events;
 using UniversityMS.Domain.Exceptions;
@@ -9,7 +10,7 @@ using UniversityMS.Domain.ValueObjects;
 namespace UniversityMS.Domain.Entities.EnrollmentAggregate;
 
 
-public class Enrollment : AuditableEntity
+public class Enrollment : AuditableEntity, ISoftDelete
 {
     public Guid StudentId { get; private set; }
     public string AcademicYear { get; private set; } // 2024-2025
@@ -21,7 +22,14 @@ public class Enrollment : AuditableEntity
     public int TotalECTS { get; private set; }
     public int TotalNationalCredit { get; private set; }
 
+    // ISoftDelete implementation
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
+
     // Navigation Properties
+    public Student Student { get; private set; } = null!; // YENİ: Student navigation
+
     private readonly List<CourseRegistration> _courseRegistrations = new();
     public IReadOnlyCollection<CourseRegistration> CourseRegistrations => _courseRegistrations.AsReadOnly();
 
@@ -37,6 +45,7 @@ public class Enrollment : AuditableEntity
         EnrollmentDate = DateTime.UtcNow;
         TotalECTS = 0;
         TotalNationalCredit = 0;
+        IsDeleted = false;
     }
 
     public static Enrollment Create(Guid studentId, string academicYear, int semester)
@@ -113,7 +122,6 @@ public class Enrollment : AuditableEntity
             throw new DomainException("Sadece gönderilmiş kayıtlar reddedilebilir.");
 
         Status = EnrollmentStatus.Rejected;
-        // Rejection reason can be stored in a separate field if needed
     }
 
     public void Cancel()
@@ -124,10 +132,23 @@ public class Enrollment : AuditableEntity
         Status = EnrollmentStatus.Cancelled;
     }
 
+    public void Delete(string? deletedBy = null)
+    {
+        IsDeleted = true;
+        DeletedAt = DateTime.UtcNow;
+    }
+
     public bool CanModify() => Status == EnrollmentStatus.Draft || Status == EnrollmentStatus.Rejected;
+
+    public void Restore()
+    {
+        IsDeleted = false;
+        DeletedBy = null;
+        DeletedAt = null;
+    }
 }
 
-public class CourseRegistration : AuditableEntity
+public class CourseRegistration : AuditableEntity, ISoftDelete
 {
     public Guid EnrollmentId { get; private set; }
     public Guid CourseId { get; private set; }
@@ -137,6 +158,11 @@ public class CourseRegistration : AuditableEntity
     public CourseRegistrationStatus Status { get; private set; }
     public DateTime RegistrationDate { get; private set; }
     public DateTime? DropDate { get; private set; }
+
+    // ISoftDelete implementation
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
 
     // Navigation Properties
     public Enrollment Enrollment { get; private set; } = null!;
@@ -159,6 +185,7 @@ public class CourseRegistration : AuditableEntity
         NationalCredit = nationalCredit;
         Status = CourseRegistrationStatus.Active;
         RegistrationDate = DateTime.UtcNow;
+        IsDeleted = false;
     }
 
     public static CourseRegistration Create(Guid enrollmentId, Guid courseId, int ects, int nationalCredit)
@@ -188,6 +215,12 @@ public class CourseRegistration : AuditableEntity
         Status = gradePoint >= 2.0 ? CourseRegistrationStatus.Passed : CourseRegistrationStatus.Failed;
     }
 
+    public void Delete(string? deletedBy = null)
+    {
+        IsDeleted = true;
+        DeletedAt = DateTime.UtcNow;
+    }
+
     public double? GetFinalGrade()
     {
         var finalGrade = _grades.FirstOrDefault(g => g.GradeType == GradeType.Final);
@@ -202,8 +235,14 @@ public class CourseRegistration : AuditableEntity
         var presentCount = _attendances.Count(a => a.IsPresent);
         return (double)presentCount / _attendances.Count * 100;
     }
-}
 
+    public void Restore()
+    {
+        IsDeleted = false;
+        DeletedAt = null;
+        DeletedBy = null;
+    }
+}
 public class Grade : AuditableEntity
 {
     public Guid CourseRegistrationId { get; private set; }
@@ -353,12 +392,13 @@ public class GradeObjection : AuditableEntity
     public double? OldScore { get; private set; }
     public double? NewScore { get; private set; }
 
-    // Navigation
+    // Navigation Properties
     public Grade Grade { get; private set; } = null!;
 
-    private GradeObjection() { }
+    private GradeObjection() { } // EF Core
 
     private GradeObjection(Guid gradeId, Guid studentId, Guid courseId, string reason)
+        : base()
     {
         GradeId = gradeId;
         StudentId = studentId;
@@ -370,6 +410,12 @@ public class GradeObjection : AuditableEntity
 
     public static GradeObjection Create(Guid gradeId, Guid studentId, Guid courseId, string reason)
     {
+        if (gradeId == Guid.Empty)
+            throw new DomainException("Not ID geçersiz.");
+
+        if (studentId == Guid.Empty)
+            throw new DomainException("Öğrenci ID geçersiz.");
+
         if (string.IsNullOrWhiteSpace(reason))
             throw new DomainException("İtiraz nedeni belirtilmelidir.");
 
@@ -380,6 +426,9 @@ public class GradeObjection : AuditableEntity
     {
         if (Status != ObjectionStatus.Pending)
             throw new DomainException("Sadece beklemedeki itirazlar onaylanabilir.");
+
+        if (newScore < 0 || newScore > 100)
+            throw new DomainException("Yeni not 0-100 arasında olmalıdır.");
 
         Status = ObjectionStatus.Approved;
         ReviewedBy = reviewedBy;
@@ -397,5 +446,13 @@ public class GradeObjection : AuditableEntity
         ReviewedBy = reviewedBy;
         ReviewDate = DateTime.UtcNow;
         ReviewNotes = notes;
+    }
+
+    public void SetUnderReview()
+    {
+        if (Status != ObjectionStatus.Pending)
+            throw new DomainException("Sadece beklemedeki itirazlar incelemeye alınabilir.");
+
+        Status = ObjectionStatus.UnderReview;
     }
 }

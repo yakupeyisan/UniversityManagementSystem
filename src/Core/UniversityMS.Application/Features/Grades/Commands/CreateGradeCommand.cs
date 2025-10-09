@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.Grades.DTOs;
+using UniversityMS.Domain.Entities.AcademicAggregate;
 using UniversityMS.Domain.Entities.EnrollmentAggregate;
 using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Interfaces;
@@ -490,6 +491,134 @@ public class ReviewGradeObjectionCommandHandler : IRequestHandler<ReviewGradeObj
         {
             _logger.LogError(ex, "Error reviewing grade objection");
             return Result.Failure("Not itirazı incelenirken bir hata oluştu.", ex.Message);
+        }
+    }
+}
+
+public record ToggleCourseActiveCommand(
+    Guid CourseId,
+    bool IsActive
+) : IRequest<Result>;
+
+public class ToggleCourseActiveCommandValidator : AbstractValidator<ToggleCourseActiveCommand>
+{
+    public ToggleCourseActiveCommandValidator()
+    {
+        RuleFor(x => x.CourseId)
+            .NotEmpty().WithMessage("Ders ID gereklidir.");
+    }
+}
+
+public class ToggleCourseActiveCommandHandler : IRequestHandler<ToggleCourseActiveCommand, Result>
+{
+    private readonly IRepository<Course> _courseRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<ToggleCourseActiveCommandHandler> _logger;
+
+    public ToggleCourseActiveCommandHandler(
+        IRepository<Course> courseRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<ToggleCourseActiveCommandHandler> logger)
+    {
+        _courseRepository = courseRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result> Handle(ToggleCourseActiveCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var course = await _courseRepository.GetByIdAsync(request.CourseId, cancellationToken);
+
+            if (course == null)
+            {
+                _logger.LogWarning("Course not found. CourseId: {CourseId}", request.CourseId);
+                return Result.Failure("Ders bulunamadı.");
+            }
+
+            if (request.IsActive)
+                course.Activate();
+            else
+                course.Deactivate();
+
+            await _courseRepository.UpdateAsync(course, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            var status = request.IsActive ? "aktif" : "pasif";
+            _logger.LogInformation("Course status toggled. CourseId: {CourseId}, Status: {Status}",
+                request.CourseId, status);
+
+            return Result.Success($"Ders {status} hale getirildi.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error toggling course status. CourseId: {CourseId}", request.CourseId);
+            return Result.Failure("Ders durumu değiştirilirken bir hata oluştu.", ex.Message);
+        }
+    }
+}
+
+
+public record RemovePrerequisiteCommand(
+    Guid CourseId,
+    Guid PrerequisiteCourseId
+) : IRequest<Result>;
+
+public class RemovePrerequisiteCommandValidator : AbstractValidator<RemovePrerequisiteCommand>
+{
+    public RemovePrerequisiteCommandValidator()
+    {
+        RuleFor(x => x.CourseId)
+            .NotEmpty().WithMessage("Ders ID gereklidir.");
+
+        RuleFor(x => x.PrerequisiteCourseId)
+            .NotEmpty().WithMessage("Ön koşul ders ID gereklidir.");
+    }
+}
+
+public class RemovePrerequisiteCommandHandler : IRequestHandler<RemovePrerequisiteCommand, Result>
+{
+    private readonly IRepository<Course> _courseRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<RemovePrerequisiteCommandHandler> _logger;
+
+    public RemovePrerequisiteCommandHandler(
+        IRepository<Course> courseRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<RemovePrerequisiteCommandHandler> logger)
+    {
+        _courseRepository = courseRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    public async Task<Result> Handle(RemovePrerequisiteCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var course = await _courseRepository.GetByIdAsync(request.CourseId, cancellationToken);
+
+            if (course == null)
+            {
+                _logger.LogWarning("Course not found. CourseId: {CourseId}", request.CourseId);
+                return Result.Failure("Ders bulunamadı.");
+            }
+
+            course.RemovePrerequisite(request.PrerequisiteCourseId);
+
+            await _courseRepository.UpdateAsync(course, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Prerequisite removed from course. CourseId: {CourseId}, PrerequisiteId: {PrerequisiteId}",
+                request.CourseId, request.PrerequisiteCourseId);
+
+            return Result.Success("Ön koşul kaldırıldı.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing prerequisite. CourseId: {CourseId}", request.CourseId);
+            return Result.Failure("Ön koşul kaldırılırken bir hata oluştu.", ex.Message);
         }
     }
 }

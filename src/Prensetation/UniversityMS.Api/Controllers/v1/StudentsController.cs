@@ -653,22 +653,6 @@ public class GradesController : BaseApiController
     }
 
     /// <summary>
-    /// Toplu not girişi
-    /// </summary>
-    [HttpPost("bulk")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> BulkCreateGrades([FromBody] BulkCreateGradesCommand command)
-    {
-        var result = await Mediator.Send(command);
-
-        if (!result.IsSuccess)
-            return BadRequest(result);
-
-        return Ok(result);
-    }
-
-    /// <summary>
     /// Not itirazı oluştur
     /// </summary>
     [HttpPost("objections")]

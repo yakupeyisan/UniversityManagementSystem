@@ -1072,71 +1072,25 @@ public class Training : AuditableEntity
 }
 
 /// <summary>
-/// Eğitim Kayıt Entity
-/// </summary>
-public class TrainingEnrollment : AuditableEntity
-{
-    public Guid TrainingId { get; private set; }
-    public Guid EmployeeId { get; private set; }
-    public DateTime EnrollmentDate { get; private set; }
-    public bool IsCompleted { get; private set; }
-    public DateTime? CompletionDate { get; private set; }
-    public decimal? Score { get; private set; }
-    public string? Certificate { get; private set; }
-
-    // Navigation Properties
-    public Training Training { get; private set; } = null!;
-    public Employee Employee { get; private set; } = null!;
-
-    // Parameterless constructor for EF Core
-    private TrainingEnrollment() { }
-
-    private TrainingEnrollment(Guid trainingId, Guid employeeId)
-    {
-        TrainingId = trainingId;
-        EmployeeId = employeeId;
-        EnrollmentDate = DateTime.UtcNow;
-        IsCompleted = false;
-    }
-
-    public static TrainingEnrollment Create(Guid trainingId, Guid employeeId)
-    {
-        return new TrainingEnrollment(trainingId, employeeId);
-    }
-
-    public void Complete(decimal? score = null, string? certificate = null)
-    {
-        if (IsCompleted)
-            throw new DomainException("Eğitim zaten tamamlanmış.");
-
-        if (score.HasValue && (score < 0 || score > 100))
-            throw new DomainException("Puan 0-100 arasında olmalıdır.");
-
-        IsCompleted = true;
-        CompletionDate = DateTime.UtcNow;
-        Score = score;
-        Certificate = certificate;
-    }
-}
-
-/// <summary>
 /// İzin Entity
+/// Çalışanların izin taleplerini yönetir
 /// </summary>
 public class Leave : AuditableEntity
 {
     public Guid EmployeeId { get; private set; }
     public LeaveType LeaveType { get; private set; }
-    public LeaveStatus Status { get; private set; }
     public DateTime StartDate { get; private set; }
     public DateTime EndDate { get; private set; }
     public int TotalDays { get; private set; }
+    public LeaveStatus Status { get; private set; }
     public string Reason { get; private set; } = null!;
-    public string? AttachmentPath { get; private set; }
+    public string? RejectionReason { get; private set; }
     public Guid? ApprovedBy { get; private set; }
     public DateTime? ApprovedDate { get; private set; }
     public Guid? RejectedBy { get; private set; }
     public DateTime? RejectedDate { get; private set; }
-    public string? RejectionReason { get; private set; }
+    public string? DocumentPath { get; private set; } // Rapor, sertifika vs.
+    public DateTime? CancelledDate { get; private set; }
     public string? Notes { get; private set; }
 
     // Navigation Properties
@@ -1153,18 +1107,16 @@ public class Leave : AuditableEntity
         DateTime startDate,
         DateTime endDate,
         string reason,
-        string? attachmentPath = null,
-        string? notes = null)
+        string? documentPath = null)
     {
         EmployeeId = employeeId;
         LeaveType = leaveType;
-        Status = LeaveStatus.Pending;
         StartDate = startDate;
         EndDate = endDate;
         TotalDays = CalculateTotalDays(startDate, endDate);
+        Status = LeaveStatus.Pending;
         Reason = reason;
-        AttachmentPath = attachmentPath;
-        Notes = notes;
+        DocumentPath = documentPath;
     }
 
     public static Leave Create(
@@ -1173,152 +1125,197 @@ public class Leave : AuditableEntity
         DateTime startDate,
         DateTime endDate,
         string reason,
-        string? attachmentPath = null,
-        string? notes = null)
+        string? documentPath = null)
     {
-        if (string.IsNullOrWhiteSpace(reason))
-            throw new DomainException("İzin sebebi belirtilmelidir.");
-
-        if (startDate < DateTime.UtcNow.Date)
+        if (startDate.Date < DateTime.UtcNow.Date)
             throw new DomainException("İzin başlangıç tarihi geçmiş olamaz.");
 
         if (endDate < startDate)
             throw new DomainException("İzin bitiş tarihi başlangıç tarihinden önce olamaz.");
 
-        var totalDays = CalculateTotalDays(startDate, endDate);
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new DomainException("İzin sebebi belirtilmelidir.");
 
-        // Maksimum izin süresi kontrolü
-        if (totalDays > 90 && leaveType != LeaveType.Unpaid && leaveType != LeaveType.Sick)
-            throw new DomainException("İzin süresi 90 günü aşamaz.");
+        // Hastalık izni için rapor zorunlu
+        if (leaveType == LeaveType.Sick && string.IsNullOrWhiteSpace(documentPath))
+            throw new DomainException("Hastalık izni için rapor yüklenmesi zorunludur.");
 
-        // Hastalık izni için rapor kontrolü
-        if (leaveType == LeaveType.Sick && totalDays > 3 && string.IsNullOrWhiteSpace(attachmentPath))
-            throw new DomainException("3 günden uzun hastalık izni için rapor belgesi gereklidir.");
-
-        return new Leave(employeeId, leaveType, startDate, endDate, reason, attachmentPath, notes);
+        return new Leave(employeeId, leaveType, startDate, endDate, reason, documentPath);
     }
 
     public void Approve(Guid approverId)
     {
         if (Status != LeaveStatus.Pending)
-            throw new DomainException("Sadece beklemedeki izinler onaylanabilir.");
+            throw new DomainException("Sadece bekleyen izinler onaylanabilir.");
 
         Status = LeaveStatus.Approved;
         ApprovedBy = approverId;
         ApprovedDate = DateTime.UtcNow;
     }
 
-    public void Reject(Guid rejectorId, string rejectionReason)
+    public void Reject(Guid rejectorId, string reason)
     {
         if (Status != LeaveStatus.Pending)
-            throw new DomainException("Sadece beklemedeki izinler reddedilebilir.");
+            throw new DomainException("Sadece bekleyen izinler reddedilebilir.");
 
-        if (string.IsNullOrWhiteSpace(rejectionReason))
+        if (string.IsNullOrWhiteSpace(reason))
             throw new DomainException("Red sebebi belirtilmelidir.");
 
         Status = LeaveStatus.Rejected;
         RejectedBy = rejectorId;
         RejectedDate = DateTime.UtcNow;
-        RejectionReason = rejectionReason;
+        RejectionReason = reason;
     }
 
     public void Cancel()
     {
-        if (Status != LeaveStatus.Pending && Status != LeaveStatus.Approved)
-            throw new DomainException("Sadece beklemedeki veya onaylı izinler iptal edilebilir.");
+        if (Status == LeaveStatus.Cancelled)
+            throw new DomainException("İzin zaten iptal edilmiş.");
 
-        if (StartDate <= DateTime.UtcNow)
-            throw new DomainException("Başlamış izinler iptal edilemez.");
+        if (Status == LeaveStatus.Completed)
+            throw new DomainException("Tamamlanmış izin iptal edilemez.");
+
+        if (StartDate.Date <= DateTime.UtcNow.Date)
+            throw new DomainException("Başlamış veya geçmiş izin iptal edilemez.");
 
         Status = LeaveStatus.Cancelled;
+        CancelledDate = DateTime.UtcNow;
     }
 
-    public void Complete()
+    public void MarkAsCompleted()
     {
         if (Status != LeaveStatus.Approved)
             throw new DomainException("Sadece onaylı izinler tamamlanabilir.");
 
-        if (DateTime.UtcNow < EndDate)
-            throw new DomainException("İzin henüz bitmedi.");
+        if (DateTime.UtcNow.Date <= EndDate.Date)
+            throw new DomainException("İzin henüz bitmemiş.");
 
         Status = LeaveStatus.Completed;
     }
 
-    public void AttachDocument(string filePath)
+    public void AttachDocument(string documentPath)
     {
-        if (string.IsNullOrWhiteSpace(filePath))
-            throw new DomainException("Dosya yolu boş olamaz.");
+        if (string.IsNullOrWhiteSpace(documentPath))
+            throw new DomainException("Belge yolu boş olamaz.");
 
-        AttachmentPath = filePath;
-    }
-
-    public void UpdateDates(DateTime newStartDate, DateTime newEndDate)
-    {
-        if (Status != LeaveStatus.Pending)
-            throw new DomainException("Sadece beklemedeki izinlerin tarihleri güncellenebilir.");
-
-        if (newStartDate < DateTime.UtcNow.Date)
-            throw new DomainException("Yeni başlangıç tarihi geçmiş olamaz.");
-
-        if (newEndDate < newStartDate)
-            throw new DomainException("Yeni bitiş tarihi başlangıç tarihinden önce olamaz.");
-
-        StartDate = newStartDate;
-        EndDate = newEndDate;
-        TotalDays = CalculateTotalDays(newStartDate, newEndDate);
+        DocumentPath = documentPath;
     }
 
     public bool IsCurrentlyOnLeave()
     {
-        if (Status != LeaveStatus.Approved)
-            return false;
-
-        var now = DateTime.UtcNow.Date;
-        return now >= StartDate && now <= EndDate;
+        var today = DateTime.UtcNow.Date;
+        return Status == LeaveStatus.Approved &&
+               StartDate.Date <= today &&
+               EndDate.Date >= today;
     }
 
     public bool IsUpcoming()
     {
-        return Status == LeaveStatus.Approved && StartDate > DateTime.UtcNow.Date;
-    }
-
-    public bool IsPaid()
-    {
-        return LeaveType != LeaveType.Unpaid;
+        return Status == LeaveStatus.Approved &&
+               StartDate.Date > DateTime.UtcNow.Date;
     }
 
     public int GetRemainingDays()
     {
-        if (!IsCurrentlyOnLeave())
+        if (Status != LeaveStatus.Approved)
             return 0;
 
-        var remaining = (EndDate - DateTime.UtcNow.Date).Days;
-        return Math.Max(0, remaining);
+        var today = DateTime.UtcNow.Date;
+        if (today > EndDate.Date)
+            return 0;
+
+        if (today < StartDate.Date)
+            return TotalDays;
+
+        return (int)(EndDate.Date - today).TotalDays + 1;
     }
 
     private static int CalculateTotalDays(DateTime startDate, DateTime endDate)
     {
-        // İzin günlerini hesapla (başlangıç ve bitiş günü dahil)
-        var totalDays = (endDate - startDate).Days + 1;
-
-        // Hafta sonlarını çıkar (isteğe bağlı - iş kuralına göre)
-        var workingDays = 0;
-        for (var date = startDate; date <= endDate; date = date.AddDays(1))
+        // Hafta sonları hariç iş günü hesaplama
+        int totalDays = 0;
+        for (var date = startDate.Date; date <= endDate.Date; date = date.AddDays(1))
         {
+            // Cumartesi ve Pazar hariç
             if (date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday)
-                workingDays++;
+                totalDays++;
         }
+        return totalDays;
+    }
+}
 
-        return workingDays;
+/// <summary>
+/// Eğitim Kayıt Entity (Training ile Many-to-Many ilişki için)
+/// </summary>
+public class TrainingEnrollment : BaseEntity
+{
+    public Guid TrainingId { get; private set; }
+    public Guid EmployeeId { get; private set; }
+    public DateTime EnrollmentDate { get; private set; }
+    public TrainingEnrollmentStatus Status { get; private set; }
+    public DateTime? CompletionDate { get; private set; }
+    public decimal? Score { get; private set; }
+    public bool CertificateIssued { get; private set; }
+    public string? Feedback { get; private set; }
+    public bool IsCompleted { get; private set; }
+    public string? Certificate { get; private set; }
+
+    // Navigation Properties
+    public Training Training { get; private set; } = null!;
+    public Employee Employee { get; private set; } = null!;
+
+    private TrainingEnrollment() { }
+
+    private TrainingEnrollment(Guid trainingId, Guid employeeId)
+    {
+        TrainingId = trainingId;
+        EmployeeId = employeeId;
+        EnrollmentDate = DateTime.UtcNow;
+        Status = TrainingEnrollmentStatus.Enrolled;
     }
 
-    public int GetWorkingDays()
+    public static TrainingEnrollment Create(Guid trainingId, Guid employeeId)
     {
-        return TotalDays;
+        return new TrainingEnrollment(trainingId, employeeId);
     }
 
-    public bool OverlapsWith(Leave other)
+    public void MarkAsCompleted(decimal? score = null, string? feedback = null)
     {
-        return StartDate <= other.EndDate && EndDate >= other.StartDate;
+        if (Status == TrainingEnrollmentStatus.Completed)
+            throw new DomainException("Eğitim zaten tamamlanmış.");
+
+        Status = TrainingEnrollmentStatus.Completed;
+        CompletionDate = DateTime.UtcNow;
+        Score = score;
+        Feedback = feedback;
+    }
+
+    public void IssueCertificate()
+    {
+        if (Status != TrainingEnrollmentStatus.Completed)
+            throw new DomainException("Sadece tamamlanmış eğitimler için sertifika verilebilir.");
+
+        CertificateIssued = true;
+    }
+    public void Complete(decimal? score = null, string? certificate = null)
+    {
+        if (IsCompleted)
+            throw new DomainException("Eğitim zaten tamamlanmış.");
+
+        if (score.HasValue && (score < 0 || score > 100))
+            throw new DomainException("Puan 0-100 arasında olmalıdır.");
+
+        IsCompleted = true;
+        CompletionDate = DateTime.UtcNow;
+        Score = score;
+        Certificate = certificate;
+    }
+
+    public void Cancel()
+    {
+        if (Status == TrainingEnrollmentStatus.Completed)
+            throw new DomainException("Tamamlanmış eğitim kaydı iptal edilemez.");
+
+        Status = TrainingEnrollmentStatus.Cancelled;
     }
 }

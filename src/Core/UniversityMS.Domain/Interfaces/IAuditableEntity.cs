@@ -2,6 +2,9 @@
 using UniversityMS.Domain.Entities.Common;
 
 namespace UniversityMS.Domain.Interfaces;
+public interface IAggregateRoot
+{
+}
 public interface IAuditableEntity
 {
     DateTime CreatedAt { get; set; }

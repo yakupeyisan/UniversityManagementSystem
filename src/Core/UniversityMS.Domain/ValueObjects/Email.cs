@@ -1,4 +1,5 @@
-﻿using UniversityMS.Domain.Exceptions;
+﻿using UniversityMS.Domain.Enums;
+using UniversityMS.Domain.Exceptions;
 
 namespace UniversityMS.Domain.ValueObjects;
 
@@ -285,4 +286,312 @@ public abstract class ValueObject
     {
         return !(left == right);
     }
+}
+
+
+/// <summary>
+/// Personel numarası Value Object
+/// Format: PER-2024-00001
+/// </summary>
+public class EmployeeNumber : ValueObject
+{
+    public string Value { get; private set; }
+
+    private EmployeeNumber(string value)
+    {
+        Value = value;
+    }
+
+    public static EmployeeNumber Create(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            throw new DomainException("Personel numarası boş olamaz.");
+
+        if (!IsValid(value))
+            throw new DomainException("Geçersiz personel numarası formatı. Format: PER-YYYY-XXXXX");
+
+        return new EmployeeNumber(value);
+    }
+
+    public static EmployeeNumber Generate(int year, int sequence)
+    {
+        var value = $"PER-{year}-{sequence:D5}";
+        return new EmployeeNumber(value);
+    }
+
+    private static bool IsValid(string value)
+    {
+        // Format: PER-2024-00001
+        var pattern = @"^PER-\d{4}-\d{5}$";
+        return System.Text.RegularExpressions.Regex.IsMatch(value, pattern);
+    }
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return Value;
+    }
+
+    public override string ToString() => Value;
+
+    public static implicit operator string(EmployeeNumber employeeNumber) => employeeNumber.Value;
+}
+
+/// <summary>
+/// Maaş bilgisi Value Object
+/// </summary>
+public class SalaryInfo : ValueObject
+{
+    public decimal BaseSalary { get; private set; }
+    public decimal Allowances { get; private set; }
+    public decimal Bonuses { get; private set; }
+    public string Currency { get; private set; }
+
+    private SalaryInfo(decimal baseSalary, decimal allowances, decimal bonuses, string currency)
+    {
+        BaseSalary = baseSalary;
+        Allowances = allowances;
+        Bonuses = bonuses;
+        Currency = currency;
+    }
+
+    public static SalaryInfo Create(decimal baseSalary, decimal allowances = 0, decimal bonuses = 0, string currency = "TRY")
+    {
+        if (baseSalary < 0)
+            throw new DomainException("Maaş negatif olamaz.");
+
+        if (allowances < 0)
+            throw new DomainException("Tazminatlar negatif olamaz.");
+
+        if (bonuses < 0)
+            throw new DomainException("Primler negatif olamaz.");
+
+        if (string.IsNullOrWhiteSpace(currency))
+            throw new DomainException("Para birimi belirtilmelidir.");
+
+        return new SalaryInfo(baseSalary, allowances, bonuses, currency);
+    }
+
+    public decimal GetGrossSalary() => BaseSalary + Allowances + Bonuses;
+
+    public decimal CalculateNetSalary(decimal taxRate, decimal sgkRate)
+    {
+        var grossSalary = GetGrossSalary();
+        var totalDeductions = grossSalary * (taxRate + sgkRate);
+        return grossSalary - totalDeductions;
+    }
+
+    public SalaryInfo UpdateBaseSalary(decimal newBaseSalary)
+    {
+        return Create(newBaseSalary, Allowances, Bonuses, Currency);
+    }
+
+    public SalaryInfo AddBonus(decimal bonus)
+    {
+        return Create(BaseSalary, Allowances, Bonuses + bonus, Currency);
+    }
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return BaseSalary;
+        yield return Allowances;
+        yield return Bonuses;
+        yield return Currency;
+    }
+}
+
+/// <summary>
+/// Çalışma saatleri Value Object
+/// </summary>
+public class WorkingHours : ValueObject
+{
+    public TimeOnly StartTime { get; private set; }
+    public TimeOnly EndTime { get; private set; }
+    public int WeeklyHours { get; private set; }
+
+    private WorkingHours(TimeOnly startTime, TimeOnly endTime, int weeklyHours)
+    {
+        StartTime = startTime;
+        EndTime = endTime;
+        WeeklyHours = weeklyHours;
+    }
+
+    public static WorkingHours Create(TimeOnly startTime, TimeOnly endTime, int weeklyHours = 40)
+    {
+        if (endTime <= startTime)
+            throw new DomainException("Bitiş saati başlangıç saatinden büyük olmalıdır.");
+
+        if (weeklyHours <= 0 || weeklyHours > 168)
+            throw new DomainException("Haftalık çalışma saati 1-168 arasında olmalıdır.");
+
+        return new WorkingHours(startTime, endTime, weeklyHours);
+    }
+
+    public static WorkingHours CreateStandard()
+    {
+        // Standart 08:00 - 17:00, 40 saat/hafta
+        return new WorkingHours(new TimeOnly(8, 0), new TimeOnly(17, 0), 40);
+    }
+
+    public int GetDailyHours()
+    {
+        return (int)(EndTime - StartTime).TotalHours;
+    }
+
+    public bool IsWithinWorkingHours(TimeOnly time)
+    {
+        return time >= StartTime && time <= EndTime;
+    }
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return StartTime;
+        yield return EndTime;
+        yield return WeeklyHours;
+    }
+}
+
+/// <summary>
+/// İzin bakiyesi Value Object
+/// </summary>
+public class LeaveBalance : ValueObject
+{
+    public int TotalDays { get; private set; }
+    public int UsedDays { get; private set; }
+    public int RemainingDays => TotalDays - UsedDays;
+
+    private LeaveBalance(int totalDays, int usedDays)
+    {
+        TotalDays = totalDays;
+        UsedDays = usedDays;
+    }
+
+    public static LeaveBalance Create(int totalDays, int usedDays = 0)
+    {
+        if (totalDays < 0)
+            throw new DomainException("Toplam izin günü negatif olamaz.");
+
+        if (usedDays < 0)
+            throw new DomainException("Kullanılan izin günü negatif olamaz.");
+
+        if (usedDays > totalDays)
+            throw new DomainException("Kullanılan izin, toplam izinden fazla olamaz.");
+
+        return new LeaveBalance(totalDays, usedDays);
+    }
+
+    public LeaveBalance UseLeave(int days)
+    {
+        if (days <= 0)
+            throw new DomainException("İzin günü pozitif olmalıdır.");
+
+        if (UsedDays + days > TotalDays)
+            throw new DomainException($"Yetersiz izin bakiyesi. Kalan: {RemainingDays} gün");
+
+        return new LeaveBalance(TotalDays, UsedDays + days);
+    }
+
+    public LeaveBalance AddLeave(int days)
+    {
+        if (days <= 0)
+            throw new DomainException("Eklenecek izin günü pozitif olmalıdır.");
+
+        return new LeaveBalance(TotalDays + days, UsedDays);
+    }
+
+    public LeaveBalance ResetUsed()
+    {
+        return new LeaveBalance(TotalDays, 0);
+    }
+
+    public bool CanTakeLeave(int days)
+    {
+        return RemainingDays >= days;
+    }
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return TotalDays;
+        yield return UsedDays;
+    }
+}
+
+/// <summary>
+/// Performans skoru Value Object
+/// </summary>
+public class PerformanceScore : ValueObject
+{
+    public decimal Score { get; private set; }
+    public const decimal MinScore = 0;
+    public const decimal MaxScore = 100;
+
+    private PerformanceScore(decimal score)
+    {
+        Score = score;
+    }
+
+    public static PerformanceScore Create(decimal score)
+    {
+        if (score < MinScore || score > MaxScore)
+            throw new DomainException($"Performans skoru {MinScore}-{MaxScore} arasında olmalıdır.");
+
+        return new PerformanceScore(score);
+    }
+
+    public PerformanceRating GetRating()
+    {
+        return Score switch
+        {
+            < 40 => PerformanceRating.BelowExpectations,
+            < 60 => PerformanceRating.NeedsImprovement,
+            < 80 => PerformanceRating.MeetsExpectations,
+            < 95 => PerformanceRating.ExceedsExpectations,
+            _ => PerformanceRating.Outstanding
+        };
+    }
+
+    public bool IsSatisfactory() => Score >= 60;
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return Score;
+    }
+
+    public static implicit operator decimal(PerformanceScore score) => score.Score;
+}
+
+/// <summary>
+/// Eğitim süresi Value Object
+/// </summary>
+public class TrainingDuration : ValueObject
+{
+    public int Hours { get; private set; }
+    public int Days => (int)Math.Ceiling(Hours / 8.0);
+
+    private TrainingDuration(int hours)
+    {
+        Hours = hours;
+    }
+
+    public static TrainingDuration Create(int hours)
+    {
+        if (hours <= 0)
+            throw new DomainException("Eğitim süresi pozitif olmalıdır.");
+
+        if (hours > 2000) // Max 1 yıl çalışma saati
+            throw new DomainException("Eğitim süresi çok uzun.");
+
+        return new TrainingDuration(hours);
+    }
+
+    public static TrainingDuration FromDays(int days)
+    {
+        return Create(days * 8);
+    }
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return Hours;
+    }
+
+    public override string ToString() => $"{Hours} saat ({Days} gün)";
 }

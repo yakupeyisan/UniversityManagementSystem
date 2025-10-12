@@ -11,59 +11,9 @@ using UniversityMS.Application.Common.Extensions;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.Students.DTOs;
 using UniversityMS.Domain.Entities.PersonAggregate;
-using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Interfaces;
 
 namespace UniversityMS.Application.Features.Students.Queries;
-
-public record GetStudentByIdQuery(Guid Id) : IRequest<Result<StudentDto>>;
-
-public class GetStudentByIdQueryHandler : IRequestHandler<GetStudentByIdQuery, Result<StudentDto>>
-{
-    private readonly IRepository<Student> _studentRepository;
-    private readonly IMapper _mapper;
-    private readonly ILogger<GetStudentByIdQueryHandler> _logger;
-
-    public GetStudentByIdQueryHandler(
-        IRepository<Student> studentRepository,
-        IMapper mapper,
-        ILogger<GetStudentByIdQueryHandler> logger)
-    {
-        _studentRepository = studentRepository;
-        _mapper = mapper;
-        _logger = logger;
-    }
-
-    public async Task<Result<StudentDto>> Handle(GetStudentByIdQuery request, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var student = await _studentRepository.GetByIdAsync(request.Id, cancellationToken);
-
-            if (student == null)
-            {
-                _logger.LogWarning("Student not found. StudentId: {StudentId}", request.Id);
-                return Result.Failure<StudentDto>("Öğrenci bulunamadı.");
-            }
-
-            var studentDto = _mapper.Map<StudentDto>(student);
-            return Result.Success(studentDto);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while retrieving student. StudentId: {StudentId}", request.Id);
-            return Result.Failure<StudentDto>("Öğrenci bilgileri alınırken bir hata oluştu.");
-        }
-    }
-}
-
-public record GetStudentListQuery(
-    int PageNumber = 1,
-    int PageSize = 10,
-    StudentStatus? Status = null,
-    Guid? DepartmentId = null,
-    string? SearchTerm = null
-) : IRequest<Result<PaginatedList<StudentDto>>>;
 
 public class GetStudentListQueryHandler
     : IRequestHandler<GetStudentListQuery, Result<PaginatedList<StudentDto>>>

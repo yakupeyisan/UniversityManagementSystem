@@ -18,18 +18,3 @@ public class DomainException : Exception
     {
     }
 }
-
-public class EntityNotFoundException : DomainException
-{
-    public EntityNotFoundException(string entityName, object id)
-        : base($"{entityName} bulunamadı. Id: {id}")
-    {
-    }
-}
-
-public class BusinessRuleValidationException : DomainException
-{
-    public BusinessRuleValidationException(string message) : base(message)
-    {
-    }
-}

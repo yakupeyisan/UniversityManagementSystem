@@ -1,11 +1,13 @@
 ﻿using UniversityMS.Domain.Entities.Common;
 using UniversityMS.Domain.Entities.HRAggregate;
 using UniversityMS.Domain.Enums;
+using UniversityMS.Domain.Events.PayrollEvents;
 using UniversityMS.Domain.Exceptions;
 using UniversityMS.Domain.Interfaces;
 using UniversityMS.Domain.ValueObjects;
 
 namespace UniversityMS.Domain.Entities.PayrollAggregate;
+
 
 /// <summary>
 /// Bordro (Payroll) - Aggregate Root
@@ -338,7 +340,6 @@ public class Payroll : AuditableEntity, IAggregateRoot
 
     #endregion
 }
-
 /// <summary>
 /// Bordro Kalemi Entity
 /// Maaşa eklenen veya çıkarılan kalemler (prim, ödül, fazla mesai vs.)

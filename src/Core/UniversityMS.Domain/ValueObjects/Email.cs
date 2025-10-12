@@ -701,6 +701,11 @@ public class PerformanceScore : ValueObject
         return Create(weightedSum);
     }
 
+    /// <summary>
+    /// Rating değerini döndürür (GetRating metodu - geriye dönük uyumluluk için)
+    /// </summary>
+    public PerformanceRating GetRating() => Rating;
+
     private static PerformanceRating CalculateRating(decimal score)
     {
         return score switch
@@ -738,6 +743,82 @@ public class PerformanceScore : ValueObject
             _ => "N/A"
         };
     }
+
+    #region Comparison Operators
+
+    /// <summary>
+    /// PerformanceScore ile int karşılaştırması için >= operatörü
+    /// </summary>
+    public static bool operator >=(PerformanceScore score, int value)
+    {
+        return score?.Score >= value;
+    }
+
+    /// <summary>
+    /// PerformanceScore ile int karşılaştırması için <= operatörü
+    /// </summary>
+    public static bool operator <=(PerformanceScore score, int value)
+    {
+        return score?.Score <= value;
+    }
+
+    /// <summary>
+    /// PerformanceScore ile int karşılaştırması için > operatörü
+    /// </summary>
+    public static bool operator >(PerformanceScore score, int value)
+    {
+        return score?.Score > value;
+    }
+
+    /// <summary>
+    /// PerformanceScore ile int karşılaştırması için < operatörü
+    /// </summary>
+    public static bool operator <(PerformanceScore score, int value)
+    {
+        return score?.Score < value;
+    }
+
+    /// <summary>
+    /// PerformanceScore'lar arası >= operatörü
+    /// </summary>
+    public static bool operator >=(PerformanceScore left, PerformanceScore right)
+    {
+        if (left is null && right is null) return true;
+        if (left is null || right is null) return false;
+        return left.Score >= right.Score;
+    }
+
+    /// <summary>
+    /// PerformanceScore'lar arası <= operatörü
+    /// </summary>
+    public static bool operator <=(PerformanceScore left, PerformanceScore right)
+    {
+        if (left is null && right is null) return true;
+        if (left is null || right is null) return false;
+        return left.Score <= right.Score;
+    }
+
+    /// <summary>
+    /// PerformanceScore'lar arası > operatörü
+    /// </summary>
+    public static bool operator >(PerformanceScore left, PerformanceScore right)
+    {
+        if (left is null) return false;
+        if (right is null) return true;
+        return left.Score > right.Score;
+    }
+
+    /// <summary>
+    /// PerformanceScore'lar arası < operatörü
+    /// </summary>
+    public static bool operator <(PerformanceScore left, PerformanceScore right)
+    {
+        if (left is null) return right is not null;
+        if (right is null) return false;
+        return left.Score < right.Score;
+    }
+
+    #endregion
 
     #region Helper Methods
 
@@ -826,7 +907,6 @@ public class PerformanceScore : ValueObject
 
     public override string ToString() => $"{Score:F2} - {RatingDescription} ({ScoreRange})";
 }
-
 /// <summary>
 /// Eğitim Süresi Value Object
 /// </summary>

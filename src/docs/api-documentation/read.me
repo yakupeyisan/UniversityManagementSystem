@@ -2425,203 +2425,615 @@ Bu taslak onaylandıktan sonra, aşağıdaki fazlarda kod geliştirme yapılacak
 ------------------------------------------------------------------>
 
 ```
-UniversityManagementSystem/
-│
-├── src/
-│   ├── Core/
-│   │   ├── UniversityMS.Domain/                    # Domain Layer
-│   │   │   ├── Entities/
-│   │   │   │   ├── Common/
-│   │   │   │   │   ├── BaseEntity.cs
-│   │   │   │   │   ├── AuditableEntity.cs
-│   │   │   │   │   └── ISoftDelete.cs
-│   │   │   │   ├── PersonAggregate/
-│   │   │   │   │   ├── Person.cs
-│   │   │   │   │   ├── Student.cs
-│   │   │   │   │   ├── Staff.cs
-│   │   │   │   │   ├── Address.cs
-│   │   │   │   │   └── EmergencyContact.cs
-│   │   │   │   ├── AcademicAggregate/
-│   │   │   │   │   ├── Faculty.cs
-│   │   │   │   │   ├── Department.cs
-│   │   │   │   │   ├── Course.cs
-│   │   │   │   │   ├── Curriculum.cs
-│   │   │   │   │   └── Prerequisite.cs
-│   │   │   │   ├── EnrollmentAggregate/
-│   │   │   │   │   ├── Enrollment.cs
-│   │   │   │   │   ├── CourseRegistration.cs
-│   │   │   │   │   ├── Grade.cs
-│   │   │   │   │   ├── Attendance.cs
-│   │   │   │   │   └── ExamResult.cs
-│   │   │   │   ├── IdentityAggregate/
-│   │   │   │   │   ├── User.cs
-│   │   │   │   │   ├── Role.cs
-│   │   │   │   │   ├── Permission.cs
-│   │   │   │   │   └── UserRole.cs
-│   │   │   │   └── FinancialAggregate/
-│   │   │   │       ├── Payment.cs
-│   │   │   │       ├── Invoice.cs
-│   │   │   │       ├── Transaction.cs
-│   │   │   │       └── Fee.cs
-│   │   │   ├── ValueObjects/
-│   │   │   │   ├── Email.cs
-│   │   │   │   ├── PhoneNumber.cs
-│   │   │   │   ├── Money.cs
-│   │   │   │   ├── DateRange.cs
-│   │   │   │   └── GradeScore.cs
-│   │   │   ├── Enums/
-│   │   │   │   ├── Gender.cs
-│   │   │   │   ├── StudentStatus.cs
-│   │   │   │   ├── CourseType.cs
-│   │   │   │   ├── GradeType.cs
-│   │   │   │   └── PaymentStatus.cs
-│   │   │   ├── Events/
-│   │   │   │   ├── StudentEnrolledEvent.cs
-│   │   │   │   ├── GradeSubmittedEvent.cs
-│   │   │   │   └── PaymentReceivedEvent.cs
-│   │   │   ├── Exceptions/
-│   │   │   │   ├── DomainException.cs
-│   │   │   │   ├── EntityNotFoundException.cs
-│   │   │   │   └── BusinessRuleValidationException.cs
-│   │   │   ├── Interfaces/
-│   │   │   │   ├── IRepository.cs
-│   │   │   │   ├── IUnitOfWork.cs
-│   │   │   │   └── IAuditableEntity.cs
-│   │   │   └── Specifications/
-│   │   │       ├── BaseSpecification.cs
-│   │   │       └── ISpecification.cs
-│   │   │
-│   │   └── UniversityMS.Application/              # Application Layer
-│   │       ├── Common/
-│   │       │   ├── Behaviours/
-│   │       │   │   ├── ValidationBehaviour.cs
-│   │       │   │   ├── LoggingBehaviour.cs
-│   │       │   │   └── PerformanceBehaviour.cs
-│   │       │   ├── Mappings/
-│   │       │   │   └── MappingProfile.cs
-│   │       │   ├── Models/
-│   │       │   │   ├── PaginatedList.cs
-│   │       │   │   ├── Result.cs
-│   │       │   │   └── Error.cs
-│   │       │   └── Extensions/
-│   │       │   │   └── ExpressionExtensions.cs
-│   │       │   └── Interfaces/
-│   │       │       ├── IDateTime.cs
-│   │       │       ├── ICurrentUserService.cs
-│   │       │       └── IEmailService.cs
-│   │       ├── Features/
-│   │       │   ├── Students/
-│   │       │   │   ├── Commands/
-│   │       │   │   │   ├── CreateStudent/
-│   │       │   │   │   ├── UpdateStudent/
-│   │       │   │   │   └── DeleteStudent/
-│   │       │   │   ├── Queries/
-│   │       │   │   │   ├── GetStudentById/
-│   │       │   │   │   ├── GetStudentList/
-│   │       │   │   │   └── GetStudentDashboard/
-│   │       │   │   └── DTOs/
-│   │       │   │       ├── StudentDto.cs
-│   │       │   │       └── StudentDashboardDto.cs
-│   │       │   ├── Courses/
-│   │       │   │   ├── Commands/
-│   │       │   │   ├── Queries/
-│   │       │   │   └── DTOs/
-│   │       │   ├── Enrollments/
-│   │       │   │   ├── Commands/
-│   │       │   │   ├── Queries/
-│   │       │   │   └── DTOs/
-│   │       │   ├── Grades/
-│   │       │   │   ├── Commands/
-│   │       │   │   ├── Queries/
-│   │       │   │   └── DTOs/
-│   │       │   └── Authentication/
-│   │       │       ├── Commands/
-│   │       │       │   ├── Login/
-│   │       │       │   ├── Register/
-│   │       │       │   └── RefreshToken/
-│   │       │       └── DTOs/
-│   │       │           ├── LoginDto.cs
-│   │       │           ├── TokenDto.cs
-│   │       │           └── UserDto.cs
-│   │       └── DependencyInjection.cs
-│   │
-│   ├── Infrastructure/
-│   │   ├── UniversityMS.Infrastructure/            # Infrastructure Layer
-│   │   │   ├── Persistence/
-│   │   │   │   ├── Configurations/
-│   │   │   │   │   ├── StudentConfiguration.cs
-│   │   │   │   │   ├── CourseConfiguration.cs
-│   │   │   │   │   └── ...
-│   │   │   │   ├── ApplicationDbContext.cs
-│   │   │   │   ├── UnitOfWork.cs
-│   │   │   │   ├── Repositories/
-│   │   │   │   │   ├── Repository.cs
-│   │   │   │   │   ├── StudentRepository.cs
-│   │   │   │   │   └── ...
-│   │   │   │   └── Migrations/
-│   │   │   ├── Identity/
-│   │   │   │   ├── IdentityService.cs
-│   │   │   │   ├── JwtTokenGenerator.cs
-│   │   │   │   └── CurrentUserService.cs
-│   │   │   ├── Services/
-│   │   │   │   ├── DateTimeService.cs
-│   │   │   │   ├── EmailService.cs
-│   │   │   │   └── SmsService.cs
-│   │   │   ├── Files/
-│   │   │   │   └── FileService.cs
-│   │   │   └── DependencyInjection.cs
-│   │   │
-│   │   └── UniversityMS.Infrastructure.Shared/     # Shared Infrastructure
-│   │       ├── Cache/
-│   │       │   └── RedisCacheService.cs
-│   │       ├── MessageQueue/
-│   │       │   └── RabbitMQService.cs
-│   │       └── BackgroundJobs/
-│   │           └── HangfireJobService.cs
-│   │
-│   └── Presentation/
-│       └── UniversityMS.Api/                       # API Layer
-│           ├── Controllers/
-│           │   ├── v1/
-│           │   │   ├── StudentsController.cs
-│           │   │   ├── CoursesController.cs
-│           │   │   ├── EnrollmentsController.cs
-│           │   │   ├── GradesController.cs
-│           │   │   └── AuthController.cs
-│           │   └── BaseApiController.cs
-│           ├── Middleware/
-│           │   ├── ErrorHandlingMiddleware.cs
-│           │   ├── RequestLoggingMiddleware.cs
-│           │   └── RateLimitingMiddleware.cs
-│           ├── Filters/
-│           │   ├── ValidationFilter.cs
-│           │   └── AuthorizationFilter.cs
-│           ├── Extensions/
-│           │   └── ServiceCollectionExtensions.cs
-│           ├── appsettings.json
-│           ├── appsettings.Development.json
-│           ├── Program.cs
-│           └── Startup.cs
-│
-├── tests/
-│   ├── UniversityMS.Domain.Tests/
-│   ├── UniversityMS.Application.Tests/
-│   ├── UniversityMS.Infrastructure.Tests/
-│   └── UniversityMS.Api.Tests/
-│
-├── docker/
-│   ├── docker-compose.yml
-│   ├── docker-compose.override.yml
-│   └── Dockerfile
-│
-├── scripts/
-│   ├── migrations/
-│   └── seed-data/
-│
-├── docs/
-│   └── api-documentation/
-│
-├── .gitignore
-├── README.md
-├── UniversityManagementSystem.sln
-└── Directory.Build.props
+
+src
+├── Core
+│   ├── UniversityMS.Application
+│   │   ├── DependencyInjection.cs
+│   │   ├── Common
+│   │   │   ├── Behaviours
+│   │   │   │   ├── LoggingBehaviour.cs
+│   │   │   │   ├── MappingProfile.cs
+│   │   │   │   ├── PerformanceBehaviour.cs
+│   │   │   │   ├── ValidationBehaviour.cs
+│   │   │   ├── Extensions
+│   │   │   │   ├── ExpressionExtensions.cs
+│   │   │   ├── Interfaces
+│   │   │   │   ├── IApplicationDbContext.cs
+│   │   │   │   ├── ICurrentUserService.cs
+│   │   │   │   ├── IDateTime.cs
+│   │   │   │   ├── IEmailService.cs
+│   │   │   │   ├── IJwtTokenGenerator.cs
+│   │   │   │   ├── IPasswordHasher.cs
+│   │   │   │   ├── ISmsService.cs
+│   │   │   ├── Mappings
+│   │   │   │   ├── MappingProfile.cs
+│   │   │   ├── Models
+│   │   │   │   ├── PaginatedList.cs
+│   │   │   │   ├── Result.cs
+│   │   ├── Features
+│   │   │   ├── Attendances
+│   │   │   │   ├── Commands
+│   │   │   │   │   ├── QRCheckInCommand.cs
+│   │   │   │   │   ├── QRCheckInCommandHandler.cs
+│   │   │   │   │   ├── QRCheckInCommandValidator.cs
+│   │   │   │   │   ├── TakeAttendanceCommand.cs
+│   │   │   │   │   ├── TakeAttendanceCommandHandler.cs
+│   │   │   │   │   ├── TakeAttendanceCommandValidator.cs
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── AttendanceDto.cs
+│   │   │   │   │   ├── AttendanceReportDto.cs
+│   │   │   │   │   ├── StudentAttendanceDto.cs
+│   │   │   │   │   ├── StudentAttendanceRateDto.cs
+│   │   │   │   │   ├── WeeklyAttendanceDto.cs
+│   │   │   │   ├── Queries
+│   │   │   │   │   ├── GetAttendanceReportQuery.cs
+│   │   │   │   │   ├── GetAttendanceReportQueryHandler.cs
+│   │   │   │   │   ├── GetStudentAttendanceQuery.cs
+│   │   │   │   │   ├── GetStudentAttendanceQueryHandler.cs
+│   │   │   ├── Authentication
+│   │   │   │   ├── Commands
+│   │   │   │   │   ├── LoginCommand.cs
+│   │   │   │   │   ├── LoginCommandHandler.cs
+│   │   │   │   │   ├── LoginCommandValidator.cs
+│   │   │   │   │   ├── LogoutCommand.cs
+│   │   │   │   │   ├── LogoutCommandHandler.cs
+│   │   │   │   │   ├── RefreshTokenCommand.cs
+│   │   │   │   │   ├── RefreshTokenCommandHandler.cs
+│   │   │   │   │   ├── RefreshTokenCommandValidator.cs
+│   │   │   │   │   ├── RegisterCommand.cs
+│   │   │   │   │   ├── RegisterCommandValidator.cs
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── AddressDto.cs
+│   │   │   │   │   ├── EmergencyContactDto.cs
+│   │   │   │   │   ├── LoginDto.cs
+│   │   │   │   │   ├── RoleDto.cs
+│   │   │   │   │   ├── TokenDto.cs
+│   │   │   │   │   ├── UserDto.cs
+│   │   │   ├── Courses
+│   │   │   │   ├── Commands
+│   │   │   │   │   ├── AddPrerequisiteCommand.cs
+│   │   │   │   │   ├── AddPrerequisiteCommandHandler.cs
+│   │   │   │   │   ├── AddPrerequisiteCommandValidator.cs
+│   │   │   │   │   ├── CreateCourseCommand.cs
+│   │   │   │   │   ├── CreateCourseCommandHandler.cs
+│   │   │   │   │   ├── CreateCourseCommandValidator.cs
+│   │   │   │   │   ├── DeleteCourseCommand.cs
+│   │   │   │   │   ├── DeleteCourseCommandHandler.cs
+│   │   │   │   │   ├── DeleteCourseCommandValidator.cs
+│   │   │   │   │   ├── UpdateCourseCommand.cs
+│   │   │   │   │   ├── UpdateCourseCommandHandler.cs
+│   │   │   │   │   ├── UpdateCourseCommandValidator.cs
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── CourseDto.cs
+│   │   │   │   │   ├── PrerequisiteCourseDto.cs
+│   │   │   │   ├── Queries
+│   │   │   │   │   ├── GetCourseByIdQuery.cs
+│   │   │   │   │   ├── GetCourseByIdQueryHandler.cs
+│   │   │   │   │   ├── GetCourseListQuery.cs
+│   │   │   │   │   ├── GetCourseListQueryHandler.cs
+│   │   │   │   │   ├── GetCoursePrerequisitesQuery.cs
+│   │   │   │   │   ├── GetCoursePrerequisitesQueryHandler.cs
+│   │   │   ├── Departments
+│   │   │   │   ├── Commands
+│   │   │   │   │   ├── AssignDepartmentHeadCommand.cs
+│   │   │   │   │   ├── AssignDepartmentHeadCommandHandler.cs
+│   │   │   │   │   ├── AssignDepartmentHeadCommandValidator.cs
+│   │   │   │   │   ├── CreateDepartmentCommand.cs
+│   │   │   │   │   ├── CreateDepartmentCommandHandler.cs
+│   │   │   │   │   ├── CreateDepartmentCommandValidator.cs
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── DepartmentDto.cs
+│   │   │   │   ├── Queries
+│   │   │   │   │   ├── GetDepartmentByIdQuery.cs
+│   │   │   │   │   ├── GetDepartmentByIdQueryHandler.cs
+│   │   │   │   │   ├── GetDepartmentListQuery.cs
+│   │   │   │   │   ├── GetDepartmentListQueryHandler.cs
+│   │   │   ├── Enrollments
+│   │   │   │   ├── Commands
+│   │   │   │   │   ├── AddCourseToEnrollmentCommand.cs
+│   │   │   │   │   ├── AddCourseToEnrollmentCommandHandler.cs
+│   │   │   │   │   ├── AddCourseToEnrollmentCommandValidator.cs
+│   │   │   │   │   ├── ApproveEnrollmentCommand.cs
+│   │   │   │   │   ├── ApproveEnrollmentCommandHandler.cs
+│   │   │   │   │   ├── ApproveEnrollmentCommandValidator.cs
+│   │   │   │   │   ├── CreateEnrollmentCommand.cs
+│   │   │   │   │   ├── CreateEnrollmentCommandHandler.cs
+│   │   │   │   │   ├── CreateEnrollmentCommandValidator.cs
+│   │   │   │   │   ├── RejectEnrollmentCommand.cs
+│   │   │   │   │   ├── RejectEnrollmentCommandHandler.cs
+│   │   │   │   │   ├── RejectEnrollmentCommandValidator.cs
+│   │   │   │   │   ├── RemoveCourseFromEnrollmentCommand.cs
+│   │   │   │   │   ├── RemoveCourseFromEnrollmentCommandHandler.cs
+│   │   │   │   │   ├── RemoveCourseFromEnrollmentCommandValidator.cs
+│   │   │   │   │   ├── SubmitEnrollmentCommand.cs
+│   │   │   │   │   ├── SubmitEnrollmentCommandHandler.cs
+│   │   │   │   │   ├── SubmitEnrollmentCommandValidator.cs
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── CourseRegistrationDto.cs
+│   │   │   │   │   ├── EnrollmentDto.cs
+│   │   │   │   ├── Queries
+│   │   │   │   │   ├── GetEnrollmentByIdQuery.cs
+│   │   │   │   │   ├── GetEnrollmentByIdQueryHandler.cs
+│   │   │   │   │   ├── GetStudentEnrollmentsQuery.cs
+│   │   │   │   │   ├── GetStudentEnrollmentsQueryHandler.cs
+│   │   │   ├── Faculties
+│   │   │   │   ├── Commands
+│   │   │   │   │   ├── CreateFacultyCommand.cs
+│   │   │   │   │   ├── CreateFacultyCommandHandler.cs
+│   │   │   │   │   ├── CreateFacultyCommandValidator.cs
+│   │   │   │   │   ├── DeleteFacultyCommand.cs
+│   │   │   │   │   ├── DeleteFacultyCommandHandler.cs
+│   │   │   │   │   ├── DeleteFacultyCommandValidator.cs
+│   │   │   │   │   ├── UpdateFacultyCommand.cs
+│   │   │   │   │   ├── UpdateFacultyCommandHandler.cs
+│   │   │   │   │   ├── UpdateFacultyCommandValidator.cs
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── DepartmentBasicDto.cs
+│   │   │   │   │   ├── FacultyDetailDto.cs
+│   │   │   │   │   ├── FacultyDto.cs
+│   │   │   │   ├── Queries
+│   │   │   │   │   ├── GetFacultyByIdQuery.cs
+│   │   │   │   │   ├── GetFacultyByIdQueryHandler.cs
+│   │   │   │   │   ├── GetFacultyListQuery.cs
+│   │   │   │   │   ├── GetFacultyListQueryHandler.cs
+│   │   │   ├── Grades
+│   │   │   │   ├── Commands
+│   │   │   │   │   ├── BulkCreateGradesCommand.cs
+│   │   │   │   │   ├── BulkCreateGradesCommandHandler.cs
+│   │   │   │   │   ├── BulkCreateGradesCommandValidator.cs
+│   │   │   │   │   ├── CreateGradeCommand.cs
+│   │   │   │   │   ├── CreateGradeCommandHandler.cs
+│   │   │   │   │   ├── CreateGradeCommandValidator.cs
+│   │   │   │   │   ├── CreateGradeObjectionCommand.cs
+│   │   │   │   │   ├── CreateGradeObjectionCommandHandler.cs
+│   │   │   │   │   ├── CreateGradeObjectionCommandValidator.cs
+│   │   │   │   │   ├── DeleteGradeCommand.cs
+│   │   │   │   │   ├── DeleteGradeCommandHandler.cs
+│   │   │   │   │   ├── DeleteGradeCommandValidator.cs
+│   │   │   │   │   ├── ObjectToGradeCommand.cs
+│   │   │   │   │   ├── ObjectToGradeCommandHandler.cs
+│   │   │   │   │   ├── ObjectToGradeCommandValidator.cs
+│   │   │   │   │   ├── RemovePrerequisiteCommand.cs
+│   │   │   │   │   ├── RemovePrerequisiteCommandHandler.cs
+│   │   │   │   │   ├── RemovePrerequisiteCommandValidator.cs
+│   │   │   │   │   ├── ReviewGradeObjectionCommand.cs
+│   │   │   │   │   ├── ReviewGradeObjectionCommandHandler.cs
+│   │   │   │   │   ├── ReviewGradeObjectionCommandValidator.cs
+│   │   │   │   │   ├── SubmitGradeCommand.cs
+│   │   │   │   │   ├── SubmitGradeCommandHandler.cs
+│   │   │   │   │   ├── SubmitGradeCommandValidator.cs
+│   │   │   │   │   ├── ToggleCourseActiveCommand.cs
+│   │   │   │   │   ├── ToggleCourseActiveCommandHandler.cs
+│   │   │   │   │   ├── ToggleCourseActiveCommandValidator.cs
+│   │   │   │   │   ├── UpdateGradeCommand.cs
+│   │   │   │   │   ├── UpdateGradeCommandHandler.cs
+│   │   │   │   │   ├── UpdateGradeCommandValidator.cs
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── GradeDistributionDto.cs
+│   │   │   │   │   ├── GradeDto.cs
+│   │   │   │   │   ├── GradeObjectionDto.cs
+│   │   │   │   │   ├── GradeStatisticsDto.cs
+│   │   │   │   │   ├── TranscriptDto.cs
+│   │   │   │   ├── Queries
+│   │   │   │   │   ├── GetCourseGradesQuery.cs
+│   │   │   │   │   ├── GetCourseGradesQueryHandler.cs
+│   │   │   │   │   ├── GetGradeStatisticsQuery.cs
+│   │   │   │   │   ├── GetGradeStatisticsQueryHandler.cs
+│   │   │   │   │   ├── GetStudentGradesQuery.cs
+│   │   │   │   │   ├── GetStudentGradesQueryHandler.cs
+│   │   │   │   │   ├── GetTranscriptQuery.cs
+│   │   │   │   │   ├── GetTranscriptQueryHandler.cs
+│   │   │   ├── HR
+│   │   │   │   ├── Commands
+│   │   │   │   ├── DTOs
+│   │   │   │   ├── Queries
+│   │   │   ├── Payroll
+│   │   │   │   ├── Commands
+│   │   │   │   ├── DTOs
+│   │   │   │   ├── Queries
+│   │   │   ├── Staff
+│   │   │   │   ├── Commands
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── StaffDto.cs
+│   │   │   │   ├── Queries
+│   │   │   ├── Students
+│   │   │   │   ├── Commands
+│   │   │   │   │   ├── CreateStudentCommand.cs
+│   │   │   │   │   ├── CreateStudentCommandHandler.cs
+│   │   │   │   │   ├── CreateStudentCommandValidator.cs
+│   │   │   │   │   ├── DeleteStudentCommand.cs
+│   │   │   │   │   ├── DeleteStudentCommandHandler.cs
+│   │   │   │   │   ├── DeleteStudentCommandValidator.cs
+│   │   │   │   │   ├── FreezeStudentCommand.cs
+│   │   │   │   │   ├── FreezeStudentCommandHandler.cs
+│   │   │   │   │   ├── FreezeStudentCommandValidator.cs
+│   │   │   │   │   ├── GraduateStudentCommand.cs
+│   │   │   │   │   ├── GraduateStudentCommandHandler.cs
+│   │   │   │   │   ├── GraduateStudentCommandValidator.cs
+│   │   │   │   │   ├── UpdateStudentCommand.cs
+│   │   │   │   │   ├── UpdateStudentCommandHandler.cs
+│   │   │   │   │   ├── UpdateStudentStatusCommand.cs
+│   │   │   │   │   ├── UpdateStudentStatusCommandHandler.cs
+│   │   │   │   │   ├── UpdateStudentStatusCommandValidator.cs
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── NotificationDto.cs
+│   │   │   │   │   ├── StudentDashboardDto.cs
+│   │   │   │   │   ├── StudentDto.cs
+│   │   │   │   │   ├── TodayCourseDto.cs
+│   │   │   │   │   ├── UpcomingExamDto.cs
+│   │   │   │   ├── Queries
+│   │   │   │   │   ├── GetStudentByIdQuery.cs
+│   │   │   │   │   ├── GetStudentByIdQueryHandler.cs
+│   │   │   │   │   ├── GetStudentListQuery.cs
+│   │   │   │   │   ├── GetStudentListQueryHandler.cs
+│   ├── UniversityMS.Domain
+│   │   ├── Entities
+│   │   │   ├── AcademicAggregate
+│   │   │   │   ├── Course.cs
+│   │   │   │   ├── Curriculum.cs
+│   │   │   │   ├── CurriculumCourse.cs
+│   │   │   │   ├── Department.cs
+│   │   │   │   ├── Faculty.cs
+│   │   │   │   ├── Prerequisite.cs
+│   │   │   ├── Common
+│   │   │   │   ├── AuditableEntity.cs
+│   │   │   │   ├── BaseEntity.cs
+│   │   │   │   ├── ISoftDelete.cs
+│   │   │   ├── EnrollmentAggregate
+│   │   │   │   ├── Attendance.cs
+│   │   │   │   ├── CourseRegistration.cs
+│   │   │   │   ├── Enrollment.cs
+│   │   │   │   ├── Grade.cs
+│   │   │   │   ├── GradeObjection.cs
+│   │   │   ├── FacilityAggregate
+│   │   │   │   ├── Building.cs
+│   │   │   │   ├── Equipment.cs
+│   │   │   │   ├── Laboratory.cs
+│   │   │   │   ├── ParkingLot.cs
+│   │   │   │   ├── ParkingSpace.cs
+│   │   │   │   ├── Room.cs
+│   │   │   │   ├── RoomReservation.cs
+│   │   │   ├── FinanceAggregate
+│   │   │   │   ├── Budget.cs
+│   │   │   │   ├── BudgetItem.cs
+│   │   │   │   ├── Invoice.cs
+│   │   │   │   ├── InvoiceItem.cs
+│   │   │   │   ├── Transaction.cs
+│   │   │   ├── HRAggregate
+│   │   │   │   ├── Contract.cs
+│   │   │   │   ├── Employee.cs
+│   │   │   │   ├── Leave.cs
+│   │   │   │   ├── PerformanceReview.cs
+│   │   │   │   ├── Shift.cs
+│   │   │   │   ├── Training.cs
+│   │   │   │   ├── TrainingEnrollment.cs
+│   │   │   ├── IdentityAggregate
+│   │   │   │   ├── Permission.cs
+│   │   │   │   ├── Role.cs
+│   │   │   │   ├── User.cs
+│   │   │   │   ├── UserRole.cs
+│   │   │   ├── InventoryAggregate
+│   │   │   │   ├── StockItem.cs
+│   │   │   │   ├── StockMovement.cs
+│   │   │   │   ├── Warehouse.cs
+│   │   │   ├── LibraryAggregate
+│   │   │   │   ├── Fine.cs
+│   │   │   │   ├── Loan.cs
+│   │   │   │   ├── Material.cs
+│   │   │   │   ├── Reservation.cs
+│   │   │   ├── PayrollAggregate
+│   │   │   │   ├── Payroll.cs
+│   │   │   │   ├── PayrollDeduction.cs
+│   │   │   │   ├── PayrollItem.cs
+│   │   │   ├── PersonAggregate
+│   │   │   │   ├── Address.cs
+│   │   │   │   ├── EmergencyContact.cs
+│   │   │   │   ├── Person.cs
+│   │   │   │   ├── Staff.cs
+│   │   │   │   ├── Student.cs
+│   │   │   ├── ProcurementAggregate
+│   │   │   │   ├── PurchaseOrder.cs
+│   │   │   │   ├── PurchaseOrderItem.cs
+│   │   │   │   ├── PurchaseRequest.cs
+│   │   │   │   ├── PurchaseRequestItem.cs
+│   │   │   │   ├── Supplier.cs
+│   │   │   ├── SecurityAggregate
+│   │   │   │   ├── AccessLog.cs
+│   │   │   │   ├── AccessPoint.cs
+│   │   │   │   ├── Camera.cs
+│   │   │   │   ├── EmergencyAlert.cs
+│   │   │   │   ├── Visitor.cs
+│   │   ├── Enums
+│   │   │   ├── AcademicTitle.cs
+│   │   │   ├── AccessDenialReason.cs
+│   │   │   ├── AccessLogType.cs
+│   │   │   ├── AccessPointStatus.cs
+│   │   │   ├── AccessPointType.cs
+│   │   │   ├── AccessResult.cs
+│   │   │   ├── AccountType.cs
+│   │   │   ├── AttendanceMethod.cs
+│   │   │   ├── BudgetCategory.cs
+│   │   │   ├── BudgetStatus.cs
+│   │   │   ├── BudgetType.cs
+│   │   │   ├── BuildingStatus.cs
+│   │   │   ├── BuildingType.cs
+│   │   │   ├── CameraStatus.cs
+│   │   │   ├── CameraType.cs
+│   │   │   ├── ContractStatus.cs
+│   │   │   ├── ContractType.cs
+│   │   │   ├── CourseRegistrationStatus.cs
+│   │   │   ├── CourseType.cs
+│   │   │   ├── DeductionType.cs
+│   │   │   ├── EducationLevel.cs
+│   │   │   ├── EmergencyAlertStatus.cs
+│   │   │   ├── EmergencyAlertType.cs
+│   │   │   ├── EmergencyPriority.cs
+│   │   │   ├── EmploymentStatus.cs
+│   │   │   ├── EnrollmentStatus.cs
+│   │   │   ├── EquipmentStatus.cs
+│   │   │   ├── EquipmentType.cs
+│   │   │   ├── FineStatus.cs
+│   │   │   ├── FineType.cs
+│   │   │   ├── Gender.cs
+│   │   │   ├── GradeType.cs
+│   │   │   ├── InvoiceStatus.cs
+│   │   │   ├── InvoiceType.cs
+│   │   │   ├── JournalEntryStatus.cs
+│   │   │   ├── LaboratoryType.cs
+│   │   │   ├── LeaveStatus.cs
+│   │   │   ├── LeaveType.cs
+│   │   │   ├── LoanStatus.cs
+│   │   │   ├── MaintenanceType.cs
+│   │   │   ├── MaterialStatus.cs
+│   │   │   ├── MaterialType.cs
+│   │   │   ├── ObjectionStatus.cs
+│   │   │   ├── ParkingLotStatus.cs
+│   │   │   ├── ParkingLotType.cs
+│   │   │   ├── ParkingSpaceStatus.cs
+│   │   │   ├── PaymentMethod.cs
+│   │   │   ├── PaymentStatus.cs
+│   │   │   ├── PayrollItemType.cs
+│   │   │   ├── PayrollStatus.cs
+│   │   │   ├── PerformanceRating.cs
+│   │   │   ├── PerformanceReviewStatus.cs
+│   │   │   ├── PurchaseOrderStatus.cs
+│   │   │   ├── PurchasePriority.cs
+│   │   │   ├── PurchaseRequestStatus.cs
+│   │   │   ├── ReservationStatus.cs
+│   │   │   ├── RoomReservationStatus.cs
+│   │   │   ├── RoomStatus.cs
+│   │   │   ├── RoomType.cs
+│   │   │   ├── SafetyLevel.cs
+│   │   │   ├── SalaryType.cs
+│   │   │   ├── ShiftPattern.cs
+│   │   │   ├── ShiftStatus.cs
+│   │   │   ├── StockCategory.cs
+│   │   │   ├── StockCountStatus.cs
+│   │   │   ├── StockCountType.cs
+│   │   │   ├── StockMovementType.cs
+│   │   │   ├── StudentStatus.cs
+│   │   │   ├── SupplierStatus.cs
+│   │   │   ├── SupplierType.cs
+│   │   │   ├── TenderStatus.cs
+│   │   │   ├── TenderType.cs
+│   │   │   ├── TrainingEnrollmentStatus.cs
+│   │   │   ├── TrainingStatus.cs
+│   │   │   ├── TrainingType.cs
+│   │   │   ├── TransactionStatus.cs
+│   │   │   ├── TransactionType.cs
+│   │   │   ├── VisitorStatus.cs
+│   │   │   ├── VisitorType.cs
+│   │   │   ├── WarehouseStatus.cs
+│   │   │   ├── WarehouseType.cs
+│   │   ├── Events
+│   │   │   ├── GradeSubmittedEvent.cs
+│   │   │   ├── PaymentReceivedEvent.cs
+│   │   │   ├── StudentEnrolledEvent.cs
+│   │   │   ├── FacilityEvents
+│   │   │   │   ├── BuildingCreatedEvent.cs
+│   │   │   │   ├── BuildingStatusChangedEvent.cs
+│   │   │   │   ├── EquipmentAddedEvent.cs
+│   │   │   │   ├── EquipmentMaintenanceCompletedEvent.cs
+│   │   │   │   ├── EquipmentMaintenanceScheduledEvent.cs
+│   │   │   │   ├── LaboratoryCreatedEvent.cs
+│   │   │   │   ├── ParkingLotCreatedEvent.cs
+│   │   │   │   ├── ParkingSpaceOccupiedEvent.cs
+│   │   │   │   ├── ParkingSpaceVacatedEvent.cs
+│   │   │   │   ├── RoomAddedToBuildingEvent.cs
+│   │   │   │   ├── RoomReservationCancelledEvent.cs
+│   │   │   │   ├── RoomReservedEvent.cs
+│   │   │   ├── FinanceEvents
+│   │   │   │   ├── BudgetAllocatedEvent.cs
+│   │   │   │   ├── BudgetApprovedEvent.cs
+│   │   │   │   ├── BudgetCreatedEvent.cs
+│   │   │   │   ├── BudgetExpenseRecordedEvent.cs
+│   │   │   │   ├── InvoiceIssuedEvent.cs
+│   │   │   │   ├── InvoicePaidEvent.cs
+│   │   │   │   ├── TransactionCompletedEvent.cs
+│   │   │   │   ├── TransactionCreatedEvent.cs
+│   │   │   ├── HREvents
+│   │   │   │   ├── ContractAddedEvent.cs
+│   │   │   │   ├── EmployeeEnrolledInTrainingEvent.cs
+│   │   │   │   ├── EmployeeHiredEvent.cs
+│   │   │   │   ├── EmployeeJobTitleChangedEvent.cs
+│   │   │   │   ├── EmployeeLeaveBalanceUpdatedEvent.cs
+│   │   │   │   ├── EmployeeReactivatedEvent.cs
+│   │   │   │   ├── EmployeeResignedEvent.cs
+│   │   │   │   ├── EmployeeRetiredEvent.cs
+│   │   │   │   ├── EmployeeReturnedFromLeaveEvent.cs
+│   │   │   │   ├── EmployeeSalaryUpdatedEvent.cs
+│   │   │   │   ├── EmployeeSuspendedEvent.cs
+│   │   │   │   ├── EmployeeTerminatedEvent.cs
+│   │   │   │   ├── EmployeeTransferredEvent.cs
+│   │   │   │   ├── LeaveApprovedEvent.cs
+│   │   │   │   ├── LeaveRejectedEvent.cs
+│   │   │   │   ├── LeaveRequestedEvent.cs
+│   │   │   │   ├── PerformanceReviewAddedEvent.cs
+│   │   │   │   ├── ShiftAssignedEvent.cs
+│   │   │   ├── InventoryEvents
+│   │   │   │   ├── LowStockAlertEvent.cs
+│   │   │   │   ├── OutOfStockAlertEvent.cs
+│   │   │   │   ├── StockItemAddedEvent.cs
+│   │   │   │   ├── StockMovementRecordedEvent.cs
+│   │   │   │   ├── WarehouseCreatedEvent.cs
+│   │   │   ├── LibraryEvents
+│   │   │   │   ├── FineIssuedEvent.cs
+│   │   │   │   ├── FinePaidEvent.cs
+│   │   │   │   ├── LoanRenewedEvent.cs
+│   │   │   │   ├── MaterialAddedEvent.cs
+│   │   │   │   ├── MaterialLoanedEvent.cs
+│   │   │   │   ├── MaterialOverdueEvent.cs
+│   │   │   │   ├── MaterialReservedEvent.cs
+│   │   │   │   ├── MaterialReturnedEvent.cs
+│   │   │   ├── PayrollEvents
+│   │   │   │   ├── PayrollApprovedEvent.cs
+│   │   │   │   ├── PayrollCalculatedEvent.cs
+│   │   │   │   ├── PayrollCancelledEvent.cs
+│   │   │   │   ├── PayrollPaidEvent.cs
+│   │   │   │   ├── PayrollRejectedEvent.cs
+│   │   │   ├── ProcurementEvents
+│   │   │   │   ├── PurchaseOrderApprovedEvent.cs
+│   │   │   │   ├── PurchaseOrderCreatedEvent.cs
+│   │   │   │   ├── PurchaseOrderReceivedEvent.cs
+│   │   │   │   ├── PurchaseRequestApprovedEvent.cs
+│   │   │   │   ├── PurchaseRequestSubmittedEvent.cs
+│   │   │   │   ├── SupplierAddedEvent.cs
+│   │   │   │   ├── SupplierRatingUpdatedEvent.cs
+│   │   │   ├── SecurityEvents
+│   │   │   │   ├── AccessDeniedEvent.cs
+│   │   │   │   ├── AccessGrantedEvent.cs
+│   │   │   │   ├── AccessPointActivatedEvent.cs
+│   │   │   │   ├── AccessPointDeactivatedEvent.cs
+│   │   │   │   ├── EmergencyAlertResolvedEvent.cs
+│   │   │   │   ├── EmergencyAlertTriggeredEvent.cs
+│   │   │   │   ├── UnauthorizedAccessAttemptEvent.cs
+│   │   │   │   ├── VisitorCheckedInEvent.cs
+│   │   │   │   ├── VisitorCheckedOutEvent.cs
+│   │   ├── Exceptions
+│   │   │   ├── BusinessRuleValidationException.cs
+│   │   │   ├── DomainException.cs
+│   │   │   ├── EntityNotFoundException.cs
+│   │   ├── Interfaces
+│   │   │   ├── BaseDomainEvent.cs
+│   │   │   ├── IAggregateRoot.cs
+│   │   │   ├── IAuditableEntity.cs
+│   │   │   ├── IDomainEvent.cs
+│   │   │   ├── IRepository.cs
+│   │   │   ├── ISpecification.cs
+│   │   │   ├── IUnitOfWork.cs
+│   │   ├── Specifications
+│   │   │   ├── AcademicStaffSpec.cs
+│   │   │   ├── ActiveStaffSpec.cs
+│   │   │   ├── ActiveStudentsSpec.cs
+│   │   │   ├── ActiveUsersSpec.cs
+│   │   │   ├── BaseSpecification.cs
+│   │   │   ├── StaffByAcademicTitleSpec.cs
+│   │   │   ├── StaffByDepartmentSpec.cs
+│   │   │   ├── StaffByEmployeeNumberSpec.cs
+│   │   │   ├── StudentByNumberSpec.cs
+│   │   │   ├── StudentsByDepartmentSpec.cs
+│   │   │   ├── StudentsByEducationLevelSpec.cs
+│   │   │   ├── StudentsWithLowGPASpec.cs
+│   │   │   ├── UserByEmailSpec.cs
+│   │   │   ├── UserByUsernameSpec.cs
+│   │   ├── ValueObjects
+│   │   │   ├── ContactInfo.cs
+│   │   │   ├── DateRange.cs
+│   │   │   ├── Email.cs
+│   │   │   ├── EmployeeNumber.cs
+│   │   │   ├── GradeScore.cs
+│   │   │   ├── LeaveBalance.cs
+│   │   │   ├── Money.cs
+│   │   │   ├── PayrollPeriod.cs
+│   │   │   ├── PerformanceScore.cs
+│   │   │   ├── PhoneNumber.cs
+│   │   │   ├── SalaryInfo.cs
+│   │   │   ├── TrainingDuration.cs
+│   │   │   ├── ValueObject.cs
+│   │   │   ├── WorkingHours.cs
+├── docs
+│   ├── api-documentation
+│   │   ├── read.me
+│   ├── setup
+│   │   ├── setup.ps1
+│   │   ├── setup.sh
+├── Infrastructure
+│   ├── UniversityMS.Infrastructure
+│   │   ├── DependencyInjection.cs
+│   │   ├── Files
+│   │   ├── Identity
+│   │   │   ├── CurrentUserService.cs
+│   │   │   ├── JwtSettings.cs
+│   │   │   ├── JwtTokenGenerator.cs
+│   │   │   ├── PasswordHasher.cs
+│   │   ├── Migrations
+│   │   │   ├── ApplicationDbContextModelSnapshot.cs
+│   │   │   ├── InitialCreate.cs
+│   │   │   ├── InitialCreate.Designer.cs
+│   │   ├── Persistence
+│   │   │   ├── ApplicationDbContext.cs
+│   │   │   ├── UnitOfWork.cs
+│   │   │   ├── Configurations
+│   │   │   │   ├── AddressConfiguration.cs
+│   │   │   │   ├── AttendanceConfiguration.cs
+│   │   │   │   ├── CourseConfiguration.cs
+│   │   │   │   ├── CourseRegistrationConfiguration.cs
+│   │   │   │   ├── CurriculumConfiguration.cs
+│   │   │   │   ├── CurriculumCourseConfiguration.cs
+│   │   │   │   ├── EmergencyContactConfiguration.cs
+│   │   │   │   ├── EnrollmentConfiguration.cs
+│   │   │   │   ├── GradeConfiguration.cs
+│   │   │   │   ├── GradeObjectionConfiguration.cs
+│   │   │   │   ├── PermissionConfiguration.cs
+│   │   │   │   ├── PrerequisiteConfiguration.cs
+│   │   │   │   ├── RoleConfiguration.cs
+│   │   │   │   ├── StaffConfiguration.cs
+│   │   │   │   ├── StudentConfiguration.cs
+│   │   │   │   ├── UserConfiguration.cs
+│   │   │   ├── Migrations
+│   │   │   ├── Repositories
+│   │   │   │   ├── Repository.cs
+│   │   │   │   ├── SpecificationEvaluator.cs
+│   │   ├── Services
+│   │   │   ├── DateTimeService.cs
+│   │   │   ├── EmailService.cs
+│   │   │   ├── SmsService.cs
+│   ├── UniversityMS.Infrastructure.Shared
+│   │   ├── Class1.cs
+│   │   ├── BackgroundJobs
+│   │   ├── Cache
+│   │   ├── MessageQueue
+├── Presentation
+│   ├── UniversityMS.Api
+│   │   ├── appsettings.Development.json
+│   │   ├── appsettings.json
+│   │   ├── Program.cs
+│   │   ├── UniversityMS.Api.csproj
+│   │   ├── UniversityMS.Api.csproj.user
+│   │   ├── UniversityMS.Api.http
+│   │   ├── Controllers
+│   │   │   ├── BaseApiController.cs
+│   │   │   ├── v1
+│   │   │   │   ├── AttendancesController.cs
+│   │   │   │   ├── AuthController.cs
+│   │   │   │   ├── CoursesController.cs
+│   │   │   │   ├── DepartmentsController.cs
+│   │   │   │   ├── EnrollmentsController.cs
+│   │   │   │   ├── FacultiesController.cs
+│   │   │   │   ├── GradesController.cs
+│   │   │   │   ├── StudentsController.cs
+│   │   ├── DTOs
+│   │   │   ├── RefreshTokenRequestDto.cs
+│   │   ├── Extensions
+│   │   ├── Filters
+│   │   ├── logs
+│   │   ├── Middleware
+│   │   │   ├── ErrorHandlingMiddleware.cs
+│   │   │   ├── RequestLoggingMiddleware.cs
+│   │   ├── Properties
+│   │   │   ├── launchSettings.json
+.gitattributes
+.gitignore
+dotnet
+.github

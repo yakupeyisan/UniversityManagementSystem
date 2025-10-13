@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UniversityMS.Application.Features.Classrooms.Commands;
+using UniversityMS.Application.Features.Classrooms.Queries;
 
 namespace UniversityMS.Api.Controllers.v1;
 

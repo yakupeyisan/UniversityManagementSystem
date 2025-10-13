@@ -9,6 +9,17 @@ namespace UniversityMS.Api.Controllers.v1;
 [Authorize]
 public class CoursesController : BaseApiController
 {
+    [HttpGet("GetCoursesWithIsActive")]
+    public async Task<IActionResult> GetCourses(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] Guid? departmentId = null,
+        [FromQuery] string? searchTerm = null)
+    {
+        var result = await Mediator.Send(new GetCourseListQuery(
+            pageNumber, pageSize, departmentId, searchTerm));
+        return Ok(result);
+    }
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCourses(
@@ -146,17 +157,6 @@ public class CoursesController : BaseApiController
         if (!result.IsSuccess)
             return BadRequest(result);
 
-        return Ok(result);
-    }
-    [HttpGet]
-    public async Task<IActionResult> GetCourses(
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10,
-        [FromQuery] Guid? departmentId = null,
-        [FromQuery] string? searchTerm = null)
-    {
-        var result = await Mediator.Send(new GetCourseListQuery(
-            pageNumber, pageSize, departmentId, searchTerm));
         return Ok(result);
     }
 }

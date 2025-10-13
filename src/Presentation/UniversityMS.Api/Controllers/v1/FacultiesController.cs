@@ -9,7 +9,7 @@ namespace UniversityMS.Api.Controllers.v1;
 [Authorize]
 public class FacultiesController : BaseApiController
 {
-    [HttpGet]
+    [HttpGet("GetFacultiesWithIsActive")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFaculties(
         [FromQuery] int pageNumber = 1,
@@ -22,6 +22,14 @@ public class FacultiesController : BaseApiController
         if (!result.IsSuccess)
             return BadRequest(result);
 
+        return Ok(result);
+    }
+    [HttpGet]
+    public async Task<IActionResult> GetFaculties(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var result = await Mediator.Send(new GetFacultyListQuery(pageNumber, pageSize));
         return Ok(result);
     }
 
@@ -78,14 +86,6 @@ public class FacultiesController : BaseApiController
             return NotFound(result);
 
         return NoContent();
-    }
-    [HttpGet]
-    public async Task<IActionResult> GetFaculties(
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10)
-    {
-        var result = await Mediator.Send(new GetFacultyListQuery(pageNumber, pageSize));
-        return Ok(result);
     }
 
 }

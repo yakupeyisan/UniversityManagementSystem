@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UniversityMS.Application.Features.Attendances.Commands;
 using UniversityMS.Application.Features.Attendances.Queries;
+using UniversityMS.Application.Features.Authentication.Commands;
 
 namespace UniversityMS.Api.Controllers.v1;
 
@@ -61,3 +63,4 @@ public class AttendancesController : BaseApiController
         return Ok(result);
     }
 }
+

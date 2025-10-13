@@ -9,6 +9,15 @@ namespace UniversityMS.Api.Controllers.v1;
 public class DepartmentsController : BaseApiController
 {
     [HttpGet]
+    public async Task<IActionResult> GetDepartments(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] Guid? facultyId = null)
+    {
+        var result = await Mediator.Send(new GetDepartmentListQuery(pageNumber, pageSize, facultyId));
+        return Ok(result);
+    }
+    [HttpGet("GetDepartmentsWithIsActive")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDepartments(
         [FromQuery] int pageNumber = 1,
@@ -66,14 +75,5 @@ public class DepartmentsController : BaseApiController
         return Ok(result);
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetDepartments(
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10,
-        [FromQuery] Guid? facultyId = null)
-    {
-        var result = await Mediator.Send(new GetDepartmentListQuery(pageNumber, pageSize, facultyId));
-        return Ok(result);
-    }
 
 }

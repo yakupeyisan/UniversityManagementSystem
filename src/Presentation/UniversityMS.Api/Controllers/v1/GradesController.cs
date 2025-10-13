@@ -19,6 +19,14 @@ public class GradesController : BaseApiController
 
         return CreatedAtAction(nameof(GetStudentGrades), new { studentId = command.StudentId }, result);
     }
+    [HttpPost("SubmitGrade")]
+    public async Task<IActionResult> SubmitGrade([FromBody] SubmitGradeCommand command)
+    {
+        var result = await Mediator.Send(command);
+        if (!result.IsSuccess)
+            return BadRequest(result);
+        return Ok(result);
+    }
 
     [HttpPost("bulk")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -169,22 +177,7 @@ public class GradesController : BaseApiController
         // GetPendingGradeObjectionsQuery implementation
         return Ok(new { message = "Bekleyen itirazlar endpoint - implement edilecek" });
     }
-    [HttpPost]
-    public async Task<IActionResult> SubmitGrade([FromBody] SubmitGradeCommand command)
-    {
-        var result = await Mediator.Send(command);
-        if (!result.IsSuccess)
-            return BadRequest(result);
-        return Ok(result);
-    }
 
-
-    [HttpGet("course/{courseId:guid}")]
-    public async Task<IActionResult> GetCourseGrades(Guid courseId)
-    {
-        var result = await Mediator.Send(new GetCourseGradesQuery(courseId));
-        return Ok(result);
-    }
 
     [HttpGet("transcript/{studentId:guid}")]
     public async Task<IActionResult> GetTranscript(Guid studentId)

@@ -7,8 +7,10 @@ using UniversityMS.Application.Common.Interfaces;
 using UniversityMS.Domain.Entities.AcademicAggregate;
 using UniversityMS.Domain.Entities.Common;
 using UniversityMS.Domain.Entities.EnrollmentAggregate;
+using UniversityMS.Domain.Entities.FacilityAggregate;
 using UniversityMS.Domain.Entities.IdentityAggregate;
 using UniversityMS.Domain.Entities.PersonAggregate;
+using UniversityMS.Domain.Entities.ScheduleAggregate;
 using UniversityMS.Domain.Interfaces;
 
 namespace UniversityMS.Infrastructure.Persistence;
@@ -48,7 +50,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Grade> Grades => Set<Grade>();
     public DbSet<Attendance> Attendances => Set<Attendance>();
     public DbSet<GradeObjection> GradeObjections => Set<GradeObjection>();
-
+    public DbSet<Schedule> Schedules => Set<Schedule>();
+    public DbSet<CourseSession> CourseSessions => Set<CourseSession>();
+    public DbSet<Classroom> Classrooms => Set<Classroom>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

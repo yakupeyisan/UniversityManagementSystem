@@ -33,6 +33,9 @@ public class Building : AuditableEntity, IAggregateRoot
     public DateTime? NextInspectionDate { get; private set; }
     public string? EmergencyExitInfo { get; private set; }
 
+    // Navigation Property - EKLENDI
+    public AcademicAggregate.Campus Campus { get; private set; } = null!;
+
     // Collections
     private readonly List<Room> _rooms = new();
     public IReadOnlyCollection<Room> Rooms => _rooms.AsReadOnly();
@@ -156,7 +159,7 @@ public class Building : AuditableEntity, IAggregateRoot
     public void CompleteInspection()
     {
         LastInspectionDate = DateTime.UtcNow;
-        NextInspectionDate = DateTime.UtcNow.AddYears(1); // Yıllık denetim
+        NextInspectionDate = DateTime.UtcNow.AddYears(1);
     }
 
     #endregion

@@ -32,16 +32,16 @@ public class GetClassroomByIdQueryHandler : IRequestHandler<GetClassroomByIdQuer
                 .FirstOrDefaultAsync(c => c.Id == request.Id && !c.IsDeleted, cancellationToken);
 
             if (classroom == null)
-                return Result.Failure<ClassroomDto>("Derslik bulunamadı.");
+                return Result<ClassroomDto>.Failure("Derslik bulunamadı.");
 
             var dto = _mapper.Map<ClassroomDto>(classroom);
 
-            return Result.Success(dto);
+            return Result<ClassroomDto>.Success(dto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving classroom");
-            return Result.Failure<ClassroomDto>("Derslik getirilirken hata oluştu.");
+            return Result<ClassroomDto>.Failure("Derslik getirilirken hata oluştu.");
         }
     }
 }

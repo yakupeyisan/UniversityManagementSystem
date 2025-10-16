@@ -53,12 +53,12 @@ public class GetFacultyListQueryHandler : IRequestHandler<GetFacultyListQuery, R
                 request.PageNumber,
                 request.PageSize);
 
-            return Result.Success(paginatedList);
+            return Result<PaginatedList<FacultyDto>>.Success(paginatedList);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving faculty list");
-            return Result.Failure<PaginatedList<FacultyDto>>("Fakülte listesi alınırken bir hata oluştu.");
+            return Result<PaginatedList<FacultyDto>>.Failure("Fakülte listesi alınırken bir hata oluştu.");
         }
     }
 }

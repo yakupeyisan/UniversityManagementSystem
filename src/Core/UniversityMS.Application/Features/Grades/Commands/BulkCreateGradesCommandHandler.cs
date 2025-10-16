@@ -51,12 +51,12 @@ public class BulkCreateGradesCommandHandler : IRequestHandler<BulkCreateGradesCo
 
             _logger.LogInformation("Bulk grades created: {Count} grades", grades.Count);
 
-            return Result.Success(grades.Count, $"{grades.Count} not başarıyla girildi.");
+            return Result<int>.Success(grades.Count, $"{grades.Count} not başarıyla girildi.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating bulk grades");
-            return Result.Failure<int>("Notlar girilirken bir hata oluştu.", ex.Message);
+            return Result<int>.Failure("Notlar girilirken bir hata oluştu. Hata: "+ ex.Message);
         }
     }
 }

@@ -33,16 +33,16 @@ public class GetEnrollmentByIdQueryHandler : IRequestHandler<GetEnrollmentByIdQu
             if (enrollment == null)
             {
                 _logger.LogWarning("Enrollment not found. EnrollmentId: {EnrollmentId}", request.Id);
-                return Result.Failure<EnrollmentDto>("Kayıt bulunamadı.");
+                return Result<EnrollmentDto>.Failure("Kayıt bulunamadı.");
             }
 
             var enrollmentDto = _mapper.Map<EnrollmentDto>(enrollment);
-            return Result.Success(enrollmentDto);
+            return Result<EnrollmentDto>.Success(enrollmentDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving enrollment. EnrollmentId: {EnrollmentId}", request.Id);
-            return Result.Failure<EnrollmentDto>("Kayıt bilgileri alınırken bir hata oluştu.");
+            return Result<EnrollmentDto>.Failure("Kayıt bilgileri alınırken bir hata oluştu.");
         }
     }
 }

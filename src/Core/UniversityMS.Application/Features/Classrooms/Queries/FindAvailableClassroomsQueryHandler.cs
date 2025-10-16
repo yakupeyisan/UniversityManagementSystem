@@ -30,10 +30,10 @@ public class FindAvailableClassroomsQueryHandler : IRequestHandler<FindAvailable
         {
             // Parse times
             if (!TimeSpan.TryParse(request.StartTime, out var startTime))
-                return Result.Failure<List<ClassroomDto>>("Geçersiz başlangıç saati.");
+                return Result<List<ClassroomDto>>.Failure("Geçersiz başlangıç saati.");
 
             if (!TimeSpan.TryParse(request.EndTime, out var endTime))
-                return Result.Failure<List<ClassroomDto>>("Geçersiz bitiş saati.");
+                return Result<List<ClassroomDto>>.Failure("Geçersiz bitiş saati.");
 
             var timeSlot = Domain.ValueObjects.TimeSlot.Create(startTime, endTime);
 
@@ -47,7 +47,7 @@ public class FindAvailableClassroomsQueryHandler : IRequestHandler<FindAvailable
                     cancellationToken);
 
             if (schedule == null)
-                return Result.Failure<List<ClassroomDto>>("Program bulunamadı.");
+                return Result<List<ClassroomDto>>.Failure("Program bulunamadı.");
 
             // Find occupied classroom IDs at this time
             var occupiedClassroomIds = schedule.CourseSessions
@@ -82,12 +82,12 @@ public class FindAvailableClassroomsQueryHandler : IRequestHandler<FindAvailable
 
             var dtos = _mapper.Map<List<ClassroomDto>>(availableClassrooms);
 
-            return Result.Success(dtos, $"{dtos.Count} uygun derslik bulundu.");
+            return Result<List<ClassroomDto>>.Success(dtos, $"{dtos.Count} uygun derslik bulundu.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error finding available classrooms");
-            return Result.Failure<List<ClassroomDto>>("Uygun derslikler bulunurken hata oluştu.");
+            return Result<List<ClassroomDto>>.Failure("Uygun derslikler bulunurken hata oluştu.");
         }
     }
 }

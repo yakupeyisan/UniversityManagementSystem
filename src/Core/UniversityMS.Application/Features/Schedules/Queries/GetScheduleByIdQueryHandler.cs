@@ -33,7 +33,7 @@ public class GetScheduleByIdQueryHandler : IRequestHandler<GetScheduleByIdQuery,
                 .FirstOrDefaultAsync(s => s.Id == request.Id && !s.IsDeleted, cancellationToken);
 
             if (schedule == null)
-                return Result.Failure<ScheduleDto>("Program bulunamadı.");
+                return Result<ScheduleDto>.Failure("Program bulunamadı.");
 
             var dto = new ScheduleDto
             {
@@ -50,12 +50,12 @@ public class GetScheduleByIdQueryHandler : IRequestHandler<GetScheduleByIdQuery,
                 TotalSessions = schedule.CourseSessions.Count(cs => !cs.IsDeleted)
             };
 
-            return Result.Success(dto);
+            return Result<ScheduleDto>.Success(dto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving schedule");
-            return Result.Failure<ScheduleDto>("Program getirilirken hata oluştu.");
+            return Result<ScheduleDto>.Failure("Program getirilirken hata oluştu.");
         }
     }
 }

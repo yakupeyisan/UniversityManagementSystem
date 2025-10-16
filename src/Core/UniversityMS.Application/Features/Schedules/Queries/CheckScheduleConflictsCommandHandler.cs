@@ -30,14 +30,14 @@ public class CheckScheduleConflictsCommandHandler : IRequestHandler<CheckSchedul
                 .FirstOrDefaultAsync(s => s.Id == request.ScheduleId, cancellationToken);
 
             if (schedule == null)
-                return Result.Failure<ScheduleConflictDto>("Program bulunamadı.");
+                return Result<ScheduleConflictDto>.Failure("Program bulunamadı.");
 
             // Parse times
             if (!TimeSpan.TryParse(request.StartTime, out var startTime))
-                return Result.Failure<ScheduleConflictDto>("Geçersiz başlangıç saati.");
+                return Result<ScheduleConflictDto>.Failure("Geçersiz başlangıç saati.");
 
             if (!TimeSpan.TryParse(request.EndTime, out var endTime))
-                return Result.Failure<ScheduleConflictDto>("Geçersiz bitiş saati.");
+                return Result<ScheduleConflictDto>.Failure("Geçersiz bitiş saati.");
 
             var timeSlot = Domain.ValueObjects.TimeSlot.Create(startTime, endTime);
 
@@ -51,7 +51,7 @@ public class CheckScheduleConflictsCommandHandler : IRequestHandler<CheckSchedul
 
             if (classroomConflict != null)
             {
-                return Result.Success(new ScheduleConflictDto
+                return Result<ScheduleConflictDto>.Success(new ScheduleConflictDto
                 {
                     HasConflict = true,
                     ConflictType = "Classroom",
@@ -78,7 +78,7 @@ public class CheckScheduleConflictsCommandHandler : IRequestHandler<CheckSchedul
 
                 if (instructorConflict != null)
                 {
-                    return Result.Success(new ScheduleConflictDto
+                    return Result<ScheduleConflictDto>.Success(new ScheduleConflictDto
                     {
                         HasConflict = true,
                         ConflictType = "Instructor",
@@ -94,7 +94,7 @@ public class CheckScheduleConflictsCommandHandler : IRequestHandler<CheckSchedul
                 }
             }
 
-            return Result.Success(new ScheduleConflictDto
+            return Result<ScheduleConflictDto>.Success(new ScheduleConflictDto
             {
                 HasConflict = false,
                 ConflictMessage = "Çakışma yok."
@@ -103,7 +103,7 @@ public class CheckScheduleConflictsCommandHandler : IRequestHandler<CheckSchedul
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking conflicts");
-            return Result.Failure<ScheduleConflictDto>("Çakışma kontrolü yapılırken hata oluştu.");
+            return Result<ScheduleConflictDto>.Failure("Çakışma kontrolü yapılırken hata oluştu.");
         }
     }
 }

@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
 using MediatR;
 using UniversityMS.Application.Common.Models;
-using UniversityMS.Application.Features.Finance.DTOs.UniversityMS.Application.Features.Finance.DTOs;
+using UniversityMS.Application.Features.Finance.DTOs;
 using UniversityMS.Domain.Entities.FinanceAggregate;
+using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Interfaces;
 using UniversityMS.Domain.ValueObjects;
 
@@ -31,12 +32,16 @@ public class CreateBudgetCommandHandler : IRequestHandler<CreateBudgetCommand, R
         // Value Objects oluştur
         var totalAmount = Money.Create(request.TotalAmount, "TRY");
 
-        var budget = new Budget(
-            request.DepartmentId,
-            request.Year,
-            request.BudgetType,
-            totalAmount,
-            request.Description
+        var budget = Budget.Create(
+            budgetCode: $"BUD-{request.Year}-{Guid.NewGuid().ToString().Substring(0, 8)}",
+            fiscalYear: request.Year,
+            name: $"Budget {request.Year}",  // veya request'ten al
+            description: request.Description ?? "Budget description",
+            type: Enum.Parse<BudgetType>(request.BudgetType),  // string'den enum'a çevir
+            totalAmount: totalAmount,
+            startDate: DateTime.UtcNow,
+            endDate: DateTime.UtcNow.AddMonths(12),
+            departmentId: request.DepartmentId
         );
 
         await _budgetRepository.AddAsync(budget, cancellationToken);

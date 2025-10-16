@@ -36,7 +36,7 @@ public class GetStudentAttendanceQueryHandler : IRequestHandler<GetStudentAttend
 
             if (!attendances.Any())
             {
-                return Result.Success(new StudentAttendanceDto
+                return Result<StudentAttendanceDto>.Success(new StudentAttendanceDto
                 {
                     StudentId = request.StudentId,
                     CourseId = request.CourseId,
@@ -61,13 +61,13 @@ public class GetStudentAttendanceQueryHandler : IRequestHandler<GetStudentAttend
                 Attendances = attendanceDtos.OrderBy(a => a.AttendanceDate).ToList()
             };
 
-            return Result.Success(studentAttendance);
+            return Result<StudentAttendanceDto>.Success(studentAttendance);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving student attendance. StudentId: {StudentId}, CourseId: {CourseId}",
                 request.StudentId, request.CourseId);
-            return Result.Failure<StudentAttendanceDto>("Devamsızlık bilgileri alınırken bir hata oluştu.");
+            return Result<StudentAttendanceDto>.Failure("Devamsızlık bilgileri alınırken bir hata oluştu.");
         }
     }
 }

@@ -26,7 +26,7 @@ public class GetEmployeeByIdQueryHandler : IRequestHandler<GetEmployeeByIdQuery,
     {
         var employee = await _employeeRepository.GetByIdAsync(request.Id, cancellationToken);
         if (employee is null)
-            return Result.Failure<EmployeeDto>("Çalışan bulunamadı");
+            return Result<EmployeeDto>.Failure("Çalışan bulunamadı");
 
         var dto = _mapper.Map<EmployeeDto>(employee);
         return Result<EmployeeDto>.Success(dto);

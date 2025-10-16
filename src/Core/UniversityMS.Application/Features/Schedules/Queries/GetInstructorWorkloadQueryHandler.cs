@@ -36,7 +36,7 @@ public class GetInstructorWorkloadQueryHandler : IRequestHandler<GetInstructorWo
                     cancellationToken);
 
             if (schedule == null)
-                return Result.Failure<InstructorWorkloadDto>("Program bulunamadı.");
+                return Result<InstructorWorkloadDto>.Failure("Program bulunamadı.");
 
             var sessions = schedule.CourseSessions
                 .Where(cs => cs.InstructorId == request.InstructorId && !cs.IsDeleted)
@@ -71,12 +71,12 @@ public class GetInstructorWorkloadQueryHandler : IRequestHandler<GetInstructorWo
                 }).ToList()
             };
 
-            return Result.Success(workload);
+            return Result<InstructorWorkloadDto>.Success(workload);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving instructor workload");
-            return Result.Failure<InstructorWorkloadDto>("Ders yükü getirilirken hata oluştu.");
+            return Result<InstructorWorkloadDto>.Failure("Ders yükü getirilirken hata oluştu.");
         }
     }
 }

@@ -36,12 +36,12 @@ public class ObjectToGradeCommandHandler : IRequestHandler<ObjectToGradeCommand,
             await _objectionRepository.AddAsync(objection, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return Result.Success(objection.Id, "İtiraz kaydedildi.");
+            return Result<Guid>.Success(objection.Id, "İtiraz kaydedildi.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating objection");
-            return Result.Failure<Guid>("İtiraz kaydedilemedi.");
+            return Result<Guid>.Failure("İtiraz kaydedilemedi.");
         }
     }
 }

@@ -41,12 +41,12 @@ public class GetStudentGradesQueryHandler : IRequestHandler<GetStudentGradesQuer
             var grades = await _gradeRepository.FindAsync(predicate, cancellationToken);
             var gradeDtos = _mapper.Map<List<GradeDto>>(grades);
 
-            return Result.Success(gradeDtos);
+            return Result<List<GradeDto>>.Success(gradeDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving student grades. StudentId: {StudentId}", request.StudentId);
-            return Result.Failure<List<GradeDto>>("Öğrenci notları alınırken bir hata oluştu.");
+            return Result<List<GradeDto>>.Failure("Öğrenci notları alınırken bir hata oluştu.");
         }
     }
 }

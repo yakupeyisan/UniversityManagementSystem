@@ -32,7 +32,7 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, R
             // Verify department exists
             var department = await _departmentRepository.GetByIdAsync(request.DepartmentId, cancellationToken);
             if (department == null)
-                return Result.Failure<Guid>("Bölüm bulunamadı.");
+                return Result<Guid>.Failure("Bölüm bulunamadı.");
 
             // Check if code exists
             var existingCourse = await _courseRepository.FirstOrDefaultAsync(
@@ -40,7 +40,7 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, R
                 cancellationToken);
 
             if (existingCourse != null)
-                return Result.Failure<Guid>($"'{request.Code}' kodu zaten kullanımda.");
+                return Result<Guid>.Failure($"'{request.Code}' kodu zaten kullanımda.");
 
             var course = Course.Create(
                 request.Name,
@@ -61,12 +61,12 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, R
 
             _logger.LogInformation("Course created: {CourseId} - {CourseName}", course.Id, course.Name);
 
-            return Result.Success(course.Id, "Ders başarıyla oluşturuldu.");
+            return Result<Guid>.Success(course.Id, "Ders başarıyla oluşturuldu.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating course");
-            return Result.Failure<Guid>("Ders oluşturulurken bir hata oluştu.", ex.Message);
+            return Result<Guid>.Failure("Ders oluşturulurken bir hata oluştu. Hata: " + ex.Message);
         }
     }
 }

@@ -36,7 +36,7 @@ public class CreateScheduleCommandHandler : IRequestHandler<CreateScheduleComman
             );
 
             if (existingSchedule != null)
-                return Result.Failure<Guid>("Bu dönem için program zaten mevcut.");
+                return Result<Guid>.Failure("Bu dönem için program zaten mevcut.");
 
             var schedule = Schedule.Create(
                 request.AcademicYear,
@@ -53,12 +53,12 @@ public class CreateScheduleCommandHandler : IRequestHandler<CreateScheduleComman
             _logger.LogInformation("Schedule created: {ScheduleId} for {AcademicYear} Semester {Semester}",
                 schedule.Id, request.AcademicYear, request.Semester);
 
-            return Result.Success(schedule.Id, "Program başarıyla oluşturuldu.");
+            return Result<Guid>.Success(schedule.Id, "Program başarıyla oluşturuldu.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating schedule");
-            return Result.Failure<Guid>("Program oluşturulurken hata oluştu.", ex.Message);
+            return Result<Guid>.Failure("Program oluşturulurken hata oluştu. Hata:"+ex.Message);
         }
     }
 }

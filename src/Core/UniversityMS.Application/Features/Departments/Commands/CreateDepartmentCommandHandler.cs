@@ -36,12 +36,12 @@ public class CreateDepartmentCommandHandler : IRequestHandler<CreateDepartmentCo
             await _departmentRepository.AddAsync(department, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return Result.Success(department.Id, "Bölüm oluşturuldu.");
+            return Result<Guid>.Success(department.Id, "Bölüm oluşturuldu.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating department");
-            return Result.Failure<Guid>("Bölüm oluşturulamadı.");
+            return Result<Guid>.Failure("Bölüm oluşturulamadı.");
         }
     }
 }

@@ -33,17 +33,18 @@ public class CreatePurchaseOrderCommandHandler : IRequestHandler<CreatePurchaseO
     {
         var purchaseRequest = await _purchaseRequestRepository.GetByIdAsync(request.PurchaseRequestId, cancellationToken);
         if (purchaseRequest is null)
-            return Result.Failure<PurchaseOrderDto>("Satın alma talebi bulunamadı");
+            return Result<PurchaseOrderDto>.Failure("Satın alma talebi bulunamadı");
 
         // Value Object oluştur
         var totalAmount = Money.Create(request.TotalAmount, "TRY");
 
-        var purchaseOrder = new PurchaseOrder(
-            request.PurchaseRequestId,
-            request.SupplierId,
-            totalAmount,
-            request.DeliveryDate,
-            request.PaymentTerms
+        var purchaseOrder = PurchaseOrder.Create(
+            orderNumber: $"PO-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString().Substring(0, 8)}",
+            supplierId: request.SupplierId,
+            orderDate: DateTime.UtcNow,
+            expectedDeliveryDate: request.DeliveryDate,
+            deliveryAddress: request.DeliveryAddress ?? string.Empty,
+            purchaseRequestId: request.PurchaseRequestId
         );
 
         await _purchaseOrderRepository.AddAsync(purchaseOrder, cancellationToken);

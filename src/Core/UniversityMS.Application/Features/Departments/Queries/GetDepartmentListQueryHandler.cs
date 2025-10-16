@@ -59,12 +59,12 @@ public class GetDepartmentListQueryHandler : IRequestHandler<GetDepartmentListQu
                 request.PageNumber,
                 request.PageSize);
 
-            return Result.Success(paginatedList);
+            return Result<PaginatedList<DepartmentDto>>.Success(paginatedList);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving department list");
-            return Result.Failure<PaginatedList<DepartmentDto>>("Bölüm listesi alınırken bir hata oluştu.");
+            return Result<PaginatedList<DepartmentDto>>.Failure("Bölüm listesi alınırken bir hata oluştu.");
         }
     }
 }

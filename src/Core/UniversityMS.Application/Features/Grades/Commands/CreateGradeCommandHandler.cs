@@ -42,12 +42,12 @@ public class CreateGradeCommandHandler : IRequestHandler<CreateGradeCommand, Res
             _logger.LogInformation("Grade created: {GradeId} for student {StudentId}",
                 grade.Id, request.StudentId);
 
-            return Result.Success(grade.Id, "Not başarıyla girildi.");
+            return Result<Guid>.Success(grade.Id, "Not başarıyla girildi.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating grade");
-            return Result.Failure<Guid>("Not girilirken bir hata oluştu.", ex.Message);
+            return Result<Guid>.Failure("Not girilirken bir hata oluştu. Hata: "+ ex.Message);
         }
     }
 }

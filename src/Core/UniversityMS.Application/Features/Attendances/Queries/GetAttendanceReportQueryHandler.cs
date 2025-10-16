@@ -45,7 +45,7 @@ public class GetAttendanceReportQueryHandler : IRequestHandler<GetAttendanceRepo
             var attendances = await _attendanceRepository.FindAsync(predicate, cancellationToken);
 
             if (!attendances.Any())
-                return Result.Failure<AttendanceReportDto>("Bu ders için yoklama kaydı bulunamadı.");
+                return Result<AttendanceReportDto>.Failure("Bu ders için yoklama kaydı bulunamadı.");
 
             var report = new AttendanceReportDto
             {
@@ -83,12 +83,12 @@ public class GetAttendanceReportQueryHandler : IRequestHandler<GetAttendanceRepo
                     .ToList()
             };
 
-            return Result.Success(report);
+            return Result<AttendanceReportDto>.Success(report);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating attendance report. CourseId: {CourseId}", request.CourseId);
-            return Result.Failure<AttendanceReportDto>("Devamsızlık raporu oluşturulurken bir hata oluştu.");
+            return Result<AttendanceReportDto>.Failure("Devamsızlık raporu oluşturulurken bir hata oluştu.");
         }
     }
 }

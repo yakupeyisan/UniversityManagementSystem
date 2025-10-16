@@ -46,12 +46,12 @@ public class GetStudentEnrollmentsQueryHandler : IRequestHandler<GetStudentEnrol
                 request.PageNumber,
                 request.PageSize);
 
-            return Result.Success(paginatedList);
+            return Result<PaginatedList<EnrollmentDto>>.Success(paginatedList);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving student enrollments. StudentId: {StudentId}", request.StudentId);
-            return Result.Failure<PaginatedList<EnrollmentDto>>("Öğrenci kayıtları alınırken bir hata oluştu.");
+            return Result<PaginatedList<EnrollmentDto>>.Failure("Öğrenci kayıtları alınırken bir hata oluştu.");
         }
     }
 }

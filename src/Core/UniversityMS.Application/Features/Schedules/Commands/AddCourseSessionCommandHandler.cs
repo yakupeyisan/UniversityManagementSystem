@@ -28,14 +28,14 @@ public class AddCourseSessionCommandHandler : IRequestHandler<AddCourseSessionCo
         {
             var schedule = await _scheduleRepository.GetByIdAsync(request.ScheduleId, cancellationToken);
             if (schedule == null)
-                return Result.Failure<Guid>("Program bulunamadı.");
+                return Result<Guid>.Failure("Program bulunamadı.");
 
             // Parse times
             if (!TimeSpan.TryParse(request.StartTime, out var startTime))
-                return Result.Failure<Guid>("Geçersiz başlangıç saati.");
+                return Result<Guid>.Failure("Geçersiz başlangıç saati.");
 
             if (!TimeSpan.TryParse(request.EndTime, out var endTime))
-                return Result.Failure<Guid>("Geçersiz bitiş saati.");
+                return Result<Guid>.Failure("Geçersiz bitiş saati.");
 
             schedule.AddCourseSession(
                 request.CourseId,
@@ -61,7 +61,7 @@ public class AddCourseSessionCommandHandler : IRequestHandler<AddCourseSessionCo
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding course session");
-            return Result.Failure<Guid>("Ders eklenirken hata oluştu: " + ex.Message);
+            return Result<Guid>.Failure("Ders eklenirken hata oluştu: " + ex.Message);
         }
     }
 }

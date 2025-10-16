@@ -4,7 +4,9 @@ public record PurchaseItemDto(
     string ItemName,
     int Quantity,
     decimal UnitPrice,
-    string Unit
+    string Unit,
+    string? Description,
+    string? Specifications
 );
 
 /// <summary>

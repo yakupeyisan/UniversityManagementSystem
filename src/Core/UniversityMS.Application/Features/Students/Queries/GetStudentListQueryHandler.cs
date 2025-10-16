@@ -74,12 +74,12 @@ public class GetStudentListQueryHandler
                 request.PageNumber,
                 request.PageSize);
 
-            return Result.Success(paginatedList);
+            return Result<PaginatedList<StudentDto>>.Success(paginatedList);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while retrieving student list");
-            return Result.Failure<PaginatedList<StudentDto>>("Öğrenci listesi alınırken bir hata oluştu.");
+            return Result<PaginatedList<StudentDto>>.Failure("Öğrenci listesi alınırken bir hata oluştu.");
         }
     }
 }

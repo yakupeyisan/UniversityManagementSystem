@@ -31,12 +31,12 @@ public class CreateFacultyCommandHandler : IRequestHandler<CreateFacultyCommand,
             await _facultyRepository.AddAsync(faculty, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return Result.Success(faculty.Id, "Fakülte oluşturuldu.");
+            return Result<Guid>.Success(faculty.Id, "Fakülte oluşturuldu.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating faculty");
-            return Result.Failure<Guid>("Fakülte oluşturulamadı.");
+            return Result<Guid>.Failure("Fakülte oluşturulamadı.");
         }
     }
 }

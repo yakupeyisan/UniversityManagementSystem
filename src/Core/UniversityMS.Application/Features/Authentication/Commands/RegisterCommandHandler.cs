@@ -49,7 +49,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Us
             if (existingUser != null)
             {
                 _logger.LogWarning("Registration failed. Username already exists: {Username}", request.Username);
-                return Result.Failure<UserDto>("Bu kullanıcı adı zaten kullanılıyor.");
+                return Result<UserDto>.Failure("Bu kullanıcı adı zaten kullanılıyor.");
             }
 
             // 2. Email kontrolü
@@ -59,7 +59,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Us
             if (existingUser != null)
             {
                 _logger.LogWarning("Registration failed. Email already exists: {Email}", request.Email);
-                return Result.Failure<UserDto>("Bu email adresi zaten kayıtlı.");
+                return Result<UserDto>.Failure("Bu email adresi zaten kayıtlı.");
             }
 
             // 3. TC Kimlik No kontrolü
@@ -69,7 +69,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Us
             if (existingUser != null)
             {
                 _logger.LogWarning("Registration failed. National ID already exists: {NationalId}", request.NationalId);
-                return Result.Failure<UserDto>("Bu TC Kimlik No zaten kayıtlı.");
+                return Result<UserDto>.Failure("Bu TC Kimlik No zaten kayıtlı.");
             }
 
             // 4. Value Objects oluştur
@@ -82,14 +82,10 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Us
             // 6. User entity oluştur
             var user = User.Create(
                 request.Username,
-                request.FirstName,
-                request.LastName,
-                request.NationalId,
-                request.BirthDate,
-                request.Gender,
                 email,
-                phoneNumber,
-                passwordHash
+                passwordHash,
+                request.FirstName,
+                request.LastName
             );
 
             // 7. Varsayılan rol ata (Student, Staff, Faculty)
@@ -99,7 +95,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Us
             if (defaultRole == null)
             {
                 _logger.LogWarning("Default role not found: {UserType}", request.UserType);
-                return Result.Failure<UserDto>("Varsayılan rol bulunamadı.");
+                return Result<UserDto>.Failure("Varsayılan rol bulunamadı.");
             }
 
             var userRole = UserRole.Create(user.Id, defaultRole.Id);
@@ -112,12 +108,12 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Us
 
             // 9. Response oluştur
             var userDto = _mapper.Map<UserDto>(user);
-            return Result.Success(userDto);
+            return Result<UserDto>.Success(userDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while registering user: {Username}", request.Username);
-            return Result.Failure<UserDto>("Kayıt sırasında bir hata oluştu.");
+            return Result<UserDto>.Failure("Kayıt sırasında bir hata oluştu.");
         }
     }
 }

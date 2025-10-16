@@ -37,7 +37,7 @@ public class GetClassroomScheduleQueryHandler : IRequestHandler<GetClassroomSche
                     cancellationToken);
 
             if (schedule == null)
-                return Result.Failure<WeeklyScheduleDto>("Program bulunamadı.");
+                return Result<WeeklyScheduleDto>.Failure("Program bulunamadı.");
 
             var sessions = schedule.CourseSessions
                 .Where(cs => cs.ClassroomId == request.ClassroomId && !cs.IsDeleted)
@@ -80,12 +80,12 @@ public class GetClassroomScheduleQueryHandler : IRequestHandler<GetClassroomSche
                 weeklySchedule.Sessions[day] = daySessions;
             }
 
-            return Result.Success(weeklySchedule);
+            return Result<WeeklyScheduleDto>.Success(weeklySchedule);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving classroom schedule");
-            return Result.Failure<WeeklyScheduleDto>("Derslik programı getirilirken hata oluştu.");
+            return Result<WeeklyScheduleDto>.Failure("Derslik programı getirilirken hata oluştu.");
         }
     }
 }

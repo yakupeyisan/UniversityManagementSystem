@@ -28,7 +28,7 @@ public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, R
         {
             var course = await _courseRepository.GetByIdAsync(request.Id, cancellationToken);
             if (course == null)
-                return Result.Failure<Guid>("Ders bulunamadı.");
+                return Result<Guid>.Failure("Ders bulunamadı.");
 
             course.Update(
                 request.Name,
@@ -43,12 +43,12 @@ public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, R
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Course updated: {CourseId}", course.Id);
-            return Result.Success(course.Id, "Ders başarıyla güncellendi.");
+            return Result<Guid>.Success(course.Id, "Ders başarıyla güncellendi.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating course");
-            return Result.Failure<Guid>("Ders güncellenirken bir hata oluştu.", ex.Message);
+            return Result<Guid>.Failure("Ders güncellenirken bir hata oluştu. Hata: "+ ex.Message);
         }
     }
 }

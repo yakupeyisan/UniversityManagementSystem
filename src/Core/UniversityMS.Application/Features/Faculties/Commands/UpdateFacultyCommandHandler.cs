@@ -28,25 +28,25 @@ public class UpdateFacultyCommandHandler : IRequestHandler<UpdateFacultyCommand,
         {
             var faculty = await _facultyRepository.GetByIdAsync(request.Id, cancellationToken);
             if (faculty == null)
-                return Result.Failure<Guid>("Fakülte bulunamadı.");
+                return Result<Guid>.Failure("Fakülte bulunamadı.");
 
             var existingFaculty = await _facultyRepository.FirstOrDefaultAsync(
                 f => f.Code == request.Code.Trim().ToUpperInvariant() && f.Id != request.Id,
                 cancellationToken);
 
             if (existingFaculty != null)
-                return Result.Failure<Guid>($"'{request.Code}' kodu başka bir fakülte tarafından kullanılıyor.");
+                return Result<Guid>.Failure($"'{request.Code}' kodu başka bir fakülte tarafından kullanılıyor.");
 
             faculty.Update(request.Name, request.Code, request.Description);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Faculty updated: {FacultyId}", faculty.Id);
-            return Result.Success(faculty.Id, "Fakülte başarıyla güncellendi.");
+            return Result<Guid>.Success(faculty.Id, "Fakülte başarıyla güncellendi.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating faculty");
-            return Result.Failure<Guid>("Fakülte güncellenirken bir hata oluştu.", ex.Message);
+            return Result<Guid>.Failure("Fakülte güncellenirken bir hata oluştu. Hata: "+ ex.Message);
         }
     }
 }

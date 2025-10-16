@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using UniversityMS.Application.Common.Models;
-using UniversityMS.Application.Features.Finance.DTOs.UniversityMS.Application.Features.Finance.DTOs;
+using UniversityMS.Application.Features.Finance.DTOs;
 
 namespace UniversityMS.Application.Features.Finance.Commands;
 

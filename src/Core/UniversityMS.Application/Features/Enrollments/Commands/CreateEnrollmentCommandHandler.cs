@@ -38,12 +38,12 @@ public class CreateEnrollmentCommandHandler : IRequestHandler<CreateEnrollmentCo
             _logger.LogInformation("Enrollment created: {EnrollmentId} for student {StudentId}",
                 enrollment.Id, request.StudentId);
 
-            return Result.Success(enrollment.Id, "Kayıt başarıyla oluşturuldu.");
+            return Result<Guid>.Success(enrollment.Id, "Kayıt başarıyla oluşturuldu.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating enrollment");
-            return Result.Failure<Guid>("Kayıt oluşturulurken bir hata oluştu.", ex.Message);
+            return Result<Guid>.Failure("Kayıt oluşturulurken bir hata oluştu. Hata: " + ex.Message);
         }
     }
 }

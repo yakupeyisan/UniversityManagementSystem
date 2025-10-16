@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
 using MediatR;
 using UniversityMS.Application.Common.Models;
-using UniversityMS.Application.Features.Finance.DTOs.UniversityMS.Application.Features.Finance.DTOs;
+using UniversityMS.Application.Features.Finance.DTOs;
 using UniversityMS.Domain.Entities.FinanceAggregate;
+using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Interfaces;
 using UniversityMS.Domain.ValueObjects;
 
@@ -33,13 +34,17 @@ public class RecordExpenseCommandHandler : IRequestHandler<RecordExpenseCommand,
         // Gider negatif money
         var negativeAmount = Money.Create(-request.Amount, "TRY");
 
-        var transaction = new Transaction(
-            request.DepartmentId,
-            "Expense",
-            negativeAmount,
-            request.Category,
-            request.Description,
-            request.ExpenseDate
+        var transaction = Transaction.Create(
+            transactionNumber: $"TXN-{DateTime.UtcNow:yyyyMMddHHmmss}",
+            type: TransactionType.Expense,
+            transactionDate: request.ExpenseDate,
+            amount: Money.Create(request.Amount, "TRY"),
+            description: request.Description,
+            paymentMethod: PaymentMethod.BankTransfer,  // veya request'ten al
+            payerId: null,
+            payeeId: null,
+            budgetItemId: request.BudgetItemId,
+            invoiceId: null
         );
 
         await _transactionRepository.AddAsync(transaction, cancellationToken);

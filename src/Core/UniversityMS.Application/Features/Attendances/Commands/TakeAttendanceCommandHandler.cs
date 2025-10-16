@@ -53,12 +53,12 @@ public class TakeAttendanceCommandHandler : IRequestHandler<TakeAttendanceComman
             _logger.LogInformation("Attendance taken for course {CourseId}: {Count} students",
                 request.CourseId, attendances.Count);
 
-            return Result.Success(attendances.Count, $"{attendances.Count} öğrenci yoklaması alındı.");
+            return Result<int>.Success(attendances.Count, $"{attendances.Count} öğrenci yoklaması alındı.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error taking attendance");
-            return Result.Failure<int>("Yoklama alınırken bir hata oluştu.", ex.Message);
+            return Result<int>.Failure("Yoklama alınırken bir hata oluştu. Hata: "+ ex.Message);
         }
     }
 }

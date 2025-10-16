@@ -31,7 +31,7 @@ public class GetCoursePrerequisitesQueryHandler : IRequestHandler<GetCoursePrere
             if (course == null)
             {
                 _logger.LogWarning("Course not found. CourseId: {CourseId}", request.CourseId);
-                return Result.Failure<List<PrerequisiteCourseDto>>("Ders bulunamadı.");
+                return Result<List<PrerequisiteCourseDto>>.Failure("Ders bulunamadı.");
             }
 
             var prerequisites = course.Prerequisites
@@ -43,12 +43,12 @@ public class GetCoursePrerequisitesQueryHandler : IRequestHandler<GetCoursePrere
                 })
                 .ToList();
 
-            return Result.Success(prerequisites);
+            return Result<List<PrerequisiteCourseDto>>.Success(prerequisites);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving course prerequisites. CourseId: {CourseId}", request.CourseId);
-            return Result.Failure<List<PrerequisiteCourseDto>>("Ön koşul dersleri alınırken bir hata oluştu.");
+            return Result<List<PrerequisiteCourseDto>>.Failure("Ön koşul dersleri alınırken bir hata oluştu.");
         }
     }
 }

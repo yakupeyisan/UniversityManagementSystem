@@ -34,7 +34,7 @@ public class SubmitGradeCommandHandler : IRequestHandler<SubmitGradeCommand, Res
                 request.CourseRegistrationId, cancellationToken);
 
             if (courseRegistration == null)
-                return Result.Failure<Guid>("Ders kaydı bulunamadı.");
+                return Result<Guid>.Failure("Ders kaydı bulunamadı.");
 
             // Check if grade already exists for this type
             var existingGrade = await _gradeRepository.FirstOrDefaultAsync(
@@ -43,7 +43,7 @@ public class SubmitGradeCommandHandler : IRequestHandler<SubmitGradeCommand, Res
                 cancellationToken);
 
             if (existingGrade != null)
-                return Result.Failure<Guid>("Bu sınav türü için not zaten girilmiş.");
+                return Result<Guid>.Failure("Bu sınav türü için not zaten girilmiş.");
 
             var grade = Grade.Create(
                 request.CourseRegistrationId,
@@ -64,12 +64,12 @@ public class SubmitGradeCommandHandler : IRequestHandler<SubmitGradeCommand, Res
             _logger.LogInformation("Grade submitted: {GradeId} for student {StudentId}",
                 grade.Id, request.StudentId);
 
-            return Result.Success(grade.Id, "Not başarıyla kaydedildi.");
+            return Result<Guid>.Success(grade.Id, "Not başarıyla kaydedildi.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error submitting grade");
-            return Result.Failure<Guid>("Not kaydedilirken bir hata oluştu.", ex.Message);
+            return Result<Guid>.Failure("Not kaydedilirken bir hata oluştu. Hata: " + ex.Message);
         }
     }
 }

@@ -32,11 +32,11 @@ public class CreateGradeObjectionCommandHandler : IRequestHandler<CreateGradeObj
             // Verify grade exists
             var grade = await _gradeRepository.GetByIdAsync(request.GradeId, cancellationToken);
             if (grade == null)
-                return Result.Failure<Guid>("Not kaydı bulunamadı.");
+                return Result<Guid>.Failure("Not kaydı bulunamadı.");
 
             // Verify student owns the grade
             if (grade.StudentId != request.StudentId)
-                return Result.Failure<Guid>("Bu nota itiraz etme yetkiniz yok.");
+                return Result<Guid>.Failure("Bu nota itiraz etme yetkiniz yok.");
 
             /*
             // Check if objection already exists
@@ -45,7 +45,7 @@ public class CreateGradeObjectionCommandHandler : IRequestHandler<CreateGradeObj
                 cancellationToken);
 
             if (existingObjection != null)
-                return Result.Failure<Guid>("Bu not için zaten bekleyen bir itiraz var.");
+                return Result<Guid>.Failure("Bu not için zaten bekleyen bir itiraz var.");
 
             // Create objection
             var objection = GradeObjection.Create(
@@ -66,12 +66,12 @@ public class CreateGradeObjectionCommandHandler : IRequestHandler<CreateGradeObj
 
             // Placeholder until GradeObjection entity is added
             _logger.LogInformation("Grade objection request received for GradeId: {GradeId}", request.GradeId);
-            return Result.Success(Guid.NewGuid(), "Not itirazı alındı. (Geçici yanıt)");
+            return Result<Guid>.Success(Guid.NewGuid(), "Not itirazı alındı. (Geçici yanıt)");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating grade objection");
-            return Result.Failure<Guid>("Not itirazı oluşturulurken bir hata oluştu.", ex.Message);
+            return Result<Guid>.Failure("Not itirazı oluşturulurken bir hata oluştu. Hata: "+ ex.Message);
         }
     }
 }

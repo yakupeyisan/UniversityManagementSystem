@@ -33,7 +33,7 @@ public class CreateClassroomCommandHandler : IRequestHandler<CreateClassroomComm
             );
 
             if (existingClassroom != null)
-                return Result.Failure<Guid>("Bu kodda bir derslik zaten mevcut.");
+                return Result<Guid>.Failure("Bu kodda bir derslik zaten mevcut.");
 
             var classroom = Classroom.Create(request.Code, request.Name, request.Capacity, request.Type);
 
@@ -55,12 +55,12 @@ public class CreateClassroomCommandHandler : IRequestHandler<CreateClassroomComm
 
             _logger.LogInformation("Classroom created: {ClassroomId} - {Code}", classroom.Id, request.Code);
 
-            return Result.Success(classroom.Id, "Derslik başarıyla oluşturuldu.");
+            return Result<Guid>.Success(classroom.Id, "Derslik başarıyla oluşturuldu.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating classroom");
-            return Result.Failure<Guid>("Derslik oluşturulurken hata oluştu.", ex.Message);
+            return Result<Guid>.Failure("Token yenileme sırasında bir hata oluştu. Hata: " + ex.Message);
         }
     }
 }

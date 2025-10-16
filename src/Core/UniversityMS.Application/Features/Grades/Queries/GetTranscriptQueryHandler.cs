@@ -34,7 +34,7 @@ public class GetTranscriptQueryHandler : IRequestHandler<GetTranscriptQuery, Res
         {
             var student = await _studentRepository.GetByIdAsync(request.StudentId, cancellationToken);
             if (student == null)
-                return Result.Failure<TranscriptDto>("Öğrenci bulunamadı.");
+                return Result<TranscriptDto>.Failure("Öğrenci bulunamadı.");
 
             var grades = await _gradeRepository.FindAsync(
                 g => g.StudentId == request.StudentId,
@@ -53,12 +53,12 @@ public class GetTranscriptQueryHandler : IRequestHandler<GetTranscriptQuery, Res
                 Grades = gradeDtos
             };
 
-            return Result.Success(transcript);
+            return Result<TranscriptDto>.Success(transcript);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating transcript");
-            return Result.Failure<TranscriptDto>("Transkript oluşturulamadı.");
+            return Result<TranscriptDto>.Failure("Transkript oluşturulamadı.");
         }
     }
 }

@@ -9,5 +9,7 @@ public record CreatePurchaseRequestCommand(
     string Title,
     string Description,
     List<PurchaseItemDto> Items,
-    string Urgency
+    string Urgency,
+    DateTime? RequiredDate,
+    string Priority
 ) : IRequest<Result<PurchaseRequestDto>>;

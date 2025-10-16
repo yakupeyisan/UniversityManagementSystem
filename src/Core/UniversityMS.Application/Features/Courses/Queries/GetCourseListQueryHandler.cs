@@ -67,12 +67,12 @@ public class GetCourseListQueryHandler : IRequestHandler<GetCourseListQuery, Res
                 request.PageNumber,
                 request.PageSize);
 
-            return Result.Success(paginatedList);
+            return Result<PaginatedList<CourseDto>>.Success(paginatedList);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving course list");
-            return Result.Failure<PaginatedList<CourseDto>>("Ders listesi alınırken bir hata oluştu.");
+            return Result<PaginatedList<CourseDto>>.Failure("Ders listesi alınırken bir hata oluştu.");
         }
     }
 }

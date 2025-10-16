@@ -46,12 +46,12 @@ public class GetCourseGradesQueryHandler : IRequestHandler<GetCourseGradesQuery,
                 request.PageNumber,
                 request.PageSize);
 
-            return Result.Success(paginatedList);
+            return Result<PaginatedList<GradeDto>>.Success(paginatedList);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving course grades. CourseId: {CourseId}", request.CourseId);
-            return Result.Failure<PaginatedList<GradeDto>>("Ders notları alınırken bir hata oluştu.");
+            return Result<PaginatedList<GradeDto>>.Failure("Ders notları alınırken bir hata oluştu.");
         }
     }
 }

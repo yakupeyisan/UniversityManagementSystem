@@ -33,16 +33,16 @@ public class GetCourseByIdQueryHandler : IRequestHandler<GetCourseByIdQuery, Res
             if (course == null)
             {
                 _logger.LogWarning("Course not found. CourseId: {CourseId}", request.Id);
-                return Result.Failure<CourseDto>("Ders bulunamadı.");
+                return Result<CourseDto>.Failure("Ders bulunamadı.");
             }
 
             var courseDto = _mapper.Map<CourseDto>(course);
-            return Result.Success(courseDto);
+            return Result<CourseDto>.Success(courseDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving course. CourseId: {CourseId}", request.Id);
-            return Result.Failure<CourseDto>("Ders bilgileri alınırken bir hata oluştu.");
+            return Result<CourseDto>.Failure("Ders bilgileri alınırken bir hata oluştu.");
         }
     }
 }

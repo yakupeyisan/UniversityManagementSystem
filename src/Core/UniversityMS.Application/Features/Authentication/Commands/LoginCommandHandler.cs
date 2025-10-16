@@ -45,20 +45,20 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<TokenDto
             if (user == null)
             {
                 _logger.LogWarning("Login failed. User not found: {Username}", request.Username);
-                return Result.Failure<TokenDto>("Kullanıcı adı veya şifre hatalı.");
+                return Result<TokenDto>.Failure("Kullanıcı adı veya şifre hatalı.");
             }
 
             if (!user.IsActive)
             {
                 _logger.LogWarning("Login failed. User is inactive: {Username}", request.Username);
-                return Result.Failure<TokenDto>("Hesabınız aktif değil. Lütfen yönetici ile iletişime geçin.");
+                return Result<TokenDto>.Failure("Hesabınız aktif değil. Lütfen yönetici ile iletişime geçin.");
             }
 
             // Şifre kontrolü
             if (!_passwordHasher.VerifyPassword(user.PasswordHash, request.Password))
             {
                 _logger.LogWarning("Login failed. Invalid password for user: {Username}", request.Username);
-                return Result.Failure<TokenDto>("Kullanıcı adı veya şifre hatalı.");
+                return Result<TokenDto>.Failure("Kullanıcı adı veya şifre hatalı.");
             }
 
             // Token oluştur
@@ -83,12 +83,12 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<TokenDto
             };
 
             _logger.LogInformation("User logged in successfully: {Username}", request.Username);
-            return Result.Success(tokenDto, "Giriş başarılı.");
+            return Result<TokenDto>.Success(tokenDto, "Giriş başarılı.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred during login for user: {Username}", request.Username);
-            return Result.Failure<TokenDto>("Giriş sırasında bir hata oluştu.", ex.Message);
+            return Result<TokenDto>.Failure("Giriş sırasında bir hata oluştu. Hata:" + ex.Message);
         }
     }
 }

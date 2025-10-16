@@ -33,16 +33,16 @@ public class GetStudentByIdQueryHandler : IRequestHandler<GetStudentByIdQuery, R
             if (student == null)
             {
                 _logger.LogWarning("Student not found. StudentId: {StudentId}", request.Id);
-                return Result.Failure<StudentDto>("Öğrenci bulunamadı.");
+                return Result<StudentDto>.Failure("Öğrenci bulunamadı.");
             }
 
             var studentDto = _mapper.Map<StudentDto>(student);
-            return Result.Success(studentDto);
+            return Result<StudentDto>.Success(studentDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while retrieving student. StudentId: {StudentId}", request.Id);
-            return Result.Failure<StudentDto>("Öğrenci bilgileri alınırken bir hata oluştu.");
+            return Result<StudentDto>.Failure("Öğrenci bilgileri alınırken bir hata oluştu.");
         }
     }
 }

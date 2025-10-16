@@ -37,7 +37,7 @@ public class GetWeeklyScheduleQueryHandler : IRequestHandler<GetWeeklyScheduleQu
                 .FirstOrDefaultAsync(s => s.Id == request.ScheduleId && !s.IsDeleted, cancellationToken);
 
             if (schedule == null)
-                return Result.Failure<WeeklyScheduleDto>("Program bulunamadı.");
+                return Result<WeeklyScheduleDto>.Failure("Program bulunamadı.");
 
             var sessionsQuery = schedule.CourseSessions.Where(cs => !cs.IsDeleted).AsQueryable();
 
@@ -101,12 +101,12 @@ public class GetWeeklyScheduleQueryHandler : IRequestHandler<GetWeeklyScheduleQu
                 weeklySchedule.Sessions[day] = daySessions;
             }
 
-            return Result.Success(weeklySchedule);
+            return Result<WeeklyScheduleDto>.Success(weeklySchedule);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving weekly schedule");
-            return Result.Failure<WeeklyScheduleDto>("Program getirilirken hata oluştu.");
+            return Result<WeeklyScheduleDto>.Failure("Program getirilirken hata oluştu.");
         }
     }
 }

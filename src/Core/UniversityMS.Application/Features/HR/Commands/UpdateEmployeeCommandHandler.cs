@@ -30,7 +30,7 @@ public class UpdateEmployeeCommandHandler : IRequestHandler<UpdateEmployeeComman
     {
         var employee = await _employeeRepository.GetByIdAsync(request.EmployeeId, cancellationToken);
         if (employee is null)
-            return Result.Failure<EmployeeDto>("Çalışan bulunamadı");
+            return Result<EmployeeDto>.Failure("Çalışan bulunamadı");
 
         // Update edilebilir alanlar
         if (!string.IsNullOrEmpty(request.JobTitle))

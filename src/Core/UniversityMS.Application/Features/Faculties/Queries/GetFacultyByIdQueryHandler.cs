@@ -33,16 +33,16 @@ public class GetFacultyByIdQueryHandler : IRequestHandler<GetFacultyByIdQuery, R
             if (faculty == null)
             {
                 _logger.LogWarning("Faculty not found. FacultyId: {FacultyId}", request.Id);
-                return Result.Failure<FacultyDto>("Fakülte bulunamadı.");
+                return Result<FacultyDto>.Failure("Fakülte bulunamadı.");
             }
 
             var facultyDto = _mapper.Map<FacultyDto>(faculty);
-            return Result.Success(facultyDto);
+            return Result<FacultyDto>.Success(facultyDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving faculty. FacultyId: {FacultyId}", request.Id);
-            return Result.Failure<FacultyDto>("Fakülte bilgileri alınırken bir hata oluştu.");
+            return Result<FacultyDto>.Failure("Fakülte bilgileri alınırken bir hata oluştu.");
         }
     }
 }

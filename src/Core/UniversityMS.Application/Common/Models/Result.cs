@@ -61,4 +61,13 @@ public class Result<T>
             Errors = errors
         };
     }
+    public static Result<T> Failure(string message,List<string> errors)
+    {
+        return new Result<T>
+        {
+            IsSuccess = false,
+            Message = message,
+            Errors = errors
+        };
+    }
 }

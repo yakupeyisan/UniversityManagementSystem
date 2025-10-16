@@ -31,7 +31,7 @@ public class GetGradeStatisticsQueryHandler : IRequestHandler<GetGradeStatistics
                 cancellationToken);
 
             if (!grades.Any())
-                return Result.Failure<GradeStatisticsDto>("Bu ders için henüz not girilmemiş.");
+                return Result<GradeStatisticsDto>.Failure("Bu ders için henüz not girilmemiş.");
 
             var statistics = new GradeStatisticsDto
             {
@@ -55,12 +55,12 @@ public class GetGradeStatisticsQueryHandler : IRequestHandler<GetGradeStatistics
                     .ToList()
             };
 
-            return Result.Success(statistics);
+            return Result<GradeStatisticsDto>.Success(statistics);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error calculating grade statistics. CourseId: {CourseId}", request.CourseId);
-            return Result.Failure<GradeStatisticsDto>("Not istatistikleri hesaplanırken bir hata oluştu.");
+            return Result<GradeStatisticsDto>.Failure("Not istatistikleri hesaplanırken bir hata oluştu.");
         }
     }
 }

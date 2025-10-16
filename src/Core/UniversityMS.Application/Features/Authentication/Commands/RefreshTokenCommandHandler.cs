@@ -42,7 +42,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             if (principal == null)
             {
                 _logger.LogWarning("Invalid access token");
-                return Result.Failure<TokenDto>("Geçersiz token.");
+                return Result<TokenDto>.Failure("Geçersiz token.");
             }
 
             var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -50,7 +50,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
                 _logger.LogWarning("Invalid user ID in token");
-                return Result.Failure<TokenDto>("Geçersiz kullanıcı bilgisi.");
+                return Result<TokenDto>.Failure("Geçersiz kullanıcı bilgisi.");
             }
 
             // User'ı bul ve refresh token'ı kontrol et
@@ -59,26 +59,26 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             if (user == null)
             {
                 _logger.LogWarning("User not found: {UserId}", userId);
-                return Result.Failure<TokenDto>("Kullanıcı bulunamadı.");
+                return Result<TokenDto>.Failure("Kullanıcı bulunamadı.");
             }
 
             if (user.RefreshToken != request.RefreshToken)
             {
                 _logger.LogWarning("Invalid refresh token for user: {UserId}", userId);
-                return Result.Failure<TokenDto>("Geçersiz refresh token.");
+                return Result<TokenDto>.Failure("Geçersiz refresh token.");
             }
 
             if (!user.IsActive)
             {
                 _logger.LogWarning("User is not active: {UserId}", user.Id);
-                return Result.Failure<TokenDto>("Hesabınız aktif değil.");
+                return Result<TokenDto>.Failure("Hesabınız aktif değil.");
             }
 
             // Refresh token'ın süresini kontrol et
             if (user.RefreshTokenExpiryTime == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
             {
                 _logger.LogWarning("Refresh token expired for user: {UserId}", user.Id);
-                return Result.Failure<TokenDto>("Refresh token süresi dolmuş. Lütfen tekrar giriş yapın.");
+                return Result<TokenDto>.Failure("Refresh token süresi dolmuş. Lütfen tekrar giriş yapın.");
             }
 
             // Yeni token'lar oluştur
@@ -103,12 +103,12 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             };
 
             _logger.LogInformation("Refresh token successful for user: {UserId}", user.Id);
-            return Result.Success(tokenDto, "Token yenilendi.");
+            return Result<TokenDto>.Success(tokenDto, "Token yenilendi.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred during refresh token");
-            return Result.Failure<TokenDto>("Token yenileme sırasında bir hata oluştu.", ex.Message);
+            return Result<TokenDto>.Failure("Token yenileme sırasında bir hata oluştu. Hata: " + ex.Message);
         }
     }
 }

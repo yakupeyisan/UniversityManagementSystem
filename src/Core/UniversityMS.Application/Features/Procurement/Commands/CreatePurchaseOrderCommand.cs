@@ -9,5 +9,6 @@ public record CreatePurchaseOrderCommand(
     Guid SupplierId,
     decimal TotalAmount,
     DateTime DeliveryDate,
+    string? DeliveryAddress,
     string PaymentTerms
 ) : IRequest<Result<PurchaseOrderDto>>;

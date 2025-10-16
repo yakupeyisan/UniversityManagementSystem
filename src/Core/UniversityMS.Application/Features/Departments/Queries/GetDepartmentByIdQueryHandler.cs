@@ -33,16 +33,16 @@ public class GetDepartmentByIdQueryHandler : IRequestHandler<GetDepartmentByIdQu
             if (department == null)
             {
                 _logger.LogWarning("Department not found. DepartmentId: {DepartmentId}", request.Id);
-                return Result.Failure<DepartmentDto>("Bölüm bulunamadı.");
+                return Result<DepartmentDto>.Failure("Bölüm bulunamadı.");
             }
 
             var departmentDto = _mapper.Map<DepartmentDto>(department);
-            return Result.Success(departmentDto);
+            return Result<DepartmentDto>.Success(departmentDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving department. DepartmentId: {DepartmentId}", request.Id);
-            return Result.Failure<DepartmentDto>("Bölüm bilgileri alınırken bir hata oluştu.");
+            return Result<DepartmentDto>.Failure("Bölüm bilgileri alınırken bir hata oluştu.");
         }
     }
 }

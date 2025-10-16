@@ -3,6 +3,7 @@ using MediatR;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.Procurement.DTOs;
 using UniversityMS.Domain.Entities.ProcurementAggregate;
+using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Interfaces;
 using UniversityMS.Domain.ValueObjects;
 
@@ -28,11 +29,14 @@ public class CreatePurchaseRequestCommandHandler : IRequestHandler<CreatePurchas
         CreatePurchaseRequestCommand request,
         CancellationToken cancellationToken)
     {
-        var purchaseRequest = new PurchaseRequest(
-            request.DepartmentId,
-            request.Title,
-            request.Description,
-            request.Urgency
+        var purchaseRequest = PurchaseRequest.Create(
+            requestNumber: $"PR-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString().Substring(0, 8)}",
+            requestorId: Guid.NewGuid(),  // veya İZLEME: Authentication'dan al
+            departmentId: request.DepartmentId,
+            requestDate: DateTime.UtcNow,
+            requiredDate: request.RequiredDate ?? DateTime.UtcNow.AddDays(7),
+            priority: Enum.Parse<PurchasePriority>(request.Priority),
+            justification: request.Description ?? "Purchase request"
         );
 
         foreach (var item in request.Items)
@@ -40,12 +44,19 @@ public class CreatePurchaseRequestCommandHandler : IRequestHandler<CreatePurchas
             // Value Object oluştur
             var unitPrice = Money.Create(item.UnitPrice, "TRY");
 
-            purchaseRequest.AddItem(
-                item.ItemName,
-                item.Quantity,
-                unitPrice,
-                item.Unit
+            // ✅ PurchaseRequestItem.Create() factory method'u kullan
+            var requestItem = PurchaseRequestItem.Create(
+                purchaseRequestId: purchaseRequest.Id,
+                itemName: item.ItemName,
+                quantity: item.Quantity,
+                unit: item.Unit,
+                estimatedUnitPrice: unitPrice,
+                description: item.Description,
+                specifications: item.Specifications
             );
+
+            // ✅ PurchaseRequestItem object'i geç
+            purchaseRequest.AddItem(requestItem);
         }
 
         await _purchaseRequestRepository.AddAsync(purchaseRequest, cancellationToken);

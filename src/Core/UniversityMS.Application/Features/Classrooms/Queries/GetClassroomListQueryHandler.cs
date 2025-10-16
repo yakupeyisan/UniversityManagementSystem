@@ -59,12 +59,12 @@ public class GetClassroomListQueryHandler : IRequestHandler<GetClassroomListQuer
                 request.PageSize
             );
 
-            return Result.Success(paginatedList);
+            return Result<PaginatedList<ClassroomDto>>.Success(paginatedList);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving classroom list");
-            return Result.Failure<PaginatedList<ClassroomDto>>("Derslik listesi getirilirken hata oluştu.");
+            return Result<PaginatedList<ClassroomDto>>.Failure("Derslik listesi getirilirken hata oluştu.");
         }
     }
 }

@@ -52,13 +52,13 @@ public class CreateStudentCommandHandler : IRequestHandler<CreateStudentCommand,
             _logger.LogInformation("Student created successfully. StudentId: {StudentId}, StudentNumber: {StudentNumber}",
                 student.Id, student.StudentNumber);
 
-            return Result.Success(student.Id, "Öğrenci başarıyla oluşturuldu.");
+            return Result<Guid>.Success(student.Id, "Öğrenci başarıyla oluşturuldu.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while creating student. StudentNumber: {StudentNumber}",
                 request.StudentNumber);
-            return Result.Failure<Guid>("Öğrenci oluşturulurken bir hata oluştu.", ex.Message);
+            return Result<Guid>.Failure("Öğrenci oluşturulurken bir hata oluştu. Hata: "+ ex.Message);
         }
     }
 }

@@ -34,7 +34,7 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
             cancellationToken);
 
         if (existing.Any())
-            return Result.Failure<EmployeeDto>("Bu çalışan numarası zaten kullanılıyor");
+            return Result<EmployeeDto>.Failure("Bu çalışan numarası zaten kullanılıyor");
 
         // Create Value Objects using static factory methods
         var employeeNumber = EmployeeNumber.Create(request.EmployeeNumber);

@@ -7,10 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Features\Payroll\Queries\" />
     <Folder Include="Features\Finance\DTOs\" />
     <Folder Include="Features\Finance\Queries\" />
-    <Folder Include="Features\Procurement\DTOs\" />
     <Folder Include="Features\Procurement\Queries\" />
     <Folder Include="Features\Inventory\Commands\" />
     <Folder Include="Features\Inventory\DTOs\" />

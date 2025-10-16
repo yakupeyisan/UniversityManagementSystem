@@ -12,11 +12,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ===== 1. SERILOG CONFIGURATION =====
 Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .Enrich.WithMachineName()
     .Enrich.WithEnvironmentName()
+    .Enrich.WithThreadId()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        fileSizeLimitBytes: 10485760)
     .CreateLogger();
+
 //Log.Logger = new LoggerConfiguration()
 //    .ReadFrom.Configuration(builder.Configuration)
 //    .Enrich.FromLogContext()
@@ -59,17 +67,29 @@ try
             {
                 Name = "Yakup Eyisan",
                 Email = "yakupeyisan@gmail.com"
+            },
+            License = new OpenApiLicense
+            {
+                Name = "MIT"
             }
         });
 
         // JWT Authentication for Swagger
+        //c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        //{
+        //    Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token",
+        //    Name = "Authorization",
+        //    In = ParameterLocation.Header,
+        //    Type = SecuritySchemeType.ApiKey,
+        //    Scheme = "Bearer"
+        //});
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
-            Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token",
             Name = "Authorization",
-            In = ParameterLocation.Header,
-            Type = SecuritySchemeType.ApiKey,
-            Scheme = "Bearer"
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Description = "Enter 'Bearer' [space] and then your valid token in the text input below.\n\nExample: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\""
         });
 
         c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -86,6 +106,12 @@ try
                 Array.Empty<string>()
             }
         });
+        var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        if (File.Exists(xmlPath))
+        {
+            c.IncludeXmlComments(xmlPath);
+        }
     });
 
     // JWT Authentication

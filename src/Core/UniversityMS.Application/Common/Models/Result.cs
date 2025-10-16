@@ -18,20 +18,47 @@ public class Result
     public static Result Failure(string message, params string[] errors)
         => new(false, message, errors);
 
-    public static Result<T> Success<T>(T data, string message = "İşlem başarılı.")
-        => new(true, data, message, Array.Empty<string>());
-
-    public static Result<T> Failure<T>(string message, params string[] errors)
-        => new(false, default!, message, errors);
 }
 
-public class Result<T> : Result
+/// <summary>
+/// Genel sonuç modeli - başarı/başarısızlık
+/// </summary>
+public class Result<T>
 {
-    public T Data { get; }
+    public bool IsSuccess { get; private set; }
+    public T? Data { get; private set; }
+    public string? Message { get; private set; }
+    public List<string> Errors { get; private set; } = new();
 
-    protected internal Result(bool isSuccess, T data, string message, string[] errors)
-        : base(isSuccess, message, errors)
+    private Result() { }
+
+    public static Result<T> Success(T data, string? message = null)
     {
-        Data = data;
+        return new Result<T>
+        {
+            IsSuccess = true,
+            Data = data,
+            Message = message ?? "İşlem başarılı"
+        };
+    }
+
+    public static Result<T> Failure(string message)
+    {
+        return new Result<T>
+        {
+            IsSuccess = false,
+            Message = message,
+            Errors = new List<string> { message }
+        };
+    }
+
+    public static Result<T> Failure(List<string> errors)
+    {
+        return new Result<T>
+        {
+            IsSuccess = false,
+            Message = "Birden fazla hata oluştu",
+            Errors = errors
+        };
     }
 }

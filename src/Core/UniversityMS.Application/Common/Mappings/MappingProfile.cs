@@ -8,13 +8,16 @@ using UniversityMS.Application.Features.Enrollments.DTOs;
 using UniversityMS.Application.Features.Faculties.DTOs;
 using UniversityMS.Application.Features.Grades.DTOs;
 using UniversityMS.Application.Features.HR.DTOs;
+using UniversityMS.Application.Features.PayrollFeature.DTOs;
 using UniversityMS.Application.Features.Staff.DTOs;
 using UniversityMS.Application.Features.Students.DTOs;
 using UniversityMS.Domain.Entities.AcademicAggregate;
 using UniversityMS.Domain.Entities.EnrollmentAggregate;
 using UniversityMS.Domain.Entities.HRAggregate;
 using UniversityMS.Domain.Entities.IdentityAggregate;
+using UniversityMS.Domain.Entities.PayrollAggregate;
 using UniversityMS.Domain.Entities.PersonAggregate;
+using UniversityMS.Domain.Enums;
 
 namespace UniversityMS.Application.Common.Mappings;
 public class MappingProfile : Profile
@@ -89,35 +92,99 @@ public class MappingProfile : Profile
 
         // Attendance Mappings
         CreateMap<Attendance, AttendanceDto>();
-        //CreateMap<Employee, EmployeeDto>()
-        //    .ForMember(dest => dest.PersonFullName, opt =>
-        //        opt.MapFrom(src => $"{src.Person.FirstName} {src.Person.LastName}"))
-        //    .ForMember(dest => dest.PersonEmail, opt =>
-        //        opt.MapFrom(src => src.Person.Email.Value))
-        //    .ForMember(dest => dest.PersonPhone, opt =>
-        //        opt.MapFrom(src => src.Person.PhoneNumber.Value))
-        //    .ForMember(dest => dest.DepartmentName, opt =>
-        //        opt.MapFrom(src => src.Department != null ? src.Department.Name : null))
-        //    .ForMember(dest => dest.BaseSalary, opt =>
-        //        opt.MapFrom(src => src.Salary.BaseSalary))
-        //    .ForMember(dest => dest.HoursPerWeek, opt =>
-        //        opt.MapFrom(src => src.WorkingHours.HoursPerWeek))
-        //    .ForMember(dest => dest.Status, opt =>
-        //        opt.MapFrom(src => src.Status.ToString()))
-        //    .ReverseMap();
+        // Payroll → PayrollDto
+        CreateMap<Payroll, PayrollDto>()
+            .ForMember(dest => dest.PayrollNumber, opt => opt.MapFrom(src => src.PayrollNumber))
+            .ForMember(dest => dest.EmployeeFullName,
+                opt => opt.MapFrom(src => $"{src.Employee.Person.FirstName} {src.Employee.Person.LastName}"))
+            .ForMember(dest => dest.EmployeeNumber,
+                opt => opt.MapFrom(src => src.Employee.EmployeeNumber))
+            .ForMember(dest => dest.MonthName,
+                opt => opt.MapFrom(src => GetMonthName(src.Month)))
+            .ForMember(dest => dest.Period,
+                opt => opt.MapFrom(src => $"{src.Month:D2}/{src.Year}"))
+            .ForMember(dest => dest.BaseSalary,
+                opt => opt.MapFrom(src => src.BaseSalary.Amount))
+            .ForMember(dest => dest.TotalEarnings,
+                opt => opt.MapFrom(src => src.TotalEarnings.Amount))
+            .ForMember(dest => dest.TotalDeductions,
+                opt => opt.MapFrom(src => src.TotalDeductions.Amount))
+            .ForMember(dest => dest.NetSalary,
+                opt => opt.MapFrom(src => src.NetSalary.Amount))
+            .ForMember(dest => dest.Status,
+                opt => opt.MapFrom(src => src.Status.ToString()))
+            .ForMember(dest => dest.PaymentMethod,
+                opt => opt.MapFrom(src => src.PaymentMethod.ToString()))
+            .ForMember(dest => dest.ApproverName,
+                opt => opt.MapFrom(src => src.Approver != null
+                    ? $"{src.Approver.Person.FirstName} {src.Approver.Person.LastName}"
+                    : null));
 
-        //// Leave to LeaveRequestDto mapping
-        //CreateMap<Leave, LeaveRequestDto>()
-        //    .ForMember(dest => dest.EmployeeFullName, opt => opt.Ignore())
-        //    .ForMember(dest => dest.DurationDays, opt =>
-        //        opt.MapFrom(src => (src.EndDate.Date - src.StartDate.Date).Days + 1))
-        //    .ForMember(dest => dest.Status, opt =>
-        //        opt.MapFrom(src => src.Status.ToString()))
-        //    .ReverseMap();
+        // Payroll → PayslipDto
+        CreateMap<Payroll, PayslipDto>()
+            .ForMember(dest => dest.PayrollNumber, opt => opt.MapFrom(src => src.PayrollNumber))
+            .ForMember(dest => dest.EmployeeFullName,
+                opt => opt.MapFrom(src => $"{src.Employee.Person.FirstName} {src.Employee.Person.LastName}"))
+            .ForMember(dest => dest.EmployeeNumber,
+                opt => opt.MapFrom(src => src.Employee.EmployeeNumber))
+            .ForMember(dest => dest.Designation,
+                opt => opt.MapFrom(src => src.Employee.Position ?? "N/A"))
+            .ForMember(dest => dest.Department,
+                opt => opt.MapFrom(src => src.Employee.Department!.Name ?? "N/A"))
+            .ForMember(dest => dest.Month,
+                opt => opt.MapFrom(src => GetMonthName(src.Month)))
+            .ForMember(dest => dest.BaseSalary,
+                opt => opt.MapFrom(src => src.BaseSalary.Amount))
+            .ForMember(dest => dest.TotalEarnings,
+                opt => opt.MapFrom(src => src.TotalEarnings.Amount))
+            .ForMember(dest => dest.TotalDeductions,
+                opt => opt.MapFrom(src => src.TotalDeductions.Amount))
+            .ForMember(dest => dest.NetSalary,
+                opt => opt.MapFrom(src => src.NetSalary.Amount))
+            .ForMember(dest => dest.PaymentMethod,
+                opt => opt.MapFrom(src => src.PaymentMethod.ToString()))
+            .ForMember(dest => dest.Earnings,
+                opt => opt.MapFrom(src => src.Items.Where(i => i.Type == PayrollItemType.Earning)
+                    .Select(i => new PayslipLineItemDto
+                    {
+                        Description = i.Description,
+                        Amount = i.Amount.Amount,
+                        Quantity = i.Quantity
+                    }).ToList()))
+            .ForMember(dest => dest.Deductions,
+                opt => opt.MapFrom(src => src.Deductions
+                    .Select(d => new PayslipLineItemDto
+                    {
+                        Description = d.Description,
+                        Amount = d.Amount.Amount
+                    }).ToList()))
+            .ForMember(dest => dest.GeneratedDate,
+                opt => opt.MapFrom(src => DateTime.UtcNow));
 
-        //// Leave to LeaveBalanceDto mapping
-        //CreateMap<Leave, LeaveBalanceDto>()
-        //    .ForMember(dest => dest.EmployeeFullName, opt => opt.Ignore())
-        //    .ReverseMap();
+        // PayrollItem → PayrollItemDto
+        CreateMap<PayrollItem, PayrollItemDto>()
+            .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()))
+            .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount.Amount));
+
+        // PayrollDeduction → PayrollDeductionDto
+        CreateMap<PayrollDeduction, PayrollDeductionDto>()
+            .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()))
+            .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount.Amount));
     }
+    private static string GetMonthName(int month) => month switch
+    {
+        1 => "Ocak",
+        2 => "Şubat",
+        3 => "Mart",
+        4 => "Nisan",
+        5 => "Mayıs",
+        6 => "Haziran",
+        7 => "Temmuz",
+        8 => "Ağustos",
+        9 => "Eylül",
+        10 => "Ekim",
+        11 => "Kasım",
+        12 => "Aralık",
+        _ => "Bilinmiyor"
+    };
 }

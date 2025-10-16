@@ -7,13 +7,13 @@ using UniversityMS.Domain.Interfaces;
 
 namespace UniversityMS.Application.Features.PayrollFeature.Commands;
 
-public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentCommand, Result<PayrollDto>>
+public class CalculatePayrollCommandHandler : IRequestHandler<CalculatePayrollCommand, Result<PayrollDto>>
 {
     private readonly IRepository<Payroll> _payrollRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public ProcessPaymentCommandHandler(
+    public CalculatePayrollCommandHandler(
         IRepository<Payroll> payrollRepository,
         IUnitOfWork unitOfWork,
         IMapper mapper)
@@ -24,22 +24,17 @@ public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentComman
     }
 
     public async Task<Result<PayrollDto>> Handle(
-        ProcessPaymentCommand request,
+        CalculatePayrollCommand request,
         CancellationToken cancellationToken)
     {
         var payroll = await _payrollRepository.GetByIdAsync(request.PayrollId, cancellationToken);
         if (payroll is null)
             return Result<PayrollDto>.Failure("Bordro bulunamadı");
 
-        if (payroll.Status.ToString() != "Approved")
-            return Result<PayrollDto>.Failure("Sadece onaylı bordrolar işlenebilir");
+        if (payroll.Status.ToString() != "Draft")
+            return Result<PayrollDto>.Failure("Sadece taslak bordrolar hesaplanabilir");
 
-        // ✅ DÜZELTILMIŞ: ProcessPayment() yok, MarkAsPaid() kullan
-        // MarkAsPaid(Guid paidBy, string paymentReference)
-        var paidById = Guid.NewGuid(); // TODO: User ID'sini authentication'dan al
-        var paymentReference = $"PMT-{DateTime.UtcNow:yyyyMMddHHmmss}";
-
-        payroll.MarkAsPaid(paidById, paymentReference);
+        payroll.Calculate();
 
         await _payrollRepository.UpdateAsync(payroll, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

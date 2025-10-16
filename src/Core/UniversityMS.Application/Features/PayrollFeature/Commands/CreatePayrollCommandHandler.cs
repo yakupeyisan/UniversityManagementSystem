@@ -52,34 +52,56 @@ public class CreatePayrollCommandHandler : IRequestHandler<CreatePayrollCommand,
 
         string payrollNumber = $"PAY-{request.Year}{request.Month:D2}-{request.EmployeeId.ToString().Substring(0, 8).ToUpper()}";
 
-        // Payroll oluştur
-        var payroll = new Payroll(
-            payrollNumber,
-            request.EmployeeId,
-            request.Year,
-            request.Month,
-            baseSalary,
-            payrollPeriod.GetWorkingDays(),
-            PaymentMethod.BankTransfer
+        // ✅ DÜZELTILMIŞ: Constructor'a doğru argümanlar geç
+        var payroll = Payroll.Create(
+            payrollNumber: payrollNumber,
+            employeeId: request.EmployeeId,
+            year: request.Year,
+            month: request.Month,
+            baseSalary: baseSalary,
+            workingDays: payrollPeriod.GetWorkingDays(),
+            paymentMethod: PaymentMethod.BankTransfer,
+            bankAccount: null
         );
 
-        // Kesintileri ekle
-        foreach (var deduction in request.Deductions ?? new List<PayrollDeductionDto>())
+        // ✅ DÜZELTILMIŞ: Factory method ile PayrollDeduction oluştur
+        if (request.Deductions != null && request.Deductions.Any())
         {
-            var deductionAmount = Money.Create(deduction.Amount, "TRY");
-            var payrollDeduction = new PayrollDeduction(
-                deduction.Type,
-                deductionAmount,
-                deduction.Description
-            );
-            payroll.AddDeduction(payrollDeduction);
+            foreach (var deduction in request.Deductions)
+            {
+                var deductionAmount = Money.Create(deduction.Amount, "TRY");
+
+                // PayrollDeduction.Create() factory method'u kullan
+                var payrollDeduction = PayrollDeduction.Create(
+                    payrollId: payroll.Id,
+                    type: Enum.Parse<DeductionType>(deduction.Type),
+                    description: deduction.Description ?? deduction.Type,
+                    amount: deductionAmount,
+                    rate: deduction.Rate,
+                    isStatutory: false
+                );
+
+                payroll.AddDeduction(payrollDeduction);
+            }
         }
 
-        // Bonus varsa ekle
+        // ✅ DÜZELTILMIŞ: AddEarning yerine AddItem() kullan (Bonus varsa)
         if (request.Bonus.HasValue && request.Bonus > 0)
         {
             var bonusAmount = Money.Create(request.Bonus.Value, "TRY");
-            payroll.AddEarning(bonusAmount, "Bonus");
+
+            // PayrollItem.Create() factory method'u kullan
+            var bonusItem = PayrollItem.Create(
+                payrollId: payroll.Id,
+                type: PayrollItemType.Earning,
+                category: "Bonus",
+                description: "Bonus Ödeneği",
+                amount: bonusAmount,
+                quantity: null,
+                isTaxable: true
+            );
+
+            payroll.AddItem(bonusItem);
         }
 
         await _payrollRepository.AddAsync(payroll, cancellationToken);

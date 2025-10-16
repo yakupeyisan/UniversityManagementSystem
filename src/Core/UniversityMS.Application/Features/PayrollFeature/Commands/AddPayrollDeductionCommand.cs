@@ -4,9 +4,6 @@ using UniversityMS.Application.Features.PayrollFeature.DTOs;
 
 namespace UniversityMS.Application.Features.PayrollFeature.Commands;
 
-/// <summary>
-/// Bordro kesintisi ekle
-/// </summary>
 public record AddPayrollDeductionCommand(
     Guid PayrollId,
     string Type,

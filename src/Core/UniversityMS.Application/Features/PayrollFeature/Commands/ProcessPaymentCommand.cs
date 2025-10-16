@@ -5,7 +5,5 @@ using UniversityMS.Application.Features.PayrollFeature.DTOs;
 namespace UniversityMS.Application.Features.PayrollFeature.Commands;
 
 public record ProcessPaymentCommand(
-    Guid PayrollId,
-    string PaymentMethod,
-    string BankAccountNumber
+    Guid PayrollId
 ) : IRequest<Result<PayrollDto>>;

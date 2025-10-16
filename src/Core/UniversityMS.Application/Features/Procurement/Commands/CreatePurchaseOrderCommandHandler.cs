@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using UniversityMS.Application.Common.Models;
+using UniversityMS.Application.Features.Procurement.DTOs;
 using UniversityMS.Domain.Entities.ProcurementAggregate;
 using UniversityMS.Domain.Interfaces;
 using UniversityMS.Domain.ValueObjects;

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using UniversityMS.Application.Common.Models;
+using UniversityMS.Application.Features.Finance.DTOs.UniversityMS.Application.Features.Finance.DTOs;
 using UniversityMS.Domain.Entities.FinanceAggregate;
 using UniversityMS.Domain.Interfaces;
 using UniversityMS.Domain.ValueObjects;

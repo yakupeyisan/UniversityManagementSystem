@@ -128,7 +128,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.EmployeeNumber,
                 opt => opt.MapFrom(src => src.Employee.EmployeeNumber))
             .ForMember(dest => dest.Designation,
-                opt => opt.MapFrom(src => src.Employee.Position ?? "N/A"))
+                opt => opt.MapFrom(src => src.Employee.JobTitle ?? "N/A"))
             .ForMember(dest => dest.Department,
                 opt => opt.MapFrom(src => src.Employee.Department!.Name ?? "N/A"))
             .ForMember(dest => dest.Month,

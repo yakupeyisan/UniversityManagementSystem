@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using UniversityMS.Application.Common.Models;
+using UniversityMS.Application.Features.Procurement.DTOs;
 
 namespace UniversityMS.Application.Features.Procurement.Commands;
 

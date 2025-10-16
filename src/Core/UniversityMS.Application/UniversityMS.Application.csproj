@@ -7,9 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Features\Payroll\Commands\" />
-    <Folder Include="Features\Payroll\DTOs\" />
     <Folder Include="Features\Payroll\Queries\" />
+    <Folder Include="Features\Finance\DTOs\" />
+    <Folder Include="Features\Finance\Queries\" />
+    <Folder Include="Features\Procurement\DTOs\" />
+    <Folder Include="Features\Procurement\Queries\" />
+    <Folder Include="Features\Inventory\Commands\" />
+    <Folder Include="Features\Inventory\DTOs\" />
+    <Folder Include="Features\Inventory\Queries\" />
+    <Folder Include="Features\Sample\Commands\" />
+    <Folder Include="Features\Sample\DTOs\" />
+    <Folder Include="Features\Sample\Queries\" />
     <Folder Include="Features\Staff\Commands\" />
     <Folder Include="Features\Staff\Queries\" />
   </ItemGroup>

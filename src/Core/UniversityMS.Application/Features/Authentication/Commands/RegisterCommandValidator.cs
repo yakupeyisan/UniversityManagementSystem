@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using UniversityMS.Domain.Enums;
 
 namespace UniversityMS.Application.Features.Authentication.Commands;
 

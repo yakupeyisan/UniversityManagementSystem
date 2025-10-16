@@ -7,10 +7,12 @@ using UniversityMS.Application.Features.Departments.DTOs;
 using UniversityMS.Application.Features.Enrollments.DTOs;
 using UniversityMS.Application.Features.Faculties.DTOs;
 using UniversityMS.Application.Features.Grades.DTOs;
+using UniversityMS.Application.Features.HR.DTOs;
 using UniversityMS.Application.Features.Staff.DTOs;
 using UniversityMS.Application.Features.Students.DTOs;
 using UniversityMS.Domain.Entities.AcademicAggregate;
 using UniversityMS.Domain.Entities.EnrollmentAggregate;
+using UniversityMS.Domain.Entities.HRAggregate;
 using UniversityMS.Domain.Entities.IdentityAggregate;
 using UniversityMS.Domain.Entities.PersonAggregate;
 
@@ -87,5 +89,35 @@ public class MappingProfile : Profile
 
         // Attendance Mappings
         CreateMap<Attendance, AttendanceDto>();
+        //CreateMap<Employee, EmployeeDto>()
+        //    .ForMember(dest => dest.PersonFullName, opt =>
+        //        opt.MapFrom(src => $"{src.Person.FirstName} {src.Person.LastName}"))
+        //    .ForMember(dest => dest.PersonEmail, opt =>
+        //        opt.MapFrom(src => src.Person.Email.Value))
+        //    .ForMember(dest => dest.PersonPhone, opt =>
+        //        opt.MapFrom(src => src.Person.PhoneNumber.Value))
+        //    .ForMember(dest => dest.DepartmentName, opt =>
+        //        opt.MapFrom(src => src.Department != null ? src.Department.Name : null))
+        //    .ForMember(dest => dest.BaseSalary, opt =>
+        //        opt.MapFrom(src => src.Salary.BaseSalary))
+        //    .ForMember(dest => dest.HoursPerWeek, opt =>
+        //        opt.MapFrom(src => src.WorkingHours.HoursPerWeek))
+        //    .ForMember(dest => dest.Status, opt =>
+        //        opt.MapFrom(src => src.Status.ToString()))
+        //    .ReverseMap();
+
+        //// Leave to LeaveRequestDto mapping
+        //CreateMap<Leave, LeaveRequestDto>()
+        //    .ForMember(dest => dest.EmployeeFullName, opt => opt.Ignore())
+        //    .ForMember(dest => dest.DurationDays, opt =>
+        //        opt.MapFrom(src => (src.EndDate.Date - src.StartDate.Date).Days + 1))
+        //    .ForMember(dest => dest.Status, opt =>
+        //        opt.MapFrom(src => src.Status.ToString()))
+        //    .ReverseMap();
+
+        //// Leave to LeaveBalanceDto mapping
+        //CreateMap<Leave, LeaveBalanceDto>()
+        //    .ForMember(dest => dest.EmployeeFullName, opt => opt.Ignore())
+        //    .ReverseMap();
     }
 }

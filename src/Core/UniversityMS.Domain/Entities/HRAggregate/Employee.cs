@@ -18,6 +18,7 @@ namespace UniversityMS.Domain.Entities.HRAggregate;
 public class Employee : AuditableEntity, IAggregateRoot
 {
     public EmployeeNumber EmployeeNumber { get; private set; } = null!;
+    public AcademicTitle? AcademicTitle { get; private set; }
     public Guid PersonId { get; private set; }
     public Guid? DepartmentId { get; private set; }
     public string JobTitle { get; private set; } = null!;
@@ -293,6 +294,13 @@ public class Employee : AuditableEntity, IAggregateRoot
         AddDomainEvent(new EmployeeSalaryUpdatedEvent(Id, oldSalary.GetGrossSalary(), newSalary.GetGrossSalary()));
     }
 
+    public void UpdateAcademicTitle(AcademicTitle academicTitle)
+    {
+        var oldAcademicTitle = AcademicTitle;
+        AcademicTitle = academicTitle;
+        AddDomainEvent(new EmployeeAcademicTitleUpdatedEvent(Id, oldAcademicTitle, academicTitle));
+    }
+
     public void UpdateJobTitle(string newJobTitle)
     {
         if (string.IsNullOrWhiteSpace(newJobTitle))
@@ -407,4 +415,37 @@ public class Employee : AuditableEntity, IAggregateRoot
     }
 
     #endregion
+
+
+    public void UpdateDepartment(Guid departmentId)
+    {
+        DepartmentId = departmentId;
+    }
+
+
+    public void UpdateWorkingHours(WorkingHours workingHours)
+    {
+        if (workingHours == null)
+            throw new ArgumentNullException(nameof(workingHours));
+
+        WorkingHours = workingHours;
+    }
+
+    public void UpdateNotes(string? notes)
+    {
+        Notes = notes;
+    }
+
+    public void Terminate(DateTime terminationDate)
+    {
+        if (terminationDate < HireDate)
+            throw new InvalidOperationException("İşten ayrılış tarihi işe alım tarihinden önce olamaz");
+
+        TerminationDate = terminationDate;
+        Status = EmploymentStatus.Terminated;
+    }
+
+    // Eğer EmployeeNumber value object ise:
+    public string GetEmployeeNumber() => EmployeeNumber.Value;
+
 }

@@ -43,4 +43,10 @@ public class PayrollDto
     public DateTime? ModifiedDate { get; set; }
 
     public string? Notes { get; set; }
+    public Guid? PaidBy { get; set; }
+    public DateTime? PaidDate { get; set; }
+    public string? PaymentReference { get; set; }
+    public string? BankName { get; set; }
+    public string? BankAccount { get; set; }
+    public string? IBAN { get; set; }
 }

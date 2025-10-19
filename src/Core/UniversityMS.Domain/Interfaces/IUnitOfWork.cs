@@ -6,5 +6,5 @@ public interface IUnitOfWork : IDisposable
     Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);
-    Task RollbackTransactionAsync();
+    Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
 }

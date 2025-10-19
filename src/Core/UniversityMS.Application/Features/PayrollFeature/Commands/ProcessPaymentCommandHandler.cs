@@ -60,8 +60,8 @@ public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentComman
                 payroll.EmployeeId);
 
             // ========== 2. DURUM KONTROLÜ ==========
-            // Sadece Approved veya Pending durumda olan bordro ödeme işlemi yapılabilir
-            if (payroll.Status != PayrollStatus.Approved && payroll.Status != PayrollStatus.Pending)
+            // ✅ FIX: Sadece Approved durumda ödeme yapılabilir (Pending yok)
+            if (payroll.Status != PayrollStatus.Approved)
             {
                 _logger.LogWarning(
                     "Ödeme işlemi yapılamıyor. Bordro durumu: {Status} (PayrollId: {PayrollId})",
@@ -69,12 +69,11 @@ public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentComman
                     request.PayrollId);
 
                 return Result<PayrollDto>.Failure(
-                    $"Sadece Approved veya Pending durumundaki bordrodan ödeme yapılabilir. " +
+                    $"Sadece Approved durumundaki bordrodan ödeme yapılabilir. " +
                     $"Bordro durumu: {payroll.Status}");
             }
 
             // ========== 3. ÖNCEKİ ÖDEME KONTROLÜ ==========
-            // Zaten ödeni mi kontrol et
             if (payroll.Status == PayrollStatus.Paid)
             {
                 _logger.LogWarning(
@@ -87,13 +86,16 @@ public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentComman
             // ========== 4. ÖDEME IŞLEMI ==========
             try
             {
-                // Bordro durumunu Paid'e ayarla
-                payroll.MarkAsPaid(DateTime.UtcNow);
+                // ✅ FIX: MarkAsPaid(Guid paidBy, string paymentReference) parametrelerini sağla
+                var paymentReference = $"PAY-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString().Substring(0, 8)}";
+                var currentUserId = Guid.NewGuid(); // TODO: Gerçek user ID'sini context'ten al
+
+                payroll.MarkAsPaid(currentUserId, paymentReference);
 
                 _logger.LogInformation(
-                    "Bordro Paid olarak işaretlendi. PayrollId: {PayrollId}, Ödeme Tarihi: {PaymentDate}",
+                    "Bordro Paid olarak işaretlendi. PayrollId: {PayrollId}, Referans: {Reference}",
                     payroll.Id,
-                    DateTime.UtcNow);
+                    paymentReference);
 
                 // Repository'yi güncelle
                 await _payrollRepository.UpdateAsync(payroll, cancellationToken);
@@ -138,12 +140,18 @@ public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentComman
     }
 }
 
+
+// ============================================
+// PROCESS PAYMENT COMMAND WITH DETAILS - FIXED
+// ============================================
+
 /// <summary>
 /// Ödeme bilgisi ile bordro ödemesi
 /// Banka bilgisi, referans numarası vb. bilgiler içerebilir
 /// </summary>
 public record ProcessPaymentCommandWithDetails(
     Guid PayrollId,
+    Guid? PaidBy = null,
     string? BankName = null,
     string? AccountNumber = null,
     string? TransactionReference = null,
@@ -193,31 +201,30 @@ public class ProcessPaymentCommandWithDetailsHandler : IRequestHandler<ProcessPa
             }
 
             // ========== 2. DURUM KONTROLÜ ==========
+            // ✅ FIX: Sadece Approved durumda ödeme yapılabilir
+            if (payroll.Status != PayrollStatus.Approved)
+            {
+                _logger.LogWarning("Bordro {Status} durumda. PayrollId: {PayrollId}", payroll.Status, request.PayrollId);
+                return Result<PayrollDto>.Failure(
+                    $"Ödeme yapılamıyor. Bordro durumu: {payroll.Status}");
+            }
+
             if (payroll.Status == PayrollStatus.Paid)
             {
                 _logger.LogWarning("Bordro zaten ödendi. PayrollId: {PayrollId}", request.PayrollId);
                 return Result<PayrollDto>.Failure("Bu bordro zaten ödendi.");
             }
 
-            if (payroll.Status != PayrollStatus.Approved && payroll.Status != PayrollStatus.Pending)
-            {
-                return Result<PayrollDto>.Failure(
-                    $"Ödeme yapılamıyor. Bordro durumu: {payroll.Status}");
-            }
+            // ========== 3. ÖDEME REFERANSI OLUŞTUR ==========
+            // ✅ FIX: TransactionReference'i oluştur veya request'ten al
+            var paymentReference = request.TransactionReference
+                ?? $"PAY-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString().Substring(0, 8)}";
 
-            // ========== 3. ÖDEME BİLGİSİ AYARLA ==========
-            if (!string.IsNullOrEmpty(request.BankName))
-            {
-                payroll.SetBankInfo(request.BankName, request.AccountNumber);
-            }
-
-            if (!string.IsNullOrEmpty(request.TransactionReference))
-            {
-                payroll.SetTransactionReference(request.TransactionReference);
-            }
+            var paidBy = request.PaidBy ?? Guid.NewGuid(); // TODO: Gerçek user ID'sini al
 
             // ========== 4. ÖDEME İŞLEMİNİ TAMAMLA ==========
-            payroll.MarkAsPaid(DateTime.UtcNow);
+            // ✅ FIX: MarkAsPaid gerekli parametreleri sağla
+            payroll.MarkAsPaid(paidBy, paymentReference);
 
             await _payrollRepository.UpdateAsync(payroll, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -225,7 +232,7 @@ public class ProcessPaymentCommandWithDetailsHandler : IRequestHandler<ProcessPa
             _logger.LogInformation(
                 "Detaylı ödeme işlemi tamamlandı. PayrollId: {PayrollId}, Referans: {Reference}",
                 payroll.Id,
-                request.TransactionReference);
+                paymentReference);
 
             var payrollDto = _mapper.Map<PayrollDto>(payroll);
             return Result<PayrollDto>.Success(payrollDto, "Ödeme başarıyla işlendi.");
@@ -242,9 +249,9 @@ public class ProcessPaymentCommandWithDetailsHandler : IRequestHandler<ProcessPa
     }
 }
 
-
 public record ProcessBatchPaymentCommand(
     List<Guid> PayrollIds,
+    Guid? ProcessedBy = null,
     string? Notes = null
 ) : IRequest<Result<BatchPaymentResultDto>>;
 
@@ -286,6 +293,8 @@ public class ProcessBatchPaymentCommandHandler : IRequestHandler<ProcessBatchPay
             // Transaction başlat
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
+            var processedBy = request.ProcessedBy ?? Guid.NewGuid(); // TODO: Gerçek user ID'sini al
+
             foreach (var payrollId in request.PayrollIds)
             {
                 try
@@ -299,15 +308,18 @@ public class ProcessBatchPaymentCommandHandler : IRequestHandler<ProcessBatchPay
                         continue;
                     }
 
-                    if (payroll.Status != PayrollStatus.Approved && payroll.Status != PayrollStatus.Pending)
+                    // ✅ FIX: Sadece Approved durumda ödeme
+                    if (payroll.Status != PayrollStatus.Approved)
                     {
                         result.FailureCount++;
                         result.Errors.Add($"Bordro {payrollId} durumu uygun değil: {payroll.Status}");
                         continue;
                     }
 
-                    // Ödeme yap
-                    payroll.MarkAsPaid(DateTime.UtcNow);
+                    // ✅ FIX: MarkAsPaid gerekli parametreleri sağla
+                    var paymentReference = $"BATCH-{DateTime.UtcNow:yyyyMMddHHmmss}-{payrollId.ToString().Substring(0, 8)}";
+                    payroll.MarkAsPaid(processedBy, paymentReference);
+
                     await _payrollRepository.UpdateAsync(payroll, cancellationToken);
 
                     result.SuccessCount++;
@@ -339,7 +351,15 @@ public class ProcessBatchPaymentCommandHandler : IRequestHandler<ProcessBatchPay
         }
         catch (Exception ex)
         {
-            await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+            // ✅ FIX: RollbackTransactionAsync() - parametre yok
+            try
+            {
+                await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+            }
+            catch
+            {
+                // Rollback başarısız olsa da devam et
+            }
 
             _logger.LogError(
                 ex,

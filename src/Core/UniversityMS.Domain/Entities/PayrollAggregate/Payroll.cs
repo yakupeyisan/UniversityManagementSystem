@@ -41,6 +41,8 @@ public class Payroll : AuditableEntity, IAggregateRoot
     public PaymentMethod PaymentMethod { get; private set; }
     public string? BankAccount { get; private set; }
     public string? PaymentReference { get; private set; }
+    public string? BankName { get; private set; }
+    public string? IBAN { get; private set; }
 
     // Onay Bilgileri
     public Guid? ApprovedBy { get; private set; }
@@ -61,6 +63,7 @@ public class Payroll : AuditableEntity, IAggregateRoot
 
     private readonly List<PayrollDeduction> _deductions = new();
     public IReadOnlyCollection<PayrollDeduction> Deductions => _deductions.AsReadOnly();
+
 
     // Parameterless constructor for EF Core
     private Payroll() { }
@@ -315,6 +318,25 @@ public class Payroll : AuditableEntity, IAggregateRoot
         AddDomainEvent(new PayrollPaidEvent(Id, EmployeeId, NetSalary, PaymentDate.Value));
     }
 
+    /// <summary>
+    /// Banka bilgisini ayarla (opsiyonel)
+    /// </summary>
+    public void SetBankInfo(string bankName, string? accountNumber = null)
+    {
+        BankName = bankName;
+        BankAccount = accountNumber;
+    }
+
+    /// <summary>
+    /// İşlem referansını ayarla
+    /// </summary>
+    public void SetTransactionReference(string reference)
+    {
+        if (string.IsNullOrWhiteSpace(reference))
+            throw new DomainException("İşlem referansı boş olamaz.");
+
+        PaymentReference = reference;
+    }
     public void Cancel()
     {
         if (Status == PayrollStatus.Paid)

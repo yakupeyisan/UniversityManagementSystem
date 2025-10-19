@@ -1,69 +1,10 @@
 ﻿using AutoMapper;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using UniversityMS.Application.Common.Interfaces;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.ClassroomFeature.DTOs;
 using UniversityMS.Application.Features.ScheduleFeature.DTOs;
 using UniversityMS.Domain.Entities.FacilityAggregate;
-using UniversityMS.Domain.Entities.ScheduleAggregate;
-using UniversityMS.Domain.Enums;
-using UniversityMS.Domain.Interfaces;
-
-namespace UniversityMS.Application.Features.ClassroomFeature.Queries;
-// ===============================================
-// HATA 1-2: GradeProfile - Credits yerine ECTS ve NationalCredit
-// ===============================================
-
-// src/Core/UniversityMS.Application/Common/Mappings/GradeProfile.cs
-using AutoMapper;
-using global::UniversityMS.Application.Features.GradeFeature.DTOs;
-using global::UniversityMS.Domain.Entities.EnrollmentAggregate;
-using UniversityMS.Application.Features.GradeFeature.DTOs;
-using UniversityMS.Domain.Entities.EnrollmentAggregate;
-
-namespace UniversityMS.Application.Common.Mappings;
-
-public class GradeProfile : Profile
-{
-    public GradeProfile()
-    {
-        CreateMap<Grade, GradeDetailDto>()
-            .ForMember(dest => dest.CourseName, opt => opt.MapFrom(src => src.CourseRegistration.Course.Name))
-            .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.CourseRegistration.Enrollment.StudentId))
-            .ForMember(dest => dest.CourseId, opt => opt.MapFrom(src => src.CourseRegistration.CourseId))
-            // ECTS olarak gönder, DTO'da Credits isminde
-            .ForMember(dest => dest.Credits, opt => opt.MapFrom(src => src.CourseRegistration.ECTS))
-            .ReverseMap();
-
-        CreateMap<Grade, TranscriptCourseDto>()
-            .ForMember(dest => dest.CourseCode, opt => opt.MapFrom(src => src.CourseRegistration.Course.Code))
-            .ForMember(dest => dest.CourseName, opt => opt.MapFrom(src => src.CourseRegistration.Course.Name))
-            // ECTS olarak gönder, DTO'da Credits isminde
-            .ForMember(dest => dest.Credits, opt => opt.MapFrom(src => src.CourseRegistration.ECTS))
-            .ForMember(dest => dest.CourseId, opt => opt.MapFrom(src => src.CourseRegistration.CourseId))
-            .ForMember(dest => dest.AcademicYear, opt => opt.MapFrom(src => src.CourseRegistration.Enrollment.AcademicYear))
-            .ForMember(dest => dest.Semester, opt => opt.MapFrom(src => src.CourseRegistration.Enrollment.Semester))
-            .ReverseMap();
-
-        CreateMap<GradeObjection, GradeObjectionDto>()
-            .ReverseMap();
-    }
-}
-
-// ===============================================
-// HATA 3-6: CourseSession StartTime/EndTime Property'leri
-// CourseSession'da string olarak kaydedilmiş, model'de de string
-// ===============================================
-
-// src/Core/UniversityMS.Application/Features/ClassroomFeature/Queries/GetClassroomScheduleQueryHandler.cs
-using AutoMapper;
-using MediatR;
-using Microsoft.Extensions.Logging;
-using UniversityMS.Application.Common.Models;
-using UniversityMS.Application.Features.ClassroomFeature.DTOs;
-using UniversityMS.Application.Features.ScheduleFeature.DTOs;
 using UniversityMS.Domain.Entities.ScheduleAggregate;
 using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Interfaces;
@@ -154,7 +95,7 @@ public class GetClassroomScheduleQueryHandler : IRequestHandler<GetClassroomSche
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving classroom schedule");
-            return Result<ClassroomScheduleDto>.Failure("Sınıf programı alınırken bir hata oluştu.", ex.Message);
+            return Result<ClassroomScheduleDto>.Failure("Sınıf programı alınırken bir hata oluştu. Hata:" + ex.Message);
         }
     }
 

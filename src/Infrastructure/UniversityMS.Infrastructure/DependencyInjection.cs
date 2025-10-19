@@ -13,31 +13,35 @@ namespace UniversityMS.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructureServices(
+    public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // ✅ DbContext registration
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-                               ?? throw new InvalidOperationException(
-                                   "Connection string 'DefaultConnection' not found in configuration. " +
-                                   "Check appsettings.json");
-
+        // Database
         services.AddDbContext<ApplicationDbContext>(options =>
-        {
             options.UseSqlServer(
-                connectionString,
-                x => x.MigrationsAssembly("UniversityMS.Infrastructure"));
-        });
+                configuration.GetConnectionString("DefaultConnection"),
+                b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
         services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
 
-        // ✅ Repository registration
+        // Unit of Work
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // Repositories
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
-        // ✅ UnitOfWork registration
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        // Identity & JWT
+        services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+        // Services
+        services.AddTransient<IDateTime, DateTimeService>();
+        services.AddTransient<IEmailService, EmailService>();
+        services.AddTransient<ISmsService, SmsService>();
 
         return services;
     }

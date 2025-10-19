@@ -84,6 +84,11 @@ public class CourseSessionConfiguration : IEntityTypeConfiguration<CourseSession
             .HasForeignKey(cs => cs.InstructorId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.HasOne(cs => cs.Schedule)
+            .WithMany(s => s.CourseSessions)
+            .HasForeignKey(cs => cs.ScheduleId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Ignore domain events
         builder.Ignore(cs => cs.DomainEvents);
     }

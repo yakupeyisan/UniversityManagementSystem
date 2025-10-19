@@ -33,6 +33,9 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
             var email = Email.Create(request.Email);
             var phoneNumber = PhoneNumber.Create(request.PhoneNumber);
 
+            // Staff.Create gerçek parametreleri:
+            // firstName, lastName, email, phoneNumber, position, 
+            // departmentId, employmentType, hireDate
             var staff = Staff.Create(
                 request.FirstName,
                 request.LastName,
@@ -53,7 +56,7 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating employee");
+            _logger.LogError(ex, "Error creating employee. Email: {Email}", request.Email);
             return Result<Guid>.Failure("Çalışan oluşturulurken bir hata oluştu.", ex.Message);
         }
     }

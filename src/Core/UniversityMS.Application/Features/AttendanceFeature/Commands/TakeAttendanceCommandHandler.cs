@@ -30,35 +30,51 @@ public class TakeAttendanceCommandHandler : IRequestHandler<TakeAttendanceComman
     {
         try
         {
-            // CourseRegistration kontrol et
-            var courseRegistration = await _courseRegistrationRepository.GetByIdAsync(
-                request.CourseRegistrationId, cancellationToken);
-
-            if (courseRegistration == null)
+            // Her bir student için Attendance kaydı oluştur
+            foreach (var attendanceDto in request.Attendances)
             {
-                _logger.LogWarning("CourseRegistration not found: {CourseRegistrationId}",
-                    request.CourseRegistrationId);
-                return Result.Failure("Ders kaydı bulunamadı.");
+                // CourseRegistration'ı bul
+                var courseRegistrations = await _courseRegistrationRepository.FindAsync(
+                    cr => cr.Enrollment.StudentId == attendanceDto.StudentId && cr.CourseId == request.CourseId,
+                    cancellationToken);
+
+                if (!courseRegistrations.Any())
+                {
+                    _logger.LogWarning("CourseRegistration not found for StudentId: {StudentId}",
+                        attendanceDto.StudentId);
+                    continue;
+                }
+
+                var courseRegistration = courseRegistrations.First();
+
+                // Attendance oluştur
+                var attendance = Attendance.Create(
+                    courseRegistration.Id,
+                    attendanceDto.StudentId,
+                    request.CourseId,
+                    request.AttendanceDate,
+                    request.WeekNumber,
+                    attendanceDto.IsPresent,
+                    AttendanceMethod.Manual
+                );
+
+                // Notları ekle
+                if (!string.IsNullOrEmpty(attendanceDto.Notes))
+                    attendance.AddNotes(attendanceDto.Notes);
+
+                await _attendanceRepository.AddAsync(attendance, cancellationToken);
             }
 
-            // Attendance oluştur
-            var attendance = Attendance.Create(
-                request.CourseRegistrationId,
-                request.WeekNumber,
-                request.IsPresent
-            );
-
-            await _attendanceRepository.AddAsync(attendance, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Attendance recorded for CourseRegistration: {CourseRegistrationId}, Week: {Week}",
-                request.CourseRegistrationId, request.WeekNumber);
+            _logger.LogInformation("Attendance recorded for Course: {CourseId}, Week: {Week}, Date: {Date}",
+                request.CourseId, request.WeekNumber, request.AttendanceDate);
 
             return Result.Success("Devam kaydı başarıyla alındı.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error taking attendance");
+            _logger.LogError(ex, "Error taking attendance for CourseId: {CourseId}", request.CourseId);
             return Result.Failure("Devam kaydı alınırken bir hata oluştu.", ex.Message);
         }
     }

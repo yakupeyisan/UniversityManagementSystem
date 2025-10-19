@@ -7,5 +7,6 @@ public class WeeklyScheduleDto
     public Guid ScheduleId { get; set; }
     public string AcademicYear { get; set; } = string.Empty;
     public int Semester { get; set; }
-    public List<CourseSessionDto> Sessions { get; set; } = new();
+    // CourseSessionExtendedDto'yu kullan
+    public List<CourseSessionExtendedDto> Sessions { get; set; } = new();
 }

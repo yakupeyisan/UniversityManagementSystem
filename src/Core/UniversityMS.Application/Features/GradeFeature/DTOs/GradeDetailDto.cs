@@ -8,5 +8,6 @@ public class GradeDetailDto
     public string CourseName { get; set; } = string.Empty;
     public decimal? NumericGrade { get; set; }
     public string? LetterGrade { get; set; }
+    // Bunu Credits yerine ECTS olarak düşün
     public int Credits { get; set; }
 }

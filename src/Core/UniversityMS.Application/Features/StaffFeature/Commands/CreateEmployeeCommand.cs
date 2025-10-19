@@ -1,18 +1,19 @@
 ﻿using MediatR;
 using UniversityMS.Application.Common.Models;
+using UniversityMS.Domain.Enums;
 
 namespace UniversityMS.Application.Features.StaffFeature.Commands;
 
 
 public class CreateEmployeeCommand : IRequest<Result<Guid>>
 {
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string Email { get; set; }
-    public string PhoneNumber { get; set; }
-    public string Position { get; set; }
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string PhoneNumber { get; set; } = string.Empty;
+    public string Position { get; set; } = string.Empty;
     public Guid DepartmentId { get; set; }
-    public string EmploymentType { get; set; }
+    public string EmploymentType { get; set; } = string.Empty;
     public DateTime HireDate { get; set; }
 
     public CreateEmployeeCommand(
@@ -35,5 +36,4 @@ public class CreateEmployeeCommand : IRequest<Result<Guid>>
         EmploymentType = employmentType;
         HireDate = hireDate;
     }
-
 }

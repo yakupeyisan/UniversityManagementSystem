@@ -1,11 +1,9 @@
 ﻿using MediatR;
 using UniversityMS.Application.Common.Models;
-using UniversityMS.Application.Features.ScheduleFeature.DTOs;
+using UniversityMS.Application.Features.ClassroomFeature.DTOs;
 
 namespace UniversityMS.Application.Features.ClassroomFeature.Queries;
 
 public record GetClassroomScheduleQuery(
-    Guid ClassroomId,
-    string AcademicYear,
-    int Semester
-) : IRequest<Result<WeeklyScheduleDto>>;
+    Guid ClassroomId
+) : IRequest<Result<ClassroomScheduleDto>>;

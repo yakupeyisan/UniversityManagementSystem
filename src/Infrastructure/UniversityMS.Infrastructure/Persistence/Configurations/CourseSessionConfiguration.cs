@@ -16,6 +16,11 @@ public class CourseSessionConfiguration : IEntityTypeConfiguration<CourseSession
         builder.Property(cs => cs.CourseId).IsRequired();
         builder.Property(cs => cs.InstructorId);
         builder.Property(cs => cs.ClassroomId).IsRequired();
+        builder.HasOne(cs => cs.Instructor)
+            .WithMany() // Staff'ın collection'ı yoksa WithMany()
+            .HasForeignKey(cs => cs.InstructorId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
 
         builder.Property(cs => cs.DayOfWeek)
             .IsRequired()

@@ -1,6 +1,7 @@
 ﻿using UniversityMS.Domain.Entities.AcademicAggregate;
 using UniversityMS.Domain.Entities.Common;
 using UniversityMS.Domain.Entities.FacilityAggregate;
+using UniversityMS.Domain.Entities.PersonAggregate;
 using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Exceptions;
 using UniversityMS.Domain.ValueObjects;
@@ -30,6 +31,7 @@ public class CourseSession : AuditableEntity, ISoftDelete
     public Schedule Schedule { get; private set; } = null!;
     public Course Course { get; private set; } = null!;
     public Classroom Classroom { get; private set; } = null!;
+    public Staff? Instructor { get; private set; }
 
     private CourseSession() { } // EF Core
 

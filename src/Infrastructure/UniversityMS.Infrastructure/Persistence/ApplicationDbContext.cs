@@ -43,6 +43,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Faculty> Faculties => Set<Faculty>();
     public DbSet<Department> Departments => Set<Department>();
     public DbSet<Course> Courses => Set<Course>();
+    public DbSet<Campus> Campuses => Set<Campus>();
     public DbSet<Prerequisite> Prerequisites => Set<Prerequisite>();
     public DbSet<Curriculum> Curriculums => Set<Curriculum>();
     public DbSet<CurriculumCourse> CurriculumCourses => Set<CurriculumCourse>();

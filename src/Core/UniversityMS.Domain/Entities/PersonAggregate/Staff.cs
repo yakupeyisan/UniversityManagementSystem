@@ -1,4 +1,7 @@
-﻿using UniversityMS.Domain.Enums;
+﻿using UniversityMS.Domain.Entities.AcademicAggregate;
+using UniversityMS.Domain.Entities.EnrollmentAggregate;
+using UniversityMS.Domain.Entities.ScheduleAggregate;
+using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Exceptions;
 using UniversityMS.Domain.ValueObjects;
 
@@ -19,6 +22,22 @@ public class Staff : Person
     // Akademik personel için
     public int? WeeklyWorkload { get; private set; } // Haftalık ders saati
     public int? AdviseeCount { get; private set; } // Danışman öğrenci sayısı
+
+
+    // Bölüm başkanı olduğu departmanlar
+    private readonly List<Department> _managedDepartments = new();
+    public IReadOnlyCollection<Department> ManagedDepartments
+        => _managedDepartments.AsReadOnly();
+
+    // Giriş yaptığı ders oturumları
+    private readonly List<CourseSession> _courseSessions = new();
+    public IReadOnlyCollection<CourseSession> CourseSessions
+        => _courseSessions.AsReadOnly();
+
+    // Girdiği notlar
+    private readonly List<Grade> _gradesEntered = new();
+    public IReadOnlyCollection<Grade> GradesEntered
+        => _gradesEntered.AsReadOnly();
 
     private Staff() { } // EF Core için
 

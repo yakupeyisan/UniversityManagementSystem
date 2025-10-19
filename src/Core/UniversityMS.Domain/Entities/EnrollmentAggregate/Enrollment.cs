@@ -10,6 +10,7 @@ namespace UniversityMS.Domain.Entities.EnrollmentAggregate;
 
 public class Enrollment : AuditableEntity, ISoftDelete
 {
+    private const int MAX_ECTS_PER_SEMESTER = 30; // Türkiye standardı
     public Guid StudentId { get; private set; }
     public string AcademicYear { get; private set; } // 2024-2025
     public int Semester { get; private set; } // 1 veya 2 (Güz/Bahar)
@@ -67,6 +68,12 @@ public class Enrollment : AuditableEntity, ISoftDelete
 
         if (Status == EnrollmentStatus.Approved)
             throw new DomainException("Onaylanmış kayda ders eklenemez.");
+
+        var newTotalECTS = TotalECTS + course.ECTS;
+        if (newTotalECTS > MAX_ECTS_PER_SEMESTER)
+            throw new DomainException(
+                $"ECTS limiti aşıldı. Maksimum: {MAX_ECTS_PER_SEMESTER}, " +
+                $"Yeni toplam: {newTotalECTS}");
 
         var registration = CourseRegistration.Create(Id, courseId, course.ECTS, course.NationalCredit);
         _courseRegistrations.Add(registration);

@@ -1,4 +1,6 @@
-﻿using UniversityMS.Domain.Entities.Common;
+﻿using UniversityMS.Domain.Entities.AcademicAggregate;
+using UniversityMS.Domain.Entities.Common;
+using UniversityMS.Domain.Entities.PersonAggregate;
 using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Events;
 using UniversityMS.Domain.Exceptions;
@@ -22,7 +24,13 @@ public class Grade : AuditableEntity
 
     // Navigation Properties
     public CourseRegistration CourseRegistration { get; private set; } = null!;
+    public Student Student { get; private set; } = null!;
+    public Course Course { get; private set; } = null!;
+    public Staff? Instructor { get; private set; }
 
+    private readonly List<GradeObjection> _gradeObjections = new();
+    public IReadOnlyCollection<GradeObjection> GradeObjections
+        => _gradeObjections.AsReadOnly();
     private Grade() { } // EF Core
 
     private Grade(Guid courseRegistrationId, Guid studentId, Guid courseId,

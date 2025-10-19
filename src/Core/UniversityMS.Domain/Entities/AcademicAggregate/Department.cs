@@ -1,4 +1,5 @@
 ﻿using UniversityMS.Domain.Entities.Common;
+using UniversityMS.Domain.Entities.PersonAggregate;
 using UniversityMS.Domain.Exceptions;
 
 namespace UniversityMS.Domain.Entities.AcademicAggregate;
@@ -19,6 +20,7 @@ public class Department : AuditableEntity, ISoftDelete
 
     // Navigation Properties
     public Faculty Faculty { get; private set; } = null!;
+    public Staff? HeadOfDepartment { get; private set; } 
 
     private readonly List<Course> _courses = new();
     public IReadOnlyCollection<Course> Courses => _courses.AsReadOnly();

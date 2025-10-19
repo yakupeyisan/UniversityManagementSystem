@@ -1,4 +1,5 @@
-﻿using UniversityMS.Domain.Enums;
+﻿using UniversityMS.Domain.Entities.EnrollmentAggregate;
+using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Events;
 using UniversityMS.Domain.Exceptions;
 using UniversityMS.Domain.ValueObjects;
@@ -21,6 +22,8 @@ public class Student : Person
     public string? QRCode { get; private set; }
     public string? CardNumber { get; private set; }
     public Money Balance { get; private set; }
+    private readonly List<Grade> _grades = new();
+    public IReadOnlyCollection<Grade> Grades => _grades.AsReadOnly();
 
     private Student() { } // EF Core için
 

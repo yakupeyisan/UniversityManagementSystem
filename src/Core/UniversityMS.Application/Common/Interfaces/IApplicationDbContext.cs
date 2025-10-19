@@ -26,6 +26,8 @@ public interface IApplicationDbContext
     DbSet<Faculty> Faculties { get; }
     DbSet<Department> Departments { get; }
     DbSet<Course> Courses { get; }
+    DbSet<Campus> Campuses { get; }
+
     DbSet<Prerequisite> Prerequisites { get; }
     DbSet<Curriculum> Curriculums { get; }
     DbSet<CurriculumCourse> CurriculumCourses { get; }

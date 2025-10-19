@@ -31,19 +31,21 @@ public class ApplyLeaveCommandHandler : IRequestHandler<ApplyLeaveCommand, Resul
         if (employee == null)
             return Result<LeaveRequestDto>.Failure("Çalışan bulunamadı");
 
-        var leaveType = (LeaveType)request.LeaveTypeId;
-        var balance = employee.AnnualLeaveBalance;
-
+        // Duration hesapla
         var durationDays = (request.EndDate.Date - request.StartDate.Date).Days + 1;
-        var availableDays = leaveType == LeaveType.Annual ? balance.AnnualLeaveDays :
-            leaveType == LeaveType.Sick ? balance.SickLeaveDays : 0;
+
+        // Leave hesapla - AnnualLeaveBalance'den direkt okuma
+        var annualLeaveDays = employee.AnnualLeaveBalance?.AnnualLeaveDays ?? 0;
+        var sickLeaveDays = employee.AnnualLeaveBalance?.SickLeaveDays ?? 0;
+
+        var availableDays = request.LeaveTypeId == 1 ? annualLeaveDays : sickLeaveDays;
 
         if (durationDays > availableDays)
-            return Result<LeaveRequestDto>.Failure("Yeterli izin günü yok");
+            return Result<LeaveRequestDto>.Failure($"Yeterli izin günü yok. Kalan: {availableDays}");
 
         var leave = Leave.Create(
             request.EmployeeId,
-            leaveType,
+            (LeaveType)request.LeaveTypeId,
             request.StartDate,
             request.EndDate,
             request.Reason
@@ -55,10 +57,12 @@ public class ApplyLeaveCommandHandler : IRequestHandler<ApplyLeaveCommand, Resul
         return Result<LeaveRequestDto>.Success(new LeaveRequestDto
         {
             Id = leave.Id,
+            EmployeeId = leave.EmployeeId,
             LeaveType = leave.LeaveType.ToString(),
             StartDate = leave.StartDate,
             EndDate = leave.EndDate,
-            DurationDays = leave.DurationDays,
+            // Duration Days - Leave entity'den doğrudan oku
+            DurationDays = (leave.EndDate - leave.StartDate).Days + 1,
             Status = leave.Status.ToString()
         });
     }

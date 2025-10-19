@@ -170,6 +170,17 @@ public class MappingProfile : Profile
         CreateMap<PayrollDeduction, PayrollDeductionDto>()
             .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()))
             .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount.Amount));
+
+
+        CreateMap<Payslip, PayslipDto>()
+            .ForMember(dest => dest.GrossSalary, opt => opt.MapFrom(src => src.GrossSalary.Amount))
+            .ForMember(dest => dest.TotalDeductions, opt => opt.MapFrom(src => src.TotalDeductions.Amount))
+            .ForMember(dest => dest.NetSalary, opt => opt.MapFrom(src => src.NetSalary.Amount))
+            .ForMember(dest => dest.IncomeTax, opt => opt.MapFrom(src => src.IncomeTax.Amount))
+            .ForMember(dest => dest.SGKEmployeeContribution, opt => opt.MapFrom(src => src.SGKEmployeeContribution.Amount))
+            .ForMember(dest => dest.SGKEmployerContribution, opt => opt.MapFrom(src => src.SGKEmployerContribution.Amount))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+            .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethod.ToString()));
     }
     private static string GetMonthName(int month) => month switch
     {

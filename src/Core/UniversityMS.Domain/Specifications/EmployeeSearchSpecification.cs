@@ -1,7 +1,6 @@
 ﻿using UniversityMS.Domain.Entities.HRAggregate;
 
 namespace UniversityMS.Domain.Specifications;
-
 public class EmployeeSearchSpecification : BaseSpecification<Employee>
 {
     public EmployeeSearchSpecification(
@@ -18,7 +17,7 @@ public class EmployeeSearchSpecification : BaseSpecification<Employee>
         AddInclude(e => e.Department);
         AddInclude(e => e.Person);
 
+        // Doğru kullanım - BaseSpecification'de zaten tanımlı
         ApplyPaging(pageNumber, pageSize);
-        AddOrderBy(e => e.EmployeeNumber.Value);
     }
 }

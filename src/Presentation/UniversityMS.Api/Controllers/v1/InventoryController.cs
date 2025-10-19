@@ -7,8 +7,7 @@ using UniversityMS.Application.Features.Inventory.Queries;
 namespace UniversityMS.Api.Controllers.v1;
 
 [Authorize(Roles = "Admin,Warehouse")]
-[ApiVersion("1.0")]
-[Route("api/v{version:apiVersion}/[controller]")]
+[Route("api/v1/[controller]")]
 [ApiController]
 public class InventoryController : BaseApiController
 {

@@ -1,4 +1,6 @@
-﻿namespace UniversityMS.Application.Common.Interfaces;
+﻿using UniversityMS.Domain.Interfaces;
+
+namespace UniversityMS.Application.Common.Interfaces;
 
 public interface ISmsService
 {

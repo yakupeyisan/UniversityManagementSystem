@@ -5,8 +5,10 @@ using UniversityMS.Application.Features.PayrollFeature.DTOs;
 namespace UniversityMS.Application.Features.PayrollFeature.Queries;
 
 /// <summary>
-/// Payslip getir sorgusu
+/// Çalışan payslip'lerini listele
 /// </summary>
-public record GetPayslipQuery(
-    Guid PayslipId
-) : IRequest<Result<PayslipDto>>;
+public record GetEmployeePayslipsQuery(
+    Guid EmployeeId,
+    int? Year = null,
+    int? Month = null
+) : IRequest<Result<List<PayslipDto>>>;

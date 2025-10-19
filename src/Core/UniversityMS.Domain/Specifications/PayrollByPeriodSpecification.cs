@@ -1,4 +1,5 @@
-﻿using UniversityMS.Domain.Entities.PayrollAggregate;
+﻿using UniversityMS.Domain.Entities.HRAggregate;
+using UniversityMS.Domain.Entities.PayrollAggregate;
 
 namespace UniversityMS.Domain.Specifications;
 
@@ -8,5 +9,6 @@ public class PayrollByPeriodSpecification : BaseSpecification<Payroll>
         : base(p => p.Month == month && p.Year == year)
     {
         AddInclude(p => p.Employee);
+        // Ordering belirtmeden, varsayılan sıralama kullan
     }
 }

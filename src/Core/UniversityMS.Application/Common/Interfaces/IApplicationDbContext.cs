@@ -3,6 +3,7 @@ using UniversityMS.Domain.Entities.AcademicAggregate;
 using UniversityMS.Domain.Entities.EnrollmentAggregate;
 using UniversityMS.Domain.Entities.FacilityAggregate;
 using UniversityMS.Domain.Entities.IdentityAggregate;
+using UniversityMS.Domain.Entities.PayrollAggregate;
 using UniversityMS.Domain.Entities.PersonAggregate;
 using UniversityMS.Domain.Entities.ScheduleAggregate;
 
@@ -42,6 +43,10 @@ public interface IApplicationDbContext
 
     // Facility Aggregate
     DbSet<Classroom> Classrooms { get; }
+    /// <summary>
+    /// Payslip (Bordro Raporu / Maaş Fişi) tablosu
+    /// </summary>
+    DbSet<Payslip> Payslips { get; }
     DbSet<T> Set<T>() where T : class;
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

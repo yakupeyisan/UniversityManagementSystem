@@ -9,6 +9,7 @@ using UniversityMS.Domain.Entities.Common;
 using UniversityMS.Domain.Entities.EnrollmentAggregate;
 using UniversityMS.Domain.Entities.FacilityAggregate;
 using UniversityMS.Domain.Entities.IdentityAggregate;
+using UniversityMS.Domain.Entities.PayrollAggregate;
 using UniversityMS.Domain.Entities.PersonAggregate;
 using UniversityMS.Domain.Entities.ScheduleAggregate;
 using UniversityMS.Domain.Interfaces;
@@ -53,6 +54,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Schedule> Schedules => Set<Schedule>();
     public DbSet<CourseSession> CourseSessions => Set<CourseSession>();
     public DbSet<Classroom> Classrooms => Set<Classroom>();
+    public DbSet<Payslip> Payslips => Set<Payslip>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

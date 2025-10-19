@@ -7,8 +7,7 @@ using UniversityMS.Application.Features.Staff.Queries;
 namespace UniversityMS.Api.Controllers.v1;
 
 [Authorize]
-[ApiVersion("1.0")]
-[Route("api/v{version:apiVersion}/[controller]")]
+[Route("api/v1/[controller]")]
 [ApiController]
 public class EmployeesController : BaseApiController
 {

@@ -20,8 +20,10 @@ public class GetStockLevelQueryHandler : IRequestHandler<GetStockLevelQuery, Res
         GetStockLevelQuery request,
         CancellationToken cancellationToken)
     {
-        var spec = new StockLevelSpecification(request.WarehouseId, request.Category);
-        var stockItems = await _stockItemRepository.ListAsync(spec, cancellationToken);
+        var stockItems = await _stockItemRepository.FindAsync(
+            s => s.WarehouseId == request.WarehouseId &&
+                 (string.IsNullOrEmpty(request.Category) || s.Category.ToString() == request.Category),
+            cancellationToken);
 
         var dtos = stockItems.Select(s => new StockItemDto
         {
@@ -30,9 +32,9 @@ public class GetStockLevelQueryHandler : IRequestHandler<GetStockLevelQuery, Res
             ItemName = s.ItemName,
             Quantity = s.Quantity,
             Unit = s.Unit,
-            UnitPrice = s.UnitPrice.Amount,
-            TotalValue = s.Quantity * s.UnitPrice.Amount,
-            Category = s.Category
+            Price = s.Price,
+            CategoryName = s.Category.ToString(),
+            TotalValue = s.Quantity * s.Price
         }).ToList();
 
         return Result<List<StockItemDto>>.Success(dtos);

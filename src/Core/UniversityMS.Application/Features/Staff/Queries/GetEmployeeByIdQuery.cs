@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using UniversityMS.Application.Common.Models;
-using UniversityMS.Application.Features.HR.DTOs;
+using UniversityMS.Application.Features.Staff.DTOs;
 
 namespace UniversityMS.Application.Features.Staff.Queries;
 

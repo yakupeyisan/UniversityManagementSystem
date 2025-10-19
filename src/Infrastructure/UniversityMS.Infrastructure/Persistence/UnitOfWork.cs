@@ -43,7 +43,7 @@ public class UnitOfWork : IUnitOfWork
         }
         catch
         {
-            await RollbackTransactionAsync();
+            await RollbackTransactionAsync(cancellationToken);
             throw;
         }
         finally
@@ -56,11 +56,11 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
-    public async Task RollbackTransactionAsync()
+    public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            await (_currentTransaction?.RollbackAsync() ?? Task.CompletedTask);
+            await (_currentTransaction?.RollbackAsync(cancellationToken) ?? Task.CompletedTask);
         }
         finally
         {

@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using UniversityMS.Application.Common.Models;
-using UniversityMS.Application.Features.HR.DTOs;
+using UniversityMS.Application.Features.Staff.DTOs;
 using UniversityMS.Domain.Entities.HRAggregate;
 using UniversityMS.Domain.Interfaces;
 using UniversityMS.Domain.Specifications;

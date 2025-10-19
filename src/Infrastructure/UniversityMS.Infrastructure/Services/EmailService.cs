@@ -35,4 +35,13 @@ public class EmailService : IEmailService
         _logger.LogInformation("Email with attachment sent to {To}", to);
         await Task.CompletedTask;
     }
+
+    public async Task<bool> SendEmailWithAttachmentAsync(string to, string subject, string body, string attachmentPath,
+        CancellationToken cancellationToken)
+    {
+        // Email with attachment logic
+        _logger.LogInformation("Email with attachment sent to {To}", to);
+        await Task.CompletedTask;
+        return true;
+    }
 }

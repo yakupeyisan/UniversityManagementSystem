@@ -6,27 +6,30 @@ public class CreateEmployeeCommandValidator : AbstractValidator<CreateEmployeeCo
 {
     public CreateEmployeeCommandValidator()
     {
-        RuleFor(x => x.PersonId)
-            .NotEmpty().WithMessage("Kişi ID boş olamaz");
+        RuleFor(x => x.FirstName)
+            .NotEmpty().WithMessage("Ad boş olamaz.")
+            .MaximumLength(100).WithMessage("Ad en fazla 100 karakter olabilir.");
 
-        RuleFor(x => x.EmployeeNumber)
-            .NotEmpty().WithMessage("Çalışan numarası boş olamaz")
-            .Length(3, 20).WithMessage("Çalışan numarası 3-20 karakter arasında olmalı");
+        RuleFor(x => x.LastName)
+            .NotEmpty().WithMessage("Soyadı boş olamaz.")
+            .MaximumLength(100).WithMessage("Soyadı en fazla 100 karakter olabilir.");
 
-        RuleFor(x => x.JobTitle)
-            .NotEmpty().WithMessage("İş unvanı boş olamaz")
-            .MaximumLength(100).WithMessage("İş unvanı 100 karakteri geçemez");
+        RuleFor(x => x.Email)
+            .NotEmpty().WithMessage("Email boş olamaz.")
+            .EmailAddress().WithMessage("Geçerli bir email giriniz.");
+
+        RuleFor(x => x.PhoneNumber)
+            .NotEmpty().WithMessage("Telefon numarası boş olamaz.")
+            .Length(11).WithMessage("Telefon numarası 11 haneli olmalıdır.");
+
+        RuleFor(x => x.Position)
+            .NotEmpty().WithMessage("Pozisyon boş olamaz.")
+            .MaximumLength(100).WithMessage("Pozisyon en fazla 100 karakter olabilir.");
+
+        RuleFor(x => x.DepartmentId)
+            .NotEmpty().WithMessage("Bölüm seçimi zorunludur.");
 
         RuleFor(x => x.HireDate)
-            .NotEmpty().WithMessage("İşe alım tarihi boş olamaz")
-            .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("İşe alım tarihi bugünden sonra olamaz");
-
-        RuleFor(x => x.BaseSalary)
-            .GreaterThan(0).WithMessage("Temel maaş 0'dan büyük olmalı")
-            .LessThan(1000000).WithMessage("Temel maaş 1.000.000'den küçük olmalı");
-
-        RuleFor(x => x.WorkingHoursPerWeek)
-            .GreaterThan(0).WithMessage("Haftalık çalışma saati 0'dan büyük olmalı")
-            .LessThanOrEqualTo(60).WithMessage("Haftalık çalışma saati 60'dan fazla olamaz");
+            .LessThanOrEqualTo(DateTime.Now).WithMessage("İşe giriş tarihi gelecekte olamaz.");
     }
 }

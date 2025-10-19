@@ -8,7 +8,8 @@ using UniversityMS.Domain.Interfaces;
 
 namespace UniversityMS.Application.Features.ScheduleFeature.Queries;
 
-public class GetWeeklyScheduleQueryHandler : IRequestHandler<GetWeeklyScheduleQuery, Result<WeeklyScheduleDto>>
+public class GetWeeklyScheduleQueryHandler :
+    IRequestHandler<GetWeeklyScheduleQuery, Result<WeeklyScheduleDto>>
 {
     private readonly IRepository<Schedule> _scheduleRepository;
     private readonly IRepository<CourseSession> _courseSessionRepository;
@@ -44,12 +45,14 @@ public class GetWeeklyScheduleQueryHandler : IRequestHandler<GetWeeklyScheduleQu
             if (request.InstructorId.HasValue)
                 sessions = sessions.Where(s => s.InstructorId == request.InstructorId).ToList();
 
+            // CourseSessionExtendedDto kullan
             var dto = new WeeklyScheduleDto
             {
                 ScheduleId = request.ScheduleId,
                 AcademicYear = schedule.AcademicYear,
                 Semester = schedule.Semester,
-                Sessions = _mapper.Map<List<CourseSessionDto>>(sessions.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime))
+                Sessions = _mapper.Map<List<CourseSessionExtendedDto>>(
+                    sessions.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime))
             };
 
             return Result<WeeklyScheduleDto>.Success(dto);
@@ -57,7 +60,7 @@ public class GetWeeklyScheduleQueryHandler : IRequestHandler<GetWeeklyScheduleQu
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving weekly schedule");
-            return Result<WeeklyScheduleDto>.Failure("Program bilgileri alınırken bir hata oluştu.", ex.Message);
+            return Result<WeeklyScheduleDto>.Failure("Program bilgileri alınırken bir hata oluştu.");
         }
     }
 }

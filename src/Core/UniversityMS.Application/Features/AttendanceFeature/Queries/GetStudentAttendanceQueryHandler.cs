@@ -65,7 +65,7 @@ public class GetStudentAttendanceQueryHandler
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving student attendance");
-            return Result<StudentAttendanceDto>.Failure("Devam bilgileri alınırken bir hata oluştu.", ex.Message);
+            return Result<StudentAttendanceDto>.Failure("Devam bilgileri alınırken bir hata oluştu. Hata: "+ ex.Message);
         }
     }
 }

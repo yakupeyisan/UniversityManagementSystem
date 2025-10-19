@@ -51,18 +51,19 @@ public class GetTranscriptQueryHandler : IRequestHandler<GetTranscriptQuery, Res
             }
 
             var gpa = CalculateGPA(grades);
+            var passedGrades = grades.Where(g => g.GradePoint >= 2.0).ToList();
+
             var transcript = new TranscriptDto
             {
                 StudentId = request.StudentId,
                 GPA = gpa,
-                TotalCredits = grades.Sum(g => g.CourseRegistration.Course.Credits),
-                CompletedCredits = grades.Where(g => g.NumericGrade >= 50)
-                    .Sum(g => g.CourseRegistration.Course.Credits),
+                // CourseRegistration'dan ECTS değerini al
+                TotalCredits = grades.Sum(g => g.CourseRegistration.ECTS),
+                CompletedCredits = passedGrades.Sum(g => g.CourseRegistration.ECTS),
                 TotalCourses = grades.Count,
-                PassedCourses = grades.Count(g => g.NumericGrade >= 50),
-                FailedCourses = grades.Count(g => g.NumericGrade < 50),
-                AverageGrade = grades.Where(g => g.NumericGrade.HasValue)
-                    .Average(g => g.NumericGrade) ?? 0,
+                PassedCourses = passedGrades.Count,
+                FailedCourses = grades.Count(g => g.GradePoint < 2.0),
+                AverageGrade = grades.Any() ? grades.Average(g => g.NumericScore) : 0,
                 Courses = _mapper.Map<List<TranscriptCourseDto>>(grades.OrderByDescending(g => g.CreatedAt)),
                 GeneratedDate = DateTime.UtcNow
             };
@@ -72,15 +73,15 @@ public class GetTranscriptQueryHandler : IRequestHandler<GetTranscriptQuery, Res
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating transcript");
-            return Result<TranscriptDto>.Failure("Transkript oluşturulurken hata oluştu.", ex.Message);
+            return Result<TranscriptDto>.Failure("Transkript oluşturulurken hata oluştu.");
         }
     }
 
     private decimal CalculateGPA(List<Grade> grades)
     {
         if (!grades.Any()) return 0;
-        var passedGrades = grades.Where(g => g.NumericGrade >= 50).ToList();
+        var passedGrades = grades.Where(g => g.GradePoint >= 2.0).ToList();
         if (!passedGrades.Any()) return 0;
-        return passedGrades.Average(g => g.NumericGrade.GetValueOrDefault() / 20m);
+        return (decimal)passedGrades.Average(g => g.GradePoint);
     }
 }

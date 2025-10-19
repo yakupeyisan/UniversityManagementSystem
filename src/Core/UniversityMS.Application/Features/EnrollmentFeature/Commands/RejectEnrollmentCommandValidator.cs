@@ -10,7 +10,7 @@ public class RejectEnrollmentCommandValidator : AbstractValidator<RejectEnrollme
             .NotEmpty().WithMessage("Kayıt ID boş olamaz.");
 
         RuleFor(x => x.RejectionReason)
-            .NotEmpty().WithMessage("Red nedenini giriniz.")
+            .NotEmpty().WithMessage("Red nedeni boş olamaz.")
             .MaximumLength(500).WithMessage("Red nedeni en fazla 500 karakter olabilir.");
     }
 }

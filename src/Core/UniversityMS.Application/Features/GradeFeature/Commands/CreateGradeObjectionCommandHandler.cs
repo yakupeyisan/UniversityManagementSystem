@@ -9,15 +9,18 @@ namespace UniversityMS.Application.Features.GradeFeature.Commands;
 
 public class CreateGradeObjectionCommandHandler : IRequestHandler<CreateGradeObjectionCommand, Result<Guid>>
 {
+    private readonly IRepository<Grade> _gradeRepository;
     private readonly IRepository<GradeObjection> _objectionRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<CreateGradeObjectionCommandHandler> _logger;
 
     public CreateGradeObjectionCommandHandler(
+        IRepository<Grade> gradeRepository,
         IRepository<GradeObjection> objectionRepository,
         IUnitOfWork unitOfWork,
         ILogger<CreateGradeObjectionCommandHandler> logger)
     {
+        _gradeRepository = gradeRepository;
         _objectionRepository = objectionRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
@@ -29,11 +32,16 @@ public class CreateGradeObjectionCommandHandler : IRequestHandler<CreateGradeObj
     {
         try
         {
+            var grade = await _gradeRepository.GetByIdAsync(request.GradeId, cancellationToken);
+            if (grade == null)
+                return Result<Guid>.Failure("Not bulunamadı.");
+
             var objection = GradeObjection.Create(
                 request.GradeId,
                 request.StudentId,
                 request.Reason,
-                string.Empty);
+                string.Empty  // Açıklama boş string
+            );
 
             await _objectionRepository.AddAsync(objection, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -44,7 +52,7 @@ public class CreateGradeObjectionCommandHandler : IRequestHandler<CreateGradeObj
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating grade objection");
-            return Result<Guid>.Failure("İtiraz oluşturulurken bir hata oluştu.", ex.Message);
+            return Result<Guid>.Failure("İtiraz oluşturulurken bir hata oluştu.");
         }
     }
 }

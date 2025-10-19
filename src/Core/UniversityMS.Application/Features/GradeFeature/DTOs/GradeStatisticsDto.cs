@@ -4,10 +4,11 @@ public class GradeStatisticsDto
 {
     public Guid CourseId { get; set; }
     public int TotalStudents { get; set; }
-    public double AverageScore { get; set; }
-    public double AverageGradePoint { get; set; }
-    public double HighestScore { get; set; }
-    public double LowestScore { get; set; }
-    public double PassRate { get; set; }
-    public List<GradeDistributionDto> GradeDistribution { get; set; } = new();
+    public double AverageGrade { get; set; }
+    public double HighestGrade { get; set; }
+    public double LowestGrade { get; set; }
+    public decimal MedianGrade { get; set; }
+    public int PassCount { get; set; }
+    public int FailCount { get; set; }
+    public List<GradeDetailDto> Grades { get; set; } = new();
 }

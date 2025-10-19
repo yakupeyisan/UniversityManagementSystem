@@ -3,10 +3,13 @@
 public class TranscriptDto
 {
     public Guid StudentId { get; set; }
-    public string StudentNumber { get; set; } = string.Empty;
-    public string FullName { get; set; } = string.Empty;
-    public double CGPA { get; set; }
+    public decimal GPA { get; set; }
     public int TotalCredits { get; set; }
     public int CompletedCredits { get; set; }
-    public List<GradeDto> Grades { get; set; } = new();
+    public int TotalCourses { get; set; }
+    public int PassedCourses { get; set; }
+    public int FailedCourses { get; set; }
+    public double AverageGrade { get; set; }
+    public List<TranscriptCourseDto> Courses { get; set; } = new();
+    public DateTime GeneratedDate { get; set; }
 }

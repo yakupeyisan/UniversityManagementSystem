@@ -73,7 +73,7 @@ public class GetAttendanceReportQueryHandler
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating attendance report");
-            return Result<AttendanceReportDto>.Failure("Rapor oluşturulurken bir hata oluştu.", ex.Message);
+            return Result<AttendanceReportDto>.Failure("Rapor oluşturulurken bir hata oluştu. Hata: "+ ex.Message);
         }
     }
 

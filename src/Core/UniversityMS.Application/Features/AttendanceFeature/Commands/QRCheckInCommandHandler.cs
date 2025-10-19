@@ -40,12 +40,14 @@ public class QRCheckInCommandHandler : IRequestHandler<QRCheckInCommand, Result>
             if (courseRegistration == null)
                 return Result.Failure("Ders kaydı bulunamadı.");
 
-            // Attendance oluştur (QR ile)
-            var attendance = Attendance.CreateFromQR(
+            var attendance = Attendance.Create(
                 request.CourseRegistrationId,
+                attendanceDto.StudentId,
+                request.CourseId,
+                DateTime.UtcNow,
                 request.WeekNumber,
-                request.QRCode,
-                DateTime.UtcNow
+                true,  // QR ile check-in = present
+                AttendanceMethod.QR  // Enum value
             );
 
             await _attendanceRepository.AddAsync(attendance, cancellationToken);

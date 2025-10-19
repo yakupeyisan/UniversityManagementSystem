@@ -31,15 +31,14 @@ public class GetGradeStatisticsQueryHandler : IRequestHandler<GetGradeStatistics
         try
         {
             var grades = await _gradeRepository.FindAsync(
-                g => g.CourseRegistration.CourseId == request.CourseId,
+                g => g.CourseId == request.CourseId,
                 cancellationToken);
 
             if (!grades.Any())
                 return Result<GradeStatisticsDto>.Failure("Bu ders için not bulunamadı.");
 
-            var gradeValues = grades.Where(g => g.NumericGrade.HasValue)
-                .Select(g => g.NumericGrade.Value)
-                .ToList();
+            // NumericScore'ları al (NumericGrade değil!)
+            var gradeValues = grades.Select(g => g.NumericScore).ToList();
 
             var stats = new GradeStatisticsDto
             {
@@ -49,8 +48,8 @@ public class GetGradeStatisticsQueryHandler : IRequestHandler<GetGradeStatistics
                 HighestGrade = gradeValues.Any() ? gradeValues.Max() : 0,
                 LowestGrade = gradeValues.Any() ? gradeValues.Min() : 0,
                 MedianGrade = CalculateMedian(gradeValues),
-                PassCount = grades.Count(g => g.NumericGrade >= 50),
-                FailCount = grades.Count(g => g.NumericGrade < 50),
+                PassCount = grades.Count(g => g.GradePoint >= 2.0),
+                FailCount = grades.Count(g => g.GradePoint < 2.0),
                 Grades = _mapper.Map<List<GradeDetailDto>>(grades)
             };
 
@@ -59,17 +58,17 @@ public class GetGradeStatisticsQueryHandler : IRequestHandler<GetGradeStatistics
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error calculating grade statistics");
-            return Result<GradeStatisticsDto>.Failure("Not istatistikleri hesaplanırken hata oluştu.", ex.Message);
+            return Result<GradeStatisticsDto>.Failure("Not istatistikleri hesaplanırken hata oluştu.");
         }
     }
 
-    private decimal CalculateMedian(List<decimal> values)
+    private decimal CalculateMedian(List<double> values)
     {
         if (!values.Any()) return 0;
         var sorted = values.OrderBy(x => x).ToList();
         int count = sorted.Count;
         if (count % 2 == 0)
-            return (sorted[count / 2 - 1] + sorted[count / 2]) / 2;
-        return sorted[count / 2];
+            return (decimal)((sorted[count / 2 - 1] + sorted[count / 2]) / 2);
+        return (decimal)sorted[count / 2];
     }
 }

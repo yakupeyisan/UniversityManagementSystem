@@ -34,30 +34,34 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
             var phoneNumber = PhoneNumber.Create(request.PhoneNumber);
 
             // Staff.Create gerçek parametreleri:
-            // firstName, lastName, email, phoneNumber, position, 
-            // departmentId, employmentType, hireDate
+            // firstName, lastName, nationalId, birthDate, gender, 
+            // email, phoneNumber, employeeNumber, jobTitle, hireDate, departmentId, academicTitle
+
             var staff = Staff.Create(
-                request.FirstName,
-                request.LastName,
-                email,
-                phoneNumber,
-                request.Position,
-                request.DepartmentId,
-                request.EmploymentType,
-                request.HireDate);
+                firstName: request.FirstName,
+                lastName: request.LastName,
+                nationalId: "00000000000",  // Placeholder - request'de yok
+                birthDate: DateTime.Now.AddYears(-25),  // Placeholder - request'de yok
+                gender: Domain.Enums.Gender.Male,  // Placeholder - request'de yok
+                email: email,
+                phoneNumber: phoneNumber,
+                employeeNumber: Guid.NewGuid().ToString().Substring(0, 8),  // Auto generate
+                jobTitle: request.Position,
+                hireDate: request.HireDate,
+                departmentId: request.DepartmentId != Guid.Empty ? request.DepartmentId : null,
+                academicTitle: null
+            );
 
             await _staffRepository.AddAsync(staff, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Employee created. StaffId: {StaffId}, Email: {Email}",
-                staff.Id, request.Email);
-
+            _logger.LogInformation("Employee created. StaffId: {StaffId}", staff.Id);
             return Result<Guid>.Success(staff.Id, "Çalışan başarıyla oluşturuldu.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating employee. Email: {Email}", request.Email);
-            return Result<Guid>.Failure("Çalışan oluşturulurken bir hata oluştu.", ex.Message);
+            _logger.LogError(ex, "Error creating employee");
+            return Result<Guid>.Failure("Çalışan oluşturulurken bir hata oluştu.");
         }
     }
 }

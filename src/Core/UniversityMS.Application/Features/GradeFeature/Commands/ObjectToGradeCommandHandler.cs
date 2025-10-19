@@ -50,7 +50,7 @@ public class ObjectToGradeCommandHandler : IRequestHandler<ObjectToGradeCommand,
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating grade objection");
-            return Result<Guid>.Failure("İtiraz oluşturulurken bir hata oluştu.", ex.Message);
+            return Result<Guid>.Failure("İtiraz oluşturulurken bir hata oluştu.");
         }
     }
 }

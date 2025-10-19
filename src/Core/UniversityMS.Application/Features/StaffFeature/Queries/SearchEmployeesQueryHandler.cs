@@ -46,7 +46,7 @@ public class SearchEmployeesQueryHandler : IRequestHandler<SearchEmployeesQuery,
                 filtered = filtered.Where(s => s.DepartmentId == request.DepartmentId);
 
             if (!string.IsNullOrWhiteSpace(request.Position))
-                filtered = filtered.Where(s => s.Position == request.Position);
+                filtered = filtered.Where(s => s.JobTitle == request.Position);
 
             var totalCount = filtered.Count();
             var paginatedStaff = filtered

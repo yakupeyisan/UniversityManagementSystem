@@ -96,6 +96,11 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
             .HasForeignKey("EmergencyContactId")
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.HasMany(s => s.Grades)
+            .WithOne(g => g.Student)
+            .HasForeignKey(g => g.StudentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Ignore(s => s.DomainEvents);
     }
 }

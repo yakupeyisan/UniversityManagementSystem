@@ -93,6 +93,21 @@ public class StaffConfiguration : IEntityTypeConfiguration<Staff>
             .HasForeignKey("EmergencyContactId")
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.HasMany(s => s.ManagedDepartments)
+            .WithOne(d => d.HeadOfDepartment)
+            .HasForeignKey(d => d.HeadOfDepartmentId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasMany(s => s.CourseSessions)
+            .WithOne(cs => cs.Instructor)
+            .HasForeignKey(cs => cs.InstructorId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasMany(s => s.GradesEntered)
+            .WithOne(g => g.Instructor)
+            .HasForeignKey(g => g.InstructorId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.Ignore(s => s.DomainEvents);
     }
 }

@@ -37,6 +37,34 @@ public class GradeConfiguration : IEntityTypeConfiguration<Grade>
         // Audit
         builder.Property(g => g.CreatedAt).IsRequired();
         builder.Property(g => g.CreatedBy).HasMaxLength(100);
+        builder.Property(g => g.UpdatedAt);
+        builder.Property(g => g.UpdatedBy).HasMaxLength(100);
+
+
+        builder.HasOne(g => g.CourseRegistration)
+            .WithMany(cr => cr.Grades)
+            .HasForeignKey(g => g.CourseRegistrationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(g => g.Student)
+            .WithMany(s => s.Grades)
+            .HasForeignKey(g => g.StudentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(g => g.Course)
+            .WithMany()
+            .HasForeignKey(g => g.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(g => g.Instructor)
+            .WithMany(s => s.GradesEntered)
+            .HasForeignKey(g => g.InstructorId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasMany(g => g.GradeObjections)
+            .WithOne(go => go.Grade)
+            .HasForeignKey(go => go.GradeId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Ignore(g => g.DomainEvents);
     }

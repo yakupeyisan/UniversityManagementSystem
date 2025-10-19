@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using UniversityMS.Application.Common.Interfaces;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.PayrollFeature.DTOs;
 using UniversityMS.Domain.Entities.PayrollAggregate;
@@ -29,15 +30,17 @@ public class GeneratePayslipCommandHandler : IRequestHandler<GeneratePayslipComm
         var payroll = await _payrollRepository.GetByIdAsync(request.PayrollId, cancellationToken);
         if (payroll == null)
             return Result<PayslipDto>.Failure("Bordro bulunamadı");
-
-        var payslip = await _payslipService.GeneratePayslipAsync(payroll, cancellationToken);
+        var payslip = await _payslipService.GeneratePayslipAsync(
+            payroll,
+            payroll.Employee,
+            cancellationToken);
 
         return Result<PayslipDto>.Success(new PayslipDto
         {
             Id = payslip.Id,
             PayrollId = payslip.PayrollId,
             EmployeeId = payslip.EmployeeId,
-            Month = payslip.Month,
+            Month = payslip.Month.ToString(),
             Year = payslip.Year,
             FilePath = payslip.FilePath,
             Status = payslip.Status.ToString()

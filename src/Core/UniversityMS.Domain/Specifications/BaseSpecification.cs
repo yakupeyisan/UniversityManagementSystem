@@ -50,4 +50,14 @@ public abstract class BaseSpecification<T> : ISpecification<T>
     {
         OrderByDescending = orderByDescExpression;
     }
+    protected virtual void AddOrderBy(Expression<Func<T, object>> orderByExpression)
+    {
+        OrderBy = orderByExpression;
+    }
+
+    protected virtual void AddOrderByDescending(Expression<Func<T, object>> orderByDescendingExpression)
+    {
+        OrderByDescending = orderByDescendingExpression;
+    }
+
 }

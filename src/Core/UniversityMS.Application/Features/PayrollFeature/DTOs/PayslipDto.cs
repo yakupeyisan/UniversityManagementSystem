@@ -38,4 +38,8 @@ public class PayslipDto
     public DateTime GeneratedDate { get; set; }
     public DateTime? PaymentDate { get; set; }
     public string? PaymentMethod { get; set; }
+    public Guid Id { get; set; }
+    public Guid EmployeeId { get; set; }
+    public string FilePath { get; set; } = null!;
+    public string Status { get; set; } = null!;
 }

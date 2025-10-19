@@ -1,0 +1,71 @@
+﻿using MediatR;
+using Microsoft.Extensions.Logging;
+using UniversityMS.Application.Common.Models;
+using UniversityMS.Application.Features.ScheduleFeature.DTOs;
+using UniversityMS.Domain.Entities.ScheduleAggregate;
+using UniversityMS.Domain.Interfaces;
+
+namespace UniversityMS.Application.Features.ScheduleFeature.Queries;
+
+public class GetInstructorWorkloadQueryHandler : IRequestHandler<GetInstructorWorkloadQuery, Result<InstructorWorkloadDto>>
+{
+    private readonly IRepository<CourseSession> _courseSessionRepository;
+    private readonly IRepository<Schedule> _scheduleRepository;
+    private readonly ILogger<GetInstructorWorkloadQueryHandler> _logger;
+
+    public GetInstructorWorkloadQueryHandler(
+        IRepository<CourseSession> courseSessionRepository,
+        IRepository<Schedule> scheduleRepository,
+        ILogger<GetInstructorWorkloadQueryHandler> logger)
+    {
+        _courseSessionRepository = courseSessionRepository;
+        _scheduleRepository = scheduleRepository;
+        _logger = logger;
+    }
+
+    public async Task<Result<InstructorWorkloadDto>> Handle(
+        GetInstructorWorkloadQuery request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var schedule = await _scheduleRepository.FindAsync(
+                s => s.AcademicYear == request.AcademicYear && s.Semester == request.Semester,
+                cancellationToken);
+
+            if (!schedule.Any())
+                return Result<InstructorWorkloadDto>.Failure("Program bulunamadı.");
+
+            var scheduleId = schedule.First().Id;
+            var sessions = await _courseSessionRepository.FindAsync(
+                cs => cs.ScheduleId == scheduleId && cs.InstructorId == request.InstructorId,
+                cancellationToken);
+
+            var totalHours = CalculateTotalHours(sessions);
+            var coursesPerWeek = sessions.GroupBy(s => new { s.DayOfWeek, s.StartTime }).Count();
+
+            var workload = new InstructorWorkloadDto
+            {
+                InstructorId = request.InstructorId,
+                AcademicYear = request.AcademicYear,
+                Semester = request.Semester,
+                TotalCourses = sessions.Select(s => s.CourseId).Distinct().Count(),
+                TotalHoursPerWeek = totalHours,
+                SessionsPerWeek = coursesPerWeek,
+                IsOverloaded = totalHours > 20 // Örnek: haftada 20 saatten fazla yüklenmiş kabul et
+            };
+
+            return Result<InstructorWorkloadDto>.Success(workload);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating instructor workload");
+            return Result<InstructorWorkloadDto>.Failure("Ders yükü hesaplanırken bir hata oluştu.", ex.Message);
+        }
+    }
+
+    private int CalculateTotalHours(List<CourseSession> sessions)
+    {
+        return sessions.Sum(s => (int)(s.EndTime - s.StartTime).TotalHours);
+    }
+}

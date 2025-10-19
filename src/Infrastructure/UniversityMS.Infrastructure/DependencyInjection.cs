@@ -42,6 +42,10 @@ public static class DependencyInjection
         services.AddTransient<IDateTime, DateTimeService>();
         services.AddTransient<IEmailService, EmailService>();
         services.AddTransient<ISmsService, SmsService>();
+        services.AddScoped<IAttendanceService, AttendanceService>();
+        services.AddScoped<IScheduleConflictService, ScheduleConflictService>();
+        services.AddScoped<IGradeCalculationService, GradeCalculationService>();
+        services.AddScoped<IEnrollmentValidationService, EnrollmentValidationService>();
 
         return services;
     }

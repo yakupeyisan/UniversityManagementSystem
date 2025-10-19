@@ -7,8 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Features\Finance\Queries\" />
-    <Folder Include="Features\Procurement\Queries\" />
+    <Compile Remove="Features\Finance\**" />
+    <Compile Remove="Features\Procurement\**" />
+    <EmbeddedResource Remove="Features\Finance\**" />
+    <EmbeddedResource Remove="Features\Procurement\**" />
+    <None Remove="Features\Finance\**" />
+    <None Remove="Features\Procurement\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Features\Sample\Commands\" />
     <Folder Include="Features\Sample\DTOs\" />
     <Folder Include="Features\Sample\Queries\" />

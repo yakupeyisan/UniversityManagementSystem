@@ -1,6 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+﻿using iText.IO.Font;
+using iText.IO.Font.Constants;
+using iText.Kernel.Font;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using iText.Layout.Properties;
 using Microsoft.Extensions.Logging;
-using System.Reflection.Metadata;
 using System.Text;
 using UniversityMS.Application.Common.Interfaces;
 using UniversityMS.Domain.Entities.HRAggregate;
@@ -8,6 +13,7 @@ using UniversityMS.Domain.Entities.PayrollAggregate;
 using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Interfaces;
 using UniversityMS.Domain.ValueObjects;
+using static iText.IO.Font.FontProgram;
 
 namespace UniversityMS.Infrastructure.Services;
 
@@ -65,14 +71,8 @@ public class PayslipGenerationService : IPayslipGenerationService
                 payroll.AbsentDays,
                 payroll.OvertimeHours);
 
-            // Banka bilgilerini ayarla
-            if (payroll.PaymentMethod == PaymentMethod.BankTransfer && employee.BankInfo != null)
-            {
-                payslip.SetBankInfo(
-                    employee.BankInfo.BankName,
-                    employee.BankInfo.IBAN,
-                    employee.BankInfo.AccountNumber);
-            }
+            // Banka bilgilerini ayarla - BankInfo olmadığı için kontrol kaldırıldı
+            // Gerekirse Employee entity'sine BankInfo property'si eklenebilir
 
             // PDF oluştur
             var pdfPath = await GeneratePdfAsync(payroll, employee, cancellationToken);
@@ -114,7 +114,7 @@ public class PayslipGenerationService : IPayslipGenerationService
         try
         {
             var fileName = $"Payslip_{payroll.EmployeeId}_{payroll.Year}_{payroll.Month:D2}.pdf";
-            var filePath = Path.Combine("payslips", payroll.Year.ToString(), payroll.Month.ToString(D2));
+            var filePath = Path.Combine("payslips", payroll.Year.ToString(), payroll.Month.ToString("D2"));
 
             // PDF dosyası oluştur (iText7 kullanarak)
             var pdfBytes = CreatePayslipPdf(payroll, employee);
@@ -181,9 +181,10 @@ public class PayslipGenerationService : IPayslipGenerationService
             var document = new Document(pdf);
 
             // Başlık
+            var titleFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
             document.Add(new Paragraph("AYLIK MAAŞ FİŞİ")
+                .SetFont(titleFont)
                 .SetFontSize(18)
-                .SetBold()
                 .SetTextAlignment(TextAlignment.CENTER));
 
             document.Add(new Paragraph($"Dönem: {payroll.Month}/{payroll.Year}")
@@ -191,52 +192,68 @@ public class PayslipGenerationService : IPayslipGenerationService
                 .SetTextAlignment(TextAlignment.CENTER));
 
             // Çalışan Bilgileri
+            var boldFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
             document.Add(new Paragraph("\nÇALIŞAN BİLGİLERİ")
-                .SetBold()
+                .SetFont(boldFont)
                 .SetFontSize(12));
 
-            var employeeTable = new Table(2);
-            employeeTable.AddCell("Adı Soyadı").AddCell($"{employee.Person.FirstName} {employee.Person.LastName}");
-            employeeTable.AddCell("Çalışan No").AddCell(employee.EmployeeNumber.Value);
-            employeeTable.AddCell("Pozisyon").AddCell(employee.JobTitle);
-            employeeTable.AddCell("Departman").AddCell(employee.Department?.Name ?? "N/A");
+            var employeeTable = new Table(new float[] { 1, 1 });
+            employeeTable.AddCell("Adı Soyadı");
+            employeeTable.AddCell($"{employee.Person.FirstName} {employee.Person.LastName}");
+            employeeTable.AddCell("Çalışan No");
+            employeeTable.AddCell(employee.EmployeeNumber.Value);
+            employeeTable.AddCell("Pozisyon");
+            employeeTable.AddCell(employee.JobTitle);
+            employeeTable.AddCell("Departman");
+            employeeTable.AddCell(employee.Department?.Name ?? "N/A");
             document.Add(employeeTable);
 
             // Maaş Detayları
             document.Add(new Paragraph("\nMAAAŞ DETAYLARı")
-                .SetBold()
+                .SetFont(boldFont)
                 .SetFontSize(12));
 
-            var salaryTable = new Table(2);
-            salaryTable.AddCell("Temel Maaş").AddCell($"₺ {payroll.BaseSalary.Amount:N2}");
-            salaryTable.AddCell("Toplam Kazançlar").AddCell($"₺ {payroll.TotalEarnings.Amount:N2}");
-            salaryTable.AddCell("Toplam Kesintiler").AddCell($"₺ {payroll.TotalDeductions.Amount:N2}");
-            salaryTable.AddCell("NET MAAŞ").AddCell($"₺ {payroll.NetSalary.Amount:N2}");
+            var salaryTable = new Table(new float[] { 1, 1 });
+            salaryTable.AddCell("Temel Maaş");
+            salaryTable.AddCell($"₺ {payroll.BaseSalary.Amount:N2}");
+            salaryTable.AddCell("Toplam Kazançlar");
+            salaryTable.AddCell($"₺ {payroll.TotalEarnings.Amount:N2}");
+            salaryTable.AddCell("Toplam Kesintiler");
+            salaryTable.AddCell($"₺ {payroll.TotalDeductions.Amount:N2}");
+            salaryTable.AddCell("NET MAAŞ");
+            salaryTable.AddCell($"₺ {payroll.NetSalary.Amount:N2}");
             document.Add(salaryTable);
 
             // İş Günü Bilgileri
             document.Add(new Paragraph("\nİŞ GÜNÜ BİLGİLERİ")
-                .SetBold()
+                .SetFont(boldFont)
                 .SetFontSize(12));
 
-            var workTable = new Table(2);
-            workTable.AddCell("Çalışma Günü").AddCell(payroll.WorkingDays.ToString());
-            workTable.AddCell("Gerçek Çalışma Günü").AddCell(payroll.ActualWorkDays.ToString());
-            workTable.AddCell("İzin Günü").AddCell(payroll.LeaveDays.ToString());
-            workTable.AddCell("Devamsızlık").AddCell(payroll.AbsentDays.ToString());
-            workTable.AddCell("Fazla Mesai Saati").AddCell($"{payroll.OvertimeHours:N1}");
+            var workTable = new Table(new float[] { 1, 1 });
+            workTable.AddCell("Çalışma Günü");
+            workTable.AddCell(payroll.WorkingDays.ToString());
+            workTable.AddCell("Gerçek Çalışma Günü");
+            workTable.AddCell(payroll.ActualWorkDays.ToString());
+            workTable.AddCell("İzin Günü");
+            workTable.AddCell(payroll.LeaveDays.ToString());
+            workTable.AddCell("Devamsızlık");
+            workTable.AddCell(payroll.AbsentDays.ToString());
+            workTable.AddCell("Fazla Mesai Saati");
+            workTable.AddCell($"{payroll.OvertimeHours:N1}");
             document.Add(workTable);
 
             // Ödeme Bilgileri
             if (payroll.PaymentMethod == PaymentMethod.BankTransfer)
             {
                 document.Add(new Paragraph("\nÖDEME BİLGİLERİ")
-                    .SetBold()
+                    .SetFont(boldFont)
                     .SetFontSize(12));
 
-                var paymentTable = new Table(2);
-                paymentTable.AddCell("Ödeme Yöntemi").AddCell("Banka Havalesi");
-                paymentTable.AddCell("Ödeme Tarihi").AddCell(payroll.PaymentDate?.ToString("dd.MM.yyyy") ?? "-");
+                var paymentTable = new Table(new float[] { 1, 1 });
+                paymentTable.AddCell("Ödeme Yöntemi");
+                paymentTable.AddCell("Banka Havalesi");
+                paymentTable.AddCell("Ödeme Tarihi");
+                paymentTable.AddCell(payroll.PaymentDate?.ToString("dd.MM.yyyy") ?? "-");
                 document.Add(paymentTable);
             }
 

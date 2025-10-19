@@ -47,7 +47,7 @@ public class PayrollsController : BaseApiController
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
-            new CalculatePayrollCommand { PayrollId = payrollId },
+            new CalculatePayrollCommand(payrollId),
             cancellationToken);
 
         if (result.IsSuccess)
@@ -100,12 +100,7 @@ public class PayrollsController : BaseApiController
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
-            new GetPayrollByEmployeeQuery
-            {
-                EmployeeId = employeeId,
-                Month = month,
-                Year = year
-            },
+            new GetPayrollByEmployeeQuery(employeeId: employeeId, month: month, year: year),
             cancellationToken);
 
         return Ok(result.Data);

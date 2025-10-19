@@ -83,7 +83,7 @@ public class PayrollController : BaseApiController
         [FromQuery] string? status,
         CancellationToken cancellationToken)
     {
-        var query = new GetPayrollByEmployeeQuery(employeeId, year, month, status);
+        var query = new GetPayrollByEmployeeQuery(employeeId, month, year);
         var result = await Mediator.Send(query, cancellationToken);
 
         return Ok(result);
@@ -126,7 +126,7 @@ public class PayrollController : BaseApiController
     /// <param name="month">Ay filtresi (opsiyonel)</param>
     /// <returns>Sayfalanmış bordro listesi</returns>
     [HttpGet]
-    [ProducesResponseType(typeof(Result<PagedResult<PayrollDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<PaginatedList<PayrollDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllPayrolls(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 50,

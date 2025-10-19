@@ -97,6 +97,32 @@ public class StockItem : AuditableEntity
         AddDomainEvent(new StockMovementRecordedEvent(Id, movement.Type, movement.Quantity));
     }
 
+    public void DecreaseQuantity(decimal amount)
+    {
+        if (amount <= 0)
+            throw new DomainException("Azaltma miktarı pozitif olmalıdır.");
+
+        if (Quantity < amount)
+            throw new DomainException("Yeterli stok miktarı yok.");
+
+        Quantity -= amount;
+
+        // Low stock kontrolü
+        if (Quantity < MinimumStock)
+        {
+            AddDomainEvent(new LowStockAlertEvent(Id, ItemCode, Quantity, MinimumStock));
+        }
+    }
+
+    public void IncreaseQuantity(decimal amount)
+    {
+        if (amount <= 0)
+            throw new DomainException("Artırma miktarı pozitif olmalıdır.");
+
+        Quantity += amount;
+        LastStockDate = DateTime.UtcNow;
+    }
+
     public bool IsBelowMinimum() => Quantity < MinimumStock;
     public bool IsAboveMaximum() => Quantity > MaximumStock;
     public bool IsOutOfStock() => Quantity <= 0;

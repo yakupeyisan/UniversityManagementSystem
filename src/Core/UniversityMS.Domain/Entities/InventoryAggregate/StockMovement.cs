@@ -16,6 +16,9 @@ public class StockMovement : AuditableEntity
     public string? ReferenceNumber { get; private set; }
     public Guid? RelatedEntityId { get; private set; } // PurchaseOrder, Transfer vs.
     public string? Notes { get; private set; }
+    public Guid? FromWarehouseId { get; private set; }
+    public Guid? ToWarehouseId { get; private set; }
+    public string? ValuationMethod { get; private set; }
 
     public StockItem StockItem { get; private set; } = null!;
 

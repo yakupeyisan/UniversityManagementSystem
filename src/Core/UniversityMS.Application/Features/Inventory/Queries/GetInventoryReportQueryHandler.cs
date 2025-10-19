@@ -20,26 +20,37 @@ public class GetInventoryReportQueryHandler : IRequestHandler<GetInventoryReport
         GetInventoryReportQuery request,
         CancellationToken cancellationToken)
     {
-        var spec = new WarehouseStockSpecification(request.WarehouseId);
-        var items = await _stockItemRepository.ListAsync(spec, cancellationToken);
-
-        var report = new InventoryReportDto
+        try
         {
-            WarehouseId = request.WarehouseId,
-            TotalItems = items.Count,
-            TotalQuantity = items.Sum(i => i.Quantity),
-            TotalValue = items.Sum(i => i.Quantity * i.UnitPrice.Amount),
-            GeneratedDate = DateTime.UtcNow,
-            ItemsByCategory = items.GroupBy(i => i.Category)
-                .Select(g => new CategoryInventoryDto
-                {
-                    Category = g.Key,
-                    ItemCount = g.Count(),
-                    TotalQuantity = g.Sum(i => i.Quantity),
-                    TotalValue = g.Sum(i => i.Quantity * i.UnitPrice.Amount)
-                }).ToList()
-        };
+            var items = await _stockItemRepository.FindAsync(
+                s => s.WarehouseId == request.WarehouseId,
+                cancellationToken);
 
-        return Result<InventoryReportDto>.Success(report);
+            var report = new InventoryReportDto
+            {
+                WarehouseId = request.WarehouseId,
+                TotalItems = items.Count,
+                TotalQuantity = items.Sum(i => i.Quantity),
+                // ✅ FIX: UnitCost (Money) → Amount (decimal)
+                TotalValue = items.Sum(i => i.Quantity * i.UnitCost.Amount),
+                GeneratedDate = DateTime.UtcNow,
+                // ✅ FIX: Category enum → string dönüşümü
+                ItemsByCategory = items
+                    .GroupBy(i => i.Category)
+                    .Select(g => new CategoryInventoryDto
+                    {
+                        Category = g.Key.ToString(),        // ✅ Enum → string
+                        ItemCount = g.Count(),
+                        TotalQuantity = g.Sum(i => i.Quantity),
+                        TotalValue = g.Sum(i => i.Quantity * i.UnitCost.Amount)  // ✅ UnitCost kullan
+                    }).ToList()
+            };
+
+            return Result<InventoryReportDto>.Success(report);
+        }
+        catch (Exception ex)
+        {
+            return Result<InventoryReportDto>.Failure($"Stok raporu hatası: {ex.Message}");
+        }
     }
 }

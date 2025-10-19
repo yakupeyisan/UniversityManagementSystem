@@ -74,7 +74,7 @@ public class Employee : AuditableEntity, IAggregateRoot
         Notes = notes;
 
         // İlk yıl için standart 14 gün yıllık izin
-        AnnualLeaveBalance = LeaveBalance.Create(14);
+        AnnualLeaveBalance = LeaveBalance.CreateForNewEmployee();
 
         AddDomainEvent(new EmployeeHiredEvent(Id, EmployeeNumber, PersonId, HireDate));
     }
@@ -134,7 +134,6 @@ public class Employee : AuditableEntity, IAggregateRoot
     #endregion
 
     #region Leave Management
-
     public void RequestLeave(Leave leave)
     {
         if (leave.EmployeeId != Id)
@@ -143,40 +142,27 @@ public class Employee : AuditableEntity, IAggregateRoot
         if (Status != EmploymentStatus.Active)
             throw new DomainException("Sadece aktif çalışanlar izin talep edebilir.");
 
-        // Yıllık izin kontrolü
-        if (leave.LeaveType == LeaveType.Annual)
+        // ✅ DÜZELTILMIŞ: Basit kontrolü kullan
+        var durationDays = (int)(leave.EndDate - leave.StartDate).TotalDays + 1;
+
+        if (!AnnualLeaveBalance.CanTakeLeave(durationDays))
         {
-            var totalDays = (int)(leave.EndDate - leave.StartDate).TotalDays + 1;
-            if (!AnnualLeaveBalance.CanTakeLeave(totalDays))
-                throw new DomainException($"Yetersiz izin bakiyesi. Kalan: {AnnualLeaveBalance.RemainingDays} gün");
+            var remaining = AnnualLeaveBalance.GetRemainingDays();
+            throw new DomainException(
+                $"Yetersiz izin bakiyesi. Kalan: {remaining} gün");
         }
 
         _leaves.Add(leave);
-        AddDomainEvent(new LeaveRequestedEvent(Id, leave.Id, leave.LeaveType, leave.StartDate, leave.EndDate));
-    }
 
-    public void ApproveLeave(Guid leaveId, Guid approverId)
-    {
-        var leave = _leaves.FirstOrDefault(l => l.Id == leaveId);
-        if (leave == null)
-            throw new DomainException("İzin bulunamadı.");
+        // ✅ DÜZELTILMIŞ: UseLeave() çağır
+        AnnualLeaveBalance = AnnualLeaveBalance.UseLeave(durationDays);
 
-        leave.Approve(approverId);
-
-        // Yıllık izin ise bakiyeden düş
-        if (leave.LeaveType == LeaveType.Annual)
-        {
-            var totalDays = (int)(leave.EndDate - leave.StartDate).TotalDays + 1;
-            AnnualLeaveBalance = AnnualLeaveBalance.UseLeave(totalDays);
-        }
-
-        // İzinli duruma al
-        if (leave.IsCurrentlyOnLeave())
-        {
-            Status = EmploymentStatus.OnLeave;
-        }
-
-        AddDomainEvent(new LeaveApprovedEvent(Id, leaveId, approverId));
+        AddDomainEvent(new LeaveRequestedEvent(
+            Id,
+            leave.Id,
+            leave.LeaveType,
+            leave.StartDate,
+            leave.EndDate));
     }
 
     public void RejectLeave(Guid leaveId, Guid rejectorId, string reason)
@@ -186,7 +172,34 @@ public class Employee : AuditableEntity, IAggregateRoot
             throw new DomainException("İzin bulunamadı.");
 
         leave.Reject(rejectorId, reason);
+
+        // ✅ DÜZELTILMIŞ: RefundLeave() çağır
+        var durationDays = (int)(leave.EndDate - leave.StartDate).TotalDays + 1;
+        AnnualLeaveBalance = AnnualLeaveBalance.RefundLeave(durationDays);
+
         AddDomainEvent(new LeaveRejectedEvent(Id, leaveId, rejectorId, reason));
+    }
+
+    public void RefreshAnnualLeave()
+    {
+        AnnualLeaveBalance = AnnualLeaveBalance.RefreshAnnualLeave(14);
+        AddDomainEvent(new EmployeeAnnualLeaveRefreshedEvent(Id));
+    }
+    public void ApproveLeave(Guid leaveId, Guid approverId)
+    {
+        var leave = _leaves.FirstOrDefault(l => l.Id == leaveId);
+        if (leave == null)
+            throw new DomainException("İzin bulunamadı.");
+
+        leave.Approve(approverId);
+
+        // Status güncelle
+        if (leave.IsCurrentlyOnLeave())
+        {
+            Status = EmploymentStatus.OnLeave;
+        }
+
+        AddDomainEvent(new LeaveApprovedEvent(Id, leaveId, approverId));
     }
 
     public void ReturnFromLeave()
@@ -197,6 +210,7 @@ public class Employee : AuditableEntity, IAggregateRoot
         Status = EmploymentStatus.Active;
         AddDomainEvent(new EmployeeReturnedFromLeaveEvent(Id));
     }
+
 
     #endregion
 

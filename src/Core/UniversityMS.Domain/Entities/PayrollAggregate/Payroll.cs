@@ -1,6 +1,7 @@
 ﻿using UniversityMS.Domain.Entities.Common;
 using UniversityMS.Domain.Entities.HRAggregate;
 using UniversityMS.Domain.Enums;
+using UniversityMS.Domain.Events.HREvents;
 using UniversityMS.Domain.Events.PayrollEvents;
 using UniversityMS.Domain.Exceptions;
 using UniversityMS.Domain.Interfaces;
@@ -207,25 +208,56 @@ public class Payroll : AuditableEntity, IAggregateRoot
         RecalculateTotals();
     }
 
+
     private void RecalculateTotals()
     {
-        // Temel maaş hesaplama (eksik gün kesintisi)
-        var dailySalary = BaseSalary.Amount / WorkingDays;
-        var adjustedBaseSalary = Money.Create(dailySalary * ActualWorkDays, BaseSalary.Currency);
+        // Türk mevzuatı kuralları:
+        // ═════════════════════════════
+        // WorkingDays = Ayda toplam iş günü (örn: 22 gün)
+        // ActualWorkDays = Gerçek çalışılan gün (eksik gün kesintisiz)
+        // LeaveDays = Ücretli izinler (raporlu, mazeret) - PARA KESILMIYOR
+        // AbsentDays = Cezasız gün (izinsiz) - PARA KESILIR
+        //
+        // Formül: Net Ücret = (BaseSalary / WorkingDays * ActualWorkDays) + Ek Ödemeler - Kesintiler
 
-        // Ek ödemeler toplamı
-        var totalItems = _items
+        // Temel maaş hesaplama
+        // Günlük maaş = Toplam maaş / Ayın iş günü
+        var dailySalary = BaseSalary.Amount / WorkingDays;
+
+        // Çalışılan günler = İş günü - İzinsiz gün
+        // Raporlu izin/Mazeret izni dahil DEĞİL (zaten PAID)
+        var paidWorkingDays = ActualWorkDays;
+
+        // Prorata maaş (eksik gün kesintisi uygulanmış)
+        var adjustedBaseSalary = Money.Create(
+            dailySalary * paidWorkingDays,
+            BaseSalary.Currency);
+
+
+        // Ek ödemeler toplamı (fazla mesai, prim, tazminat, vb)
+        var totalEarningsItems = _items
             .Where(i => i.Type == PayrollItemType.Earning)
             .Sum(i => i.Amount.Amount);
 
-        TotalEarnings = Money.Create(adjustedBaseSalary.Amount + totalItems, BaseSalary.Currency);
 
-        // Kesintiler toplamı
-        var totalDeductionAmount = _deductions.Sum(d => d.Amount.Amount);
-        TotalDeductions = Money.Create(totalDeductionAmount, BaseSalary.Currency);
+        // Toplam kazanç
+        TotalEarnings = Money.Create(
+            adjustedBaseSalary.Amount + totalEarningsItems,
+            BaseSalary.Currency);
 
-        // Net maaş
-        NetSalary = Money.Create(TotalEarnings.Amount - TotalDeductions.Amount, BaseSalary.Currency);
+        // Kesintiler toplamı (gelir vergisi, SGK, sendika, vs)
+        var totalDeductionAmount = _deductions
+            .Sum(d => d.Amount.Amount);
+
+        TotalDeductions = Money.Create(
+            totalDeductionAmount,
+            BaseSalary.Currency);
+
+        // Net maaş (Brüt - Kesintiler)
+        NetSalary = Money.Create(
+            TotalEarnings.Amount - TotalDeductions.Amount,
+            BaseSalary.Currency);
+
     }
 
     #endregion
@@ -336,6 +368,17 @@ public class Payroll : AuditableEntity, IAggregateRoot
         // Bordro, ayın 5'inden sonra ödenmemişse gecikmiş sayılır
         var dueDate = new DateTime(Year, Month, 5).AddMonths(1);
         return Status != PayrollStatus.Paid && DateTime.UtcNow > dueDate;
+    }
+
+    /// <summary>
+    /// Payslip oluşturulduğunu işaretle
+    /// </summary>
+    public void GeneratePayslip(Guid payslipId)
+    {
+        if (Status != PayrollStatus.Approved)
+            throw new DomainException("Sadece onaylı bordrodan payslip oluşturulabilir.");
+
+        AddDomainEvent(new PayslipGeneratedEvent(Id, payslipId, EmployeeId));
     }
 
     #endregion

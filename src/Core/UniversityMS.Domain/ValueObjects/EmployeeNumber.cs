@@ -1,45 +1,56 @@
-﻿using UniversityMS.Domain.Exceptions;
+﻿using System.Text.RegularExpressions;
+using UniversityMS.Domain.Exceptions;
 
 namespace UniversityMS.Domain.ValueObjects;
 
-/// <summary>
-/// Çalışan Numarası Value Object
-/// </summary>
+
 public class EmployeeNumber : ValueObject
 {
-    public string Value { get; private set; } = null!;
+    private const string Pattern = @"^EMP\d{8}$"; // EMP + 8 rakam
 
-    private EmployeeNumber() { }
+    public string Value { get; }
 
     private EmployeeNumber(string value)
-    {
-        Value = value;
-    }
-
-    public static EmployeeNumber Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
             throw new DomainException("Çalışan numarası boş olamaz.");
 
-        // Format: EMP-YYYYMMDD-XXXX (örn: EMP-20240101-0001)
-        if (value.Length < 10)
-            throw new DomainException("Çalışan numarası formatı geçersiz.");
+        var trimmedValue = value.Trim().ToUpper();
 
-        return new EmployeeNumber(value.ToUpperInvariant());
+        if (!Regex.IsMatch(trimmedValue, Pattern))
+            throw new DomainException(
+                $"Çalışan numarası geçersiz format. " +
+                $"Beklenen format: EMP00000000 (EMP + 8 rakam). " +
+                $"Alınan değer: {value}");
+
+        Value = trimmedValue;
     }
 
-    public static EmployeeNumber Generate(DateTime hireDate, int sequence)
+    /// <summary>
+    /// Çalışan numarası oluştur
+    /// </summary>
+    public static EmployeeNumber Create(string value)
     {
-        var value = $"EMP-{hireDate:yyyyMMdd}-{sequence:D4}";
         return new EmployeeNumber(value);
     }
+
+    /// <summary>
+    /// Otomatik numara üret (sequence number kullanarak)
+    /// </summary>
+    public static EmployeeNumber GenerateAutomatic(int sequenceNumber)
+    {
+        if (sequenceNumber <= 0 || sequenceNumber > 99999999)
+            throw new DomainException(
+                "Sequence number 1 ile 99999999 arasında olmalıdır.");
+
+        var number = $"EMP{sequenceNumber:D8}";
+        return new EmployeeNumber(number);
+    }
+
+    public override string ToString() => Value;
 
     protected override IEnumerable<object> GetEqualityComponents()
     {
         yield return Value;
     }
-
-    public override string ToString() => Value;
-
-    public static implicit operator string(EmployeeNumber employeeNumber) => employeeNumber.Value;
 }

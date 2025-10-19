@@ -1,138 +1,184 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Reflection.Emit;
+using Microsoft.EntityFrameworkCore.Storage;
 using UniversityMS.Application.Common.Interfaces;
 using UniversityMS.Domain.Entities.AcademicAggregate;
 using UniversityMS.Domain.Entities.Common;
 using UniversityMS.Domain.Entities.EnrollmentAggregate;
 using UniversityMS.Domain.Entities.FacilityAggregate;
+using UniversityMS.Domain.Entities.HRAggregate;
 using UniversityMS.Domain.Entities.IdentityAggregate;
+using UniversityMS.Domain.Entities.InventoryAggregate;
 using UniversityMS.Domain.Entities.PayrollAggregate;
 using UniversityMS.Domain.Entities.PersonAggregate;
 using UniversityMS.Domain.Entities.ScheduleAggregate;
 using UniversityMS.Domain.Interfaces;
 
 namespace UniversityMS.Infrastructure.Persistence;
+
 public class ApplicationDbContext : DbContext, IApplicationDbContext
 {
-    private readonly ICurrentUserService _currentUserService;
-    private readonly IDateTime _dateTime;
-
-    public ApplicationDbContext(
-        DbContextOptions<ApplicationDbContext> options,
-        ICurrentUserService currentUserService,
-        IDateTime dateTime) : base(options)
-    {
-        _currentUserService = currentUserService;
-        _dateTime = dateTime;
-    }
+    private IDbContextTransaction? _transaction;
 
     // DbSets
-    public DbSet<User> Users => Set<User>();
-    public DbSet<Role> Roles => Set<Role>();
-    public DbSet<Permission> Permissions => Set<Permission>();
-    public DbSet<UserRole> UserRoles => Set<UserRole>();
-    public DbSet<Student> Students => Set<Student>();
-    public DbSet<Staff> Staffs => Set<Staff>();
-    public DbSet<Address> Addresses => Set<Address>();
-    public DbSet<EmergencyContact> EmergencyContacts => Set<EmergencyContact>();
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<Role> Roles { get; set; } = null!;
+    public DbSet<Permission> Permissions { get; set; } = null!;
 
+    public DbSet<Student> Students { get; set; } = null!;
+    public DbSet<Employee> Employees { get; set; } = null!;
+    public DbSet<Faculty> Faculties { get; set; } = null!;
+    public DbSet<Department> Departments { get; set; } = null!;
+    public DbSet<Course> Courses { get; set; } = null!;
+    public DbSet<Prerequisite> Prerequisites { get; set; } = null!;
+    public DbSet<Curriculum> Curriculums { get; set; } = null!;
+    public DbSet<CurriculumCourse> CurriculumCourses { get; set; } = null!;
 
-    public DbSet<Faculty> Faculties => Set<Faculty>();
-    public DbSet<Department> Departments => Set<Department>();
-    public DbSet<Course> Courses => Set<Course>();
-    public DbSet<Prerequisite> Prerequisites => Set<Prerequisite>();
-    public DbSet<Curriculum> Curriculums => Set<Curriculum>();
-    public DbSet<CurriculumCourse> CurriculumCourses => Set<CurriculumCourse>();
-    public DbSet<Enrollment> Enrollments => Set<Enrollment>();
-    public DbSet<CourseRegistration> CourseRegistrations => Set<CourseRegistration>();
-    public DbSet<Grade> Grades => Set<Grade>();
-    public DbSet<Attendance> Attendances => Set<Attendance>();
-    public DbSet<GradeObjection> GradeObjections => Set<GradeObjection>();
-    public DbSet<Schedule> Schedules => Set<Schedule>();
-    public DbSet<CourseSession> CourseSessions => Set<CourseSession>();
-    public DbSet<Classroom> Classrooms => Set<Classroom>();
-    public DbSet<Payslip> Payslips => Set<Payslip>();
+    public DbSet<Enrollment> Enrollments { get; set; } = null!;
+    public DbSet<CourseRegistration> CourseRegistrations { get; set; } = null!;
+    public DbSet<Grade> Grades { get; set; } = null!;
+    public DbSet<Attendance> Attendances { get; set; } = null!;
+    public DbSet<GradeObjection> GradeObjections { get; set; } = null!;
+
+    public DbSet<Schedule> Schedules { get; set; } = null!;
+    public DbSet<CourseSession> CourseSessions { get; set; } = null!;
+
+    public DbSet<Classroom> Classrooms { get; set; } = null!;
+    public DbSet<Payslip> Payslips { get; set; } = null!;
+
+    public DbSet<Leave> Leaves { get; set; } = null!;
+    public DbSet<Contract> Contracts { get; set; } = null!;
+    public DbSet<Shift> Shifts { get; set; } = null!;
+    public DbSet<Payroll> Payrolls { get; set; } = null!;
+
+    public DbSet<StockItem> StockItems { get; set; } = null!;
+    public DbSet<Warehouse> Warehouses { get; set; } = null!;
+
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options)
+    {
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Apply all configurations
+        // ✅ Configurations referans ekle
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
-        // Global query filter for soft delete
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        // ✅ Audit shadows
+        foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
-            if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
+            if (typeof(AuditableEntity).IsAssignableFrom(entity.ClrType))
             {
-                modelBuilder.Entity(entityType.ClrType)
-                    .HasQueryFilter(GetSoftDeleteFilter(entityType.ClrType));
+                modelBuilder
+                    .Entity(entity.ClrType)
+                    .Property<DateTime>("CreatedAt");
+
+                modelBuilder
+                    .Entity(entity.ClrType)
+                    .Property<DateTime>("UpdatedAt");
             }
         }
-    }
-
-    private static LambdaExpression GetSoftDeleteFilter(Type entityType)
-    {
-        var parameter = Expression.Parameter(entityType, "e");
-        var property = Expression.Property(parameter, nameof(ISoftDelete.IsDeleted));
-        var condition = Expression.Equal(property, Expression.Constant(false));
-        return Expression.Lambda(condition, parameter);
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        foreach (var entry in ChangeTracker.Entries<IAuditableEntity>())
+        // ✅ Audit properties set
+        var entries = ChangeTracker.Entries<IAuditableEntity>();
+
+        foreach (var entry in entries)
         {
-            switch (entry.State)
+            if (entry.State == EntityState.Added)
             {
-                case EntityState.Added:
-                    entry.Entity.CreatedBy = _currentUserService.Username;
-                    entry.Entity.CreatedAt = _dateTime.UtcNow;
-                    break;
-
-                case EntityState.Modified:
-                    entry.Entity.UpdatedBy = _currentUserService.Username;
-                    entry.Entity.UpdatedAt = _dateTime.UtcNow;
-                    break;
-
-                case EntityState.Deleted:
-                    if (entry.Entity is ISoftDelete softDeleteEntity)
-                    {
-                        entry.State = EntityState.Modified;
-                        softDeleteEntity.IsDeleted = true;
-                        softDeleteEntity.DeletedAt = DateTime.UtcNow;
-                        softDeleteEntity.DeletedBy = _currentUserService.Username;
-
-                    }
-                    break;
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
             }
         }
-
-        // Domain events will be dispatched here
-        await DispatchDomainEventsAsync(cancellationToken);
 
         return await base.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task DispatchDomainEventsAsync(CancellationToken cancellationToken)
+    public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
-        var domainEntities = ChangeTracker
-            .Entries<BaseEntity>()
-            .Where(x => x.Entity.DomainEvents.Any())
-            .ToList();
+        _transaction = await Database.BeginTransactionAsync(cancellationToken);
+    }
 
-        var domainEvents = domainEntities
-            .SelectMany(x => x.Entity.DomainEvents)
-            .ToList();
+    public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await SaveChangesAsync(cancellationToken);
+            await _transaction?.CommitAsync(cancellationToken)!;
+        }
+        finally
+        {
+            _transaction?.Dispose();
+            _transaction = null;
+        }
+    }
 
-        domainEntities.ForEach(entity => entity.Entity.ClearDomainEvents());
+    public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _transaction?.RollbackAsync(cancellationToken)!;
+        }
+        finally
+        {
+            _transaction?.Dispose();
+            _transaction = null;
+        }
+    }
+}
 
-        // Domain event dispatching will be implemented with MediatR
-        // foreach (var domainEvent in domainEvents)
-        // {
-        //     await _mediator.Publish(domainEvent, cancellationToken);
-        // }
+public class SpecificationEvaluator<T> where T : BaseEntity
+{
+    public static IQueryable<T> GetQuery(IQueryable<T> inputQuery, ISpecification<T> specification)
+    {
+        var query = inputQuery;
+
+        // ✅ Apply criteria
+        if (specification.Criteria != null)
+        {
+            query = query.Where(specification.Criteria);
+        }
+
+        // ✅ Apply includes
+        query = specification.Includes.Aggregate(query,
+            (current, include) => current.Include(include));
+
+        // ✅ Apply string-based includes
+        query = specification.IncludeStrings.Aggregate(query,
+            (current, include) => current.Include(include));
+
+        // ✅ Apply ordering
+        if (specification.OrderBy != null)
+        {
+            query = query.OrderBy(specification.OrderBy);
+        }
+        else if (specification.OrderByDescending != null)
+        {
+            query = query.OrderByDescending(specification.OrderByDescending);
+        }
+
+        // ✅ Apply paging
+        if (specification.IsPagingEnabled)
+        {
+            if (specification.Skip.HasValue)
+            {
+                query = query.Skip(specification.Skip.Value);
+            }
+
+            if (specification.Take.HasValue)
+            {
+                query = query.Take(specification.Take.Value);
+            }
+        }
+
+        return query;
     }
 }

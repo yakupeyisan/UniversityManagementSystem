@@ -18,6 +18,7 @@ using UniversityMS.Domain.Entities.IdentityAggregate;
 using UniversityMS.Domain.Entities.PayrollAggregate;
 using UniversityMS.Domain.Entities.PersonAggregate;
 using UniversityMS.Domain.Enums;
+using AttendanceDto = UniversityMS.Application.Features.Attendances.DTOs.AttendanceDto;
 
 namespace UniversityMS.Application.Common.Mappings;
 public class MappingProfile : Profile

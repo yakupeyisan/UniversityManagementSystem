@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.HR.DTOs;
 using UniversityMS.Domain.Entities.HRAggregate;
@@ -11,12 +12,15 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
 {
     private readonly IRepository<Employee> _employeeRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
 
     public CreateEmployeeCommandHandler(
         IRepository<Employee> employeeRepository,
+        IMapper mapper,
         IUnitOfWork unitOfWork)
     {
         _employeeRepository = employeeRepository;
+        _mapper = mapper;
         _unitOfWork = unitOfWork;
     }
 
@@ -25,7 +29,12 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
         CancellationToken cancellationToken)
     {
         var salary = SalaryInfo.Create(request.BaseSalary);
-        var workingHours = WorkingHours.Create(request.WorkingHoursPerWeek);
+
+        var workingHours = WorkingHours.Create(
+            new TimeOnly(9, 0),
+            new TimeOnly(17, 0),
+            request.WorkingHoursPerWeek
+        );
         var leaveBalance = LeaveBalance.Create(20, 10); // 20 Annual, 10 Sick
 
         var employee = Employee.Create(
@@ -40,14 +49,8 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
 
         await _employeeRepository.AddAsync(employee, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        var dto = _mapper.Map<EmployeeDto>(employee);
 
-        return Result<EmployeeDto>.Success(new EmployeeDto
-        {
-            Id = employee.Id,
-            EmployeeNumber = employee.EmployeeNumber.Value,
-            JobTitle = employee.JobTitle,
-            Status = employee.Status.ToString(),
-            HireDate = employee.HireDate
-        });
+        return Result<EmployeeDto>.Success(dto);
     }
 }

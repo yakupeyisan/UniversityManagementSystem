@@ -3,6 +3,7 @@ using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.HR.DTOs;
 using UniversityMS.Domain.Entities.HRAggregate;
 using UniversityMS.Domain.Interfaces;
+using UniversityMS.Domain.Specifications;
 
 namespace UniversityMS.Application.Features.Staff.Queries;
 

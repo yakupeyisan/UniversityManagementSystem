@@ -56,7 +56,7 @@ public class AddCourseSessionCommandHandler : IRequestHandler<AddCourseSessionCo
 
             _logger.LogInformation("Course session added to schedule: {ScheduleId}", request.ScheduleId);
 
-            return Result.Success(sessionId, "Ders programı güncellendi.");
+            return Result<Guid>.Success(sessionId, "Ders programı güncellendi.");
         }
         catch (Exception ex)
         {

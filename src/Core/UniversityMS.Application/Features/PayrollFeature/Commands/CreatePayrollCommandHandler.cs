@@ -41,8 +41,9 @@ public class CreatePayrollCommandHandler : IRequestHandler<CreatePayrollCommand,
             paymentMethod
         );
 
-        payroll.ActualWorkDays = request.ActualWorkDays;
-        payroll.OvertimeHours = request.OvertimeHours;
+        if (request.ActualWorkDays > 0)
+            payroll.SetActualWorkDays(request.ActualWorkDays);
+        payroll.SetOvertimeHours(request.OvertimeHours);
 
         await _payrollRepository.AddAsync(payroll, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

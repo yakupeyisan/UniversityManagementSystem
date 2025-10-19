@@ -404,4 +404,20 @@ public class Payroll : AuditableEntity, IAggregateRoot
     }
 
     #endregion
+
+    public void SetActualWorkDays(int days)
+    {
+        if (days < 0 || days > 31)
+            throw new DomainException("Çalışılan gün sayısı 0-31 arasında olmalıdır.");
+
+        ActualWorkDays = days;
+    }
+
+    public void SetOvertimeHours(decimal hours)
+    {
+        if (hours < 0)
+            throw new DomainException("Fazla mesai saati negatif olamaz.");
+
+        OvertimeHours = hours;
+    }
 }

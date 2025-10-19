@@ -3,6 +3,7 @@ using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.PayrollFeature.DTOs;
 using UniversityMS.Domain.Entities.PayrollAggregate;
 using UniversityMS.Domain.Interfaces;
+using UniversityMS.Domain.Specifications;
 
 namespace UniversityMS.Application.Features.PayrollFeature.Queries;
 

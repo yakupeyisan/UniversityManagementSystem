@@ -13,5 +13,5 @@ public class CreateEmployeeCommand : IRequest<Result<EmployeeDto>>
     public string JobTitle { get; set; } = string.Empty;
     public DateTime HireDate { get; set; }
     public decimal BaseSalary { get; set; }
-    public decimal WorkingHoursPerWeek { get; set; }
+    public int WorkingHoursPerWeek { get; set; }
 }

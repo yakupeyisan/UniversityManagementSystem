@@ -27,11 +27,14 @@ public class RecordAttendanceCommandHandler : IRequestHandler<RecordAttendanceCo
         RecordAttendanceCommand request,
         CancellationToken cancellationToken)
     {
-        var today = request.CheckInTime.Date;
         var attendance = Attendance.Create(
             request.EmployeeId,
+            request.EmployeeId,  // PersonId
+            request.EmployeeId,  // ShiftId (veya gerçek ShiftId kullan)
             request.CheckInTime,
-            request.Location
+            10,  // Duration in minutes
+            true,  // IsPresent
+            request.AttendanceMethod
         );
 
         await _attendanceRepository.AddAsync(attendance, cancellationToken);

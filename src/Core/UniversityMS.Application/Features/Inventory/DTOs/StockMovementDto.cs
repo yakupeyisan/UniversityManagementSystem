@@ -11,4 +11,6 @@ public class StockMovementDto
     public string Reason { get; set; } = string.Empty;
     public string ValuationMethod { get; set; } = string.Empty; // FIFO, LIFO
     public string Status { get; set; } = string.Empty;
+    public string? MovementType { get; set; }      // Type.ToString()
+    public string? ReferenceNumber { get; set; }   // Reason field
 }

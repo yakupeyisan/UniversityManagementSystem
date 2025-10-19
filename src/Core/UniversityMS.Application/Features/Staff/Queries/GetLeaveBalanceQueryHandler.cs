@@ -27,8 +27,8 @@ public class GetLeaveBalanceQueryHandler : IRequestHandler<GetLeaveBalanceQuery,
         {
             AnnualLeaveDays = employee.AnnualLeaveBalance.AnnualLeaveDays,
             SickLeaveDays = employee.AnnualLeaveBalance.SickLeaveDays,
-            RemainingAnnualDays = employee.AnnualLeaveBalance.RemainingAnnualDays,
-            RemainingSickDays = employee.AnnualLeaveBalance.RemainingSickDays
+            RemainingAnnualDays = employee.AnnualLeaveBalance.AnnualLeaveRemainingDays,
+            RemainingSickDays = employee.AnnualLeaveBalance.SickLeaveRemainingDays
         });
     }
 }

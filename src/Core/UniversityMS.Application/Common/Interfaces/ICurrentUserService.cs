@@ -2,31 +2,18 @@
 
 public interface ICurrentUserService
 {
-    Guid? UserId { get; }
-    string? Username { get; }
-    string? Email { get; }
+    Guid UserId { get; }
+    string Username { get; }
+    string Email { get; }
+    IList<string> Roles { get; }
+    IList<string> Permissions { get; }
+    Guid? DepartmentId { get; }
+    Guid? FacultyId { get; }
+    bool IsAdmin { get; }
     bool IsAuthenticated { get; }
-    IEnumerable<string> Roles { get; }
-    IEnumerable<string> Permissions { get; }
+
     bool IsInRole(string role);
-
-    /// <summary>
-    /// Şu an giriş yapan kullanıcının ID'sini döner
-    /// </summary>
-    Guid GetCurrentUserId();
-
-    /// <summary>
-    /// Şu an giriş yapan kullanıcının email'ini döner
-    /// </summary>
-    string GetCurrentUserEmail();
-
-    /// <summary>
-    /// Şu an giriş yapan kullanıcının rollerini döner
-    /// </summary>
-    IList<string> GetUserRoles();
-
-    /// <summary>
-    /// Kullanıcının belirli bir yetki sahibi olup olmadığını kontrol eder
-    /// </summary>
     bool HasPermission(string permission);
+    bool HasAnyRole(params string[] roles);
+    bool HasAllRoles(params string[] roles);
 }

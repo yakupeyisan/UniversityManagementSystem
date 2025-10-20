@@ -36,7 +36,11 @@ public static class DependencyInjection
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
+        // Current User Service
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+        // Authorization Service
+        services.AddScoped<IAuthorizationService, AuthorizationService>();
 
         // Services
         services.AddTransient<IDateTime, DateTimeService>();

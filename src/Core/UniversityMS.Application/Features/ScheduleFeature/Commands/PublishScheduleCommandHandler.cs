@@ -34,7 +34,9 @@ public class PublishScheduleCommandHandler : IRequestHandler<PublishScheduleComm
             if (schedule == null)
                 return Result.Failure("Program bulunamadı.");
 
-            var userId = _currentUserService.UserId ?? Guid.Empty;
+            var userId = _currentUserService.UserId;
+            if (userId == Guid.Empty)
+                return Result.Failure("Kullanıcı bilgisi alınamadı.");
             schedule.Publish(userId);
 
             await _scheduleRepository.UpdateAsync(schedule, cancellationToken);

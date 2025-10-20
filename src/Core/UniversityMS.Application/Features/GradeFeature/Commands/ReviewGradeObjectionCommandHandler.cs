@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
+using UniversityMS.Application.Common.Interfaces;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Domain.Entities.EnrollmentAggregate;
 using UniversityMS.Domain.Interfaces;
@@ -13,18 +13,18 @@ public class ReviewGradeObjectionCommandHandler : IRequestHandler<ReviewGradeObj
     private readonly IRepository<GradeObjection> _objectionRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<ReviewGradeObjectionCommandHandler> _logger;
-    private readonly IHttpContextAccessor _httpContextAccessor;  // ✅ EKLE: Current user'ı almak için
+    private readonly ICurrentUserService _currentUserService;
 
     public ReviewGradeObjectionCommandHandler(
         IRepository<GradeObjection> objectionRepository,
         IUnitOfWork unitOfWork,
-        ILogger<ReviewGradeObjectionCommandHandler> logger,
-        IHttpContextAccessor httpContextAccessor)  // ✅ EKLE: DI'ye ekle
+        ICurrentUserService currentUserService,
+        ILogger<ReviewGradeObjectionCommandHandler> logger)  
     {
         _objectionRepository = objectionRepository;
         _unitOfWork = unitOfWork;
+        _currentUserService = currentUserService;
         _logger = logger;
-        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<Result> Handle(ReviewGradeObjectionCommand request, CancellationToken cancellationToken)
@@ -35,8 +35,8 @@ public class ReviewGradeObjectionCommandHandler : IRequestHandler<ReviewGradeObj
             if (objection == null)
                 return Result.Failure("İtiraz bulunamadı.");
 
-            var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var reviewedBy))
+            var reviewedBy = _currentUserService.UserId;
+            if (reviewedBy == null)
                 return Result.Failure("Kullanıcı bilgisi alınamadı.");
 
             if (request.IsApproved)

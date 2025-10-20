@@ -35,7 +35,7 @@ public class ApprovePayrollCommandHandler : IRequestHandler<ApprovePayrollComman
         var payroll = await _payrollRepository.GetByIdAsync(request.PayrollId, cancellationToken);
         if (payroll is null)
             return Result<PayrollDto>.Failure("Bordro bulunamadı");
-        var approverId = _currentUserService.GetCurrentUserId();
+        var approverId = _currentUserService.UserId;
 
         if (approverId == Guid.Empty)
             return Result<PayrollDto>.Failure("Kullanıcı bilgisi alınamadı");

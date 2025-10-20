@@ -3,6 +3,7 @@ using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.HRFeature.DTOs;
 using UniversityMS.Domain.Entities.HRAggregate;
 using UniversityMS.Domain.Interfaces;
+using UniversityMS.Domain.Specifications;
 
 namespace UniversityMS.Application.Features.HRFeature.Queries;
 
@@ -20,13 +21,11 @@ public class GetEmployeesByDepartmentQueryHandler : IRequestHandler<GetEmployees
         GetEmployeesByDepartmentQuery request,
         CancellationToken cancellationToken)
     {
-        var employees = await _employeeRepository.GetAllAsync(cancellationToken);
-        var departmentEmployees = employees
-            .Where(e => e.DepartmentId == request.DepartmentId)
-            .OrderBy(e => e.Person.LastName)
-            .ToList();
+        var spec = new EmployeesByDepartmentSpecification(request.DepartmentId);
 
-        var dtos = departmentEmployees.Select(e => new EmployeeListDto(
+        var employees = await _employeeRepository.ListAsync(spec, cancellationToken);
+
+        var dtos = employees.Select(e => new EmployeeListDto(
             e.Id,
             e.EmployeeNumber.Value,
             $"{e.Person.FirstName} {e.Person.LastName}",

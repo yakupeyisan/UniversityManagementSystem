@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using MediatR;
+using UniversityMS.Application.Common.Interfaces;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.PayrollFeature.DTOs;
 using UniversityMS.Domain.Entities.PayrollAggregate;
+using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Interfaces;
 
 namespace UniversityMS.Application.Features.PayrollFeature.Commands;
@@ -12,15 +14,18 @@ public class ApprovePayrollCommandHandler : IRequestHandler<ApprovePayrollComman
     private readonly IRepository<Payroll> _payrollRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
     public ApprovePayrollCommandHandler(
         IRepository<Payroll> payrollRepository,
         IUnitOfWork unitOfWork,
-        IMapper mapper)
+        IMapper mapper, 
+        ICurrentUserService currentUserService)
     {
         _payrollRepository = payrollRepository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _currentUserService = currentUserService;
     }
 
     public async Task<Result<PayrollDto>> Handle(
@@ -30,10 +35,14 @@ public class ApprovePayrollCommandHandler : IRequestHandler<ApprovePayrollComman
         var payroll = await _payrollRepository.GetByIdAsync(request.PayrollId, cancellationToken);
         if (payroll is null)
             return Result<PayrollDto>.Failure("Bordro bulunamadı");
+        var approverId = _currentUserService.GetCurrentUserId();
 
-        // ✅ DÜZELTILMIŞ: approverId parametresi ZORUNLU!
-        // Şu an için Admin user'ı kullan (TODO: Authentication'dan al)
-        var approverId = Guid.NewGuid(); // TODO: User ID'sini authentication'dan al
+        if (approverId == Guid.Empty)
+            return Result<PayrollDto>.Failure("Kullanıcı bilgisi alınamadı");
+
+        // ✅ Validasyon: Bordro taslak mı?
+        if (payroll.Status != PayrollStatus.Draft)
+            return Result<PayrollDto>.Failure("Sadece taslak bordrolar onaylanabilir");
 
         payroll.Approve(approverId);
 

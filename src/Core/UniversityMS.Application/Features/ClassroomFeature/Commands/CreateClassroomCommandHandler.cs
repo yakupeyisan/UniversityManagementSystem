@@ -59,8 +59,8 @@ public class CreateClassroomCommandHandler : IRequestHandler<CreateClassroomComm
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating classroom");
-            return Result<Guid>.Failure("Token yenileme sırasında bir hata oluştu. Hata: " + ex.Message);
+            _logger.LogError(ex, "Error creating classroom with code: {ClassroomCode}", request.Code);
+            return Result<Guid>.Failure("Derslik oluşturulurken bir hata oluştu. Hata: " + ex.Message);
         }
     }
 }

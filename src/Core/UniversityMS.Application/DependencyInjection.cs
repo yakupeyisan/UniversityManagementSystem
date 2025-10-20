@@ -1,8 +1,9 @@
-﻿using MediatR;
+﻿using FluentValidation;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using FluentValidation;
 using System.Reflection;
 using UniversityMS.Application.Common.Behaviours;
+using UniversityMS.Domain.Filters;
 
 namespace UniversityMS.Application;
 public static class DependencyInjection
@@ -24,7 +25,8 @@ public static class DependencyInjection
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehaviour<,>));
-
+        services.AddScoped(typeof(IFilterParser<>), typeof(FilterParser<>));
+        services.AddScoped(typeof(IFilterExpressionBuilder<>), typeof(FilterExpressionBuilder<>));
         return services;
     }
 }

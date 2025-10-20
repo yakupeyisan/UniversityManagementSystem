@@ -95,7 +95,7 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
     private Expression BuildLessOrEqual(Expression property, string value)
     {
         var constant = ConvertToConstant(property.Type, value);
-        return Expression.LessOrEqual(property, constant);
+        return Expression.LessThanOrEqual(property, constant);  // ✅ FIX: LessThanOrEqual
     }
 
     private Expression BuildContains(Expression property, string value)
@@ -143,7 +143,7 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
         var value2 = ConvertToConstant(property.Type, values[1]);
 
         var greaterOrEqual = Expression.GreaterThanOrEqual(property, value1);
-        var lessOrEqual = Expression.LessOrEqual(property, value2);
+        var lessOrEqual = Expression.LessThanOrEqual(property, value2);
 
         return Expression.AndAlso(greaterOrEqual, lessOrEqual);
     }

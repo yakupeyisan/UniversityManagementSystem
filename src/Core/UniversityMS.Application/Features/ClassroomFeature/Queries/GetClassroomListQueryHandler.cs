@@ -5,22 +5,30 @@ using Microsoft.Extensions.Logging;
 using UniversityMS.Application.Common.Interfaces;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.ScheduleFeature.DTOs;
+using UniversityMS.Domain.Entities.FacilityAggregate;
+using UniversityMS.Domain.Filters;
+using UniversityMS.Domain.Interfaces;
+using UniversityMS.Domain.Specifications;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace UniversityMS.Application.Features.ClassroomFeature.Queries;
 
 public class GetClassroomListQueryHandler : IRequestHandler<GetClassroomListQuery, Result<PaginatedList<ClassroomDto>>>
 {
-    private readonly IApplicationDbContext _context;
+    private readonly IRepository<Classroom> _repository;
     private readonly IMapper _mapper;
     private readonly ILogger<GetClassroomListQueryHandler> _logger;
+    private readonly IFilterParser<Classroom> _filterParser;
 
     public GetClassroomListQueryHandler(
-        IApplicationDbContext context,
+        IRepository<Classroom> repository,
         IMapper mapper,
+        IFilterParser<Classroom> filterParser,
         ILogger<GetClassroomListQueryHandler> logger)
     {
-        _context = context;
+        _repository = repository;
         _mapper = mapper;
+        _filterParser = filterParser;
         _logger = logger;
     }
 
@@ -28,27 +36,15 @@ public class GetClassroomListQueryHandler : IRequestHandler<GetClassroomListQuer
     {
         try
         {
-            var query = _context.Classrooms.Where(c => !c.IsDeleted);
+            var specification = new ClassroomFilteredSpecification(
+                filterString: request.Filter,
+                pageNumber: request.PageNumber,
+                pageSize: request.PageSize,
+                filterParser: _filterParser);
 
-            if (!string.IsNullOrWhiteSpace(request.Building))
-            {
-                query = query.Where(c => c.Building == request.Building);
-            }
+            var classrooms = await _repository.ListAsync(specification, cancellationToken);
 
-            if (request.IsActive.HasValue)
-            {
-                query = query.Where(c => c.IsActive == request.IsActive.Value);
-            }
-
-            var totalCount = await query.CountAsync(cancellationToken);
-
-            var classrooms = await query
-                .OrderBy(c => c.Building)
-                .ThenBy(c => c.Floor)
-                .ThenBy(c => c.Code)
-                .Skip((request.PageNumber - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToListAsync(cancellationToken);
+            var totalCount = await _repository.CountAsync(specification, cancellationToken);
 
             var dtos = _mapper.Map<List<ClassroomDto>>(classrooms);
 

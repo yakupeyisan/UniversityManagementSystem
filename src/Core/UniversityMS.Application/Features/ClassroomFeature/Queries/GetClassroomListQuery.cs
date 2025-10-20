@@ -6,7 +6,7 @@ namespace UniversityMS.Application.Features.ClassroomFeature.Queries;
 
 public record GetClassroomListQuery(
     int PageNumber = 1,
-    int PageSize = 20,
-    string? Building = null,
-    bool? IsActive = null
+    int PageSize = 10,
+    string? Filter = null,
+    string? OrderBy = null 
 ) : IRequest<Result<PaginatedList<ClassroomDto>>>;

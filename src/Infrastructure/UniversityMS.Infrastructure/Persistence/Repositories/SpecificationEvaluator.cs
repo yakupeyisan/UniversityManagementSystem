@@ -10,31 +10,48 @@ public class SpecificationEvaluator<T> where T : BaseEntity
     {
         var query = inputQuery;
 
-        // Apply criteria
         if (specification.Criteria != null)
         {
             query = query.Where(specification.Criteria);
         }
 
-        // Apply includes
         query = specification.Includes.Aggregate(query,
             (current, include) => current.Include(include));
 
-        // Apply string-based includes
         query = specification.IncludeStrings.Aggregate(query,
             (current, include) => current.Include(include));
 
-        // Apply ordering
         if (specification.OrderBy != null)
         {
             query = query.OrderBy(specification.OrderBy);
+
+            if (specification.OrderByDescriptors != null)
+            {
+                for (int i = 0; i < specification.OrderByDescriptors.Count; i++)
+                {
+                    if (specification.IsOrderByDescending[i])
+                        query = ((IOrderedQueryable<T>)query).ThenByDescending(specification.OrderByDescriptors[i]);
+                    else
+                        query = ((IOrderedQueryable<T>)query).ThenBy(specification.OrderByDescriptors[i]);
+                }
+            }
         }
         else if (specification.OrderByDescending != null)
         {
             query = query.OrderByDescending(specification.OrderByDescending);
+
+            if (specification.OrderByDescriptors != null)
+            {
+                for (int i = 0; i < specification.OrderByDescriptors.Count; i++)
+                {
+                    if (specification.IsOrderByDescending[i])
+                        query = ((IOrderedQueryable<T>)query).ThenByDescending(specification.OrderByDescriptors[i]);
+                    else
+                        query = ((IOrderedQueryable<T>)query).ThenBy(specification.OrderByDescriptors[i]);
+                }
+            }
         }
 
-        // Apply paging
         if (specification.IsPagingEnabled)
         {
             query = query.Skip(specification.Skip).Take(specification.Take);

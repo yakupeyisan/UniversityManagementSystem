@@ -1,68 +1,82 @@
 ﻿using AutoMapper;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.HRFeature.DTOs;
 using UniversityMS.Domain.Entities.HRAggregate;
+using UniversityMS.Domain.Filters;
 using UniversityMS.Domain.Interfaces;
+using UniversityMS.Domain.Specifications;
 
 namespace UniversityMS.Application.Features.HRFeature.Queries;
 
 public class GetAllEmployeesQueryHandler : IRequestHandler<GetAllEmployeesQuery, Result<PaginatedList<EmployeeListDto>>>
 {
     private readonly IRepository<Employee> _employeeRepository;
+    private readonly IFilterParser<Employee> _filterParser;
     private readonly IMapper _mapper;
+    private readonly ILogger<GetAllEmployeesQueryHandler> _logger;
 
     public GetAllEmployeesQueryHandler(
         IRepository<Employee> employeeRepository,
-        IMapper mapper)
+        IFilterParser<Employee> filterParser,
+        IMapper mapper,
+        ILogger<GetAllEmployeesQueryHandler> logger)
     {
         _employeeRepository = employeeRepository;
+        _filterParser = filterParser;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<Result<PaginatedList<EmployeeListDto>>> Handle(
         GetAllEmployeesQuery request,
         CancellationToken cancellationToken)
     {
-        var query = await _employeeRepository.GetAllAsync(cancellationToken);
+        try
+        {
+            _logger.LogInformation(
+                "Employee list requested. PageNumber: {PageNumber}, PageSize: {PageSize}, Filter: {Filter}",
+                request.PageNumber,
+                request.PageSize,
+                request.Filter ?? "None");
 
-        if (!string.IsNullOrEmpty(request.SearchTerm))
-            query = query.Where(e =>
-                e.EmployeeNumber.Value.Contains(request.SearchTerm) ||
-                e.Person.FirstName.Contains(request.SearchTerm) ||
-                e.Person.LastName.Contains(request.SearchTerm) ||
-                e.Person.Email.Value.Contains(request.SearchTerm)).ToList();
+            var specification = new EmployeeFilteredSpecification(
+                filterString: request.Filter,
+                pageNumber: request.PageNumber,
+                pageSize: request.PageSize,
+                filterParser: _filterParser);
 
-        if (request.DepartmentId.HasValue && request.DepartmentId != Guid.Empty)
-            query = query.Where(e => e.DepartmentId == request.DepartmentId).ToList();
+            var employees = await _employeeRepository.ListAsync(specification, cancellationToken);
 
-        if (!string.IsNullOrEmpty(request.Status))
-            query = query.Where(e => e.Status.ToString() == request.Status).ToList();
+            var totalCount = await _employeeRepository.CountAsync(specification, cancellationToken);
 
-        var totalCount = query.Count();
-        var items = query
-            .OrderBy(e => e.Person.LastName)
-            .Skip((request.PageNumber - 1) * request.PageSize)
-            .Take(request.PageSize)
-            .ToList();
+            _logger.LogInformation(
+                "Employees retrieved. TotalCount: {TotalCount}, Returned: {ReturnedCount}",
+                totalCount,
+                employees.Count);
 
-        var dtos = items.Select(e => new EmployeeListDto(
-            e.Id,
-            e.EmployeeNumber.Value,
-            $"{e.Person.FirstName} {e.Person.LastName}",
-            e.Person.Email.Value,
-            e.JobTitle,
-            e.Department?.Name,
-            e.Status.ToString()
-        )).ToList();
+            var dtos = _mapper.Map<List<EmployeeListDto>>(employees);
 
-        var paginatedList = new PaginatedList<EmployeeListDto>(
-            dtos,
-            totalCount,
-            request.PageNumber,
-            request.PageSize
-        );
+            var paginatedList = new PaginatedList<EmployeeListDto>(
+                dtos,
+                totalCount,
+                request.PageNumber,
+                request.PageSize);
 
-        return Result<PaginatedList<EmployeeListDto>>.Success(paginatedList);
+            return Result<PaginatedList<EmployeeListDto>>.Success(paginatedList);
+        }
+        catch (FilterParsingException ex)
+        {
+            _logger.LogWarning(ex, "Invalid filter format: {Filter}", request.Filter);
+            return Result<PaginatedList<EmployeeListDto>>.Failure(
+                $"Geçersiz filter formatı: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving employee list");
+            return Result<PaginatedList<EmployeeListDto>>.Failure(
+                "Çalışan listesi alınırken bir hata oluştu.");
+        }
     }
 }

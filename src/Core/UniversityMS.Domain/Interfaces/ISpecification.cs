@@ -9,6 +9,10 @@ public interface ISpecification<T>
     List<string> IncludeStrings { get; }
     Expression<Func<T, object>>? OrderBy { get; }
     Expression<Func<T, object>>? OrderByDescending { get; }
+
+    public List<Expression<Func<T, object>>> OrderByDescriptors { get; }
+    public List<bool> IsOrderByDescending { get; }
+
     int Take { get; }
     int Skip { get; }
     bool IsPagingEnabled { get; }

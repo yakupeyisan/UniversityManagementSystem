@@ -7,9 +7,15 @@ public class AssignDepartmentHeadCommandValidator : AbstractValidator<AssignDepa
     public AssignDepartmentHeadCommandValidator()
     {
         RuleFor(x => x.DepartmentId)
-            .NotEmpty().WithMessage("Bölüm ID gereklidir.");
+            .NotEmpty().WithMessage("Bölüm ID gereklidir.")
+            .NotEqual(Guid.Empty).WithMessage("Bölüm ID boş GUID olamaz.");
 
         RuleFor(x => x.FacultyId)
-            .NotEmpty().WithMessage("Öğretim üyesi ID gereklidir.");
+            .NotEmpty().WithMessage("Fakülte ID gereklidir.")
+            .NotEqual(Guid.Empty).WithMessage("Fakülte ID boş GUID olamaz.");
+
+        RuleFor(x => x)
+            .Must(x => x.DepartmentId != x.FacultyId)
+            .WithMessage("Bölüm ve Fakülte ID'leri aynı olamaz.");
     }
 }

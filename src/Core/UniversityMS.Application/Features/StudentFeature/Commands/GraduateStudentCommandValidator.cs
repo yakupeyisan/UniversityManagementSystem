@@ -7,6 +7,7 @@ public class GraduateStudentCommandValidator : AbstractValidator<GraduateStudent
     public GraduateStudentCommandValidator()
     {
         RuleFor(x => x.StudentId)
-            .NotEmpty().WithMessage("Öğrenci ID gereklidir.");
+            .NotEmpty().WithMessage("Öğrenci ID gereklidir.")
+            .NotEqual(Guid.Empty).WithMessage("Öğrenci ID boş GUID olamaz.");
     }
 }

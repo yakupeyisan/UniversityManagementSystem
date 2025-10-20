@@ -76,5 +76,23 @@ public class ScheduleProfile : Profile
             .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
             .ForMember(dest => dest.DeletedAt, opt => opt.Ignore())
             .ForMember(dest => dest.DeletedBy, opt => opt.Ignore());
+
+        // Schedule -> ScheduleDto
+        CreateMap<Schedule, ScheduleDto>()
+            .ForMember(dest => dest.SessionCount,
+                opt => opt.MapFrom(src => src.CourseSessions.Count))
+            .ReverseMap();
+
+        // CourseSession -> CourseSessionDto
+        CreateMap<CourseSession, CourseSessionDto>()
+            .ForMember(dest => dest.StartTime,
+                opt => opt.MapFrom(src => src.TimeSlot.StartTime))
+            .ForMember(dest => dest.EndTime,
+                opt => opt.MapFrom(src => src.TimeSlot.EndTime))
+            .ForMember(dest => dest.CourseName,
+                opt => opt.MapFrom(src => src.Course!.Name))
+            .ForMember(dest => dest.CourseCode,
+                opt => opt.MapFrom(src => src.Course!.Code))
+            .ReverseMap();
     }
 }

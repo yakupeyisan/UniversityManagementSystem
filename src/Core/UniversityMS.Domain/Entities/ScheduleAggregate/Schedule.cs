@@ -142,6 +142,26 @@ public class Schedule : AuditableEntity, ISoftDelete
 
         AddDomainEvent(new SchedulePublishedEvent(Id, AcademicYear, Semester));
     }
+    public void Update(string name, string? description, DateTime startDate, DateTime endDate, ScheduleStatus status)
+    {
+        // Validasyonlar
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException("Program adı boş olamaz.");
+
+        if (startDate >= endDate)
+            throw new DomainException("Bitiş tarihi başlangıç tarihinden sonra olmalıdır.");
+
+        // Aktif programa statü değiştirmemeye izin verme
+        if (Status == ScheduleStatus.Active && status != ScheduleStatus.Active)
+            throw new DomainException("Aktif programa statü değiştirilemez.");
+
+        // Alanları güncelle
+        Name = name;
+        Description = description;
+        StartDate = startDate;
+        EndDate = endDate;
+        Status = status;
+    }
 
     public void Activate()
     {

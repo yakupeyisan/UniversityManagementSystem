@@ -7,49 +7,57 @@ using UniversityMS.Domain.Interfaces;
 
 namespace UniversityMS.Application.Features.ScheduleFeature.Commands;
 
-public class PublishScheduleCommandHandler : IRequestHandler<PublishScheduleCommand, Result>
+public class PublishScheduleCommandHandler
+    : IRequestHandler<PublishScheduleCommand, Result<Guid>>
 {
-    private readonly IRepository<Schedule> _scheduleRepository;
-    private readonly ICurrentUserService _currentUserService;
+    private readonly IRepository<Schedule> _repository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<PublishScheduleCommandHandler> _logger;
+    private readonly ICurrentUserService _currentUserService;
 
     public PublishScheduleCommandHandler(
-        IRepository<Schedule> scheduleRepository,
-        ICurrentUserService currentUserService,
+        IRepository<Schedule> repository,
         IUnitOfWork unitOfWork,
-        ILogger<PublishScheduleCommandHandler> logger)
+        ILogger<PublishScheduleCommandHandler> logger,
+        ICurrentUserService currentUserService)
     {
-        _scheduleRepository = scheduleRepository;
-        _currentUserService = currentUserService;
+        _repository = repository;
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _currentUserService = currentUserService;
     }
 
-    public async Task<Result> Handle(PublishScheduleCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(
+        PublishScheduleCommand request,
+        CancellationToken cancellationToken)
     {
         try
         {
-            var schedule = await _scheduleRepository.GetByIdAsync(request.ScheduleId, cancellationToken);
+            var schedule = await _repository.GetByIdAsync(request.ScheduleId, cancellationToken);
             if (schedule == null)
-                return Result.Failure("Program bulunamadı.");
+                return Result<Guid>.Failure("Program bulunamadı.");
 
             var userId = _currentUserService.UserId;
             if (userId == Guid.Empty)
-                return Result.Failure("Kullanıcı bilgisi alınamadı.");
+                return Result<Guid>.Failure("Kullanıcı bilgisi alınamadı.");
+
             schedule.Publish(userId);
 
-            await _scheduleRepository.UpdateAsync(schedule, cancellationToken);
+            await _repository.UpdateAsync(schedule, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Schedule published: {ScheduleId}", request.ScheduleId);
+            _logger.LogInformation(
+                "Schedule published: {ScheduleId} | Academic Year: {AcademicYear}",
+                request.ScheduleId, schedule.AcademicYear);
 
-            return Result.Success("Program yayınlandı.");
+            return Result<Guid>.Success(
+                schedule.Id,
+                "Ders programı yayınlandı.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error publishing schedule");
-            return Result.Failure("Program yayınlanırken hata oluştu: " + ex.Message);
+            return Result<Guid>.Failure($"Hata: {ex.Message}");
         }
     }
 }

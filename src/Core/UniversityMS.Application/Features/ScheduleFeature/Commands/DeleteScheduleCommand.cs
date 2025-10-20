@@ -3,4 +3,4 @@ using UniversityMS.Application.Common.Models;
 
 namespace UniversityMS.Application.Features.ScheduleFeature.Commands;
 
-public record PublishScheduleCommand(Guid ScheduleId) : IRequest<Result<Guid>>;
+public record DeleteScheduleCommand(Guid Id) : IRequest<Result<Guid>>;

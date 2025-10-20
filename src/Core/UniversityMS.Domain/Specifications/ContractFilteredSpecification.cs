@@ -7,7 +7,7 @@ namespace UniversityMS.Domain.Specifications;
 /// Sözleşmeleri filtreleme ve sayfalama için specification
 /// Çalışan, Status ve Sözleşme Türü ile filtreleme yapabilir
 /// </summary>
-public class ContractFilteredSpecification : FilteredSpecification<Contract>
+public class ContractFilteredSpecification : BaseFilteredSpecification<Contract>
 {
     public ContractFilteredSpecification(
         Guid? employeeId = null,

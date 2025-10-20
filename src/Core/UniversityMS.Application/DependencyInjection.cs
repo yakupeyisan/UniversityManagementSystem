@@ -1,32 +1,53 @@
 ﻿using FluentValidation;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 using UniversityMS.Application.Common.Behaviours;
-using UniversityMS.Application.Common.Extensions;
 
 namespace UniversityMS.Application;
+
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services)
+    public static IServiceCollection AddApplication(
+        this IServiceCollection services)
     {
-        var assembly = Assembly.GetExecutingAssembly();
+        services.AddAutoMapper();
+        services.AddMediatR();
+        services.AddValidators();
 
-        // MediatR
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
+        return services;
+    }
 
-        // AutoMapper
-        services.AddAutoMapper(cfg => { }, assembly);
+    private static IServiceCollection AddAutoMapper(
+        this IServiceCollection services)
+    {
+        services.AddAutoMapper(cfg => { }, typeof(DependencyInjection).Assembly);
+        return services;
+    }
 
-        // FluentValidation
-        services.AddValidatorsFromAssembly(assembly);
+    private static IServiceCollection AddMediatR(
+        this IServiceCollection services)
+    {
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
 
-        // Pipeline Behaviours
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExceptionHandlingBehaviour<,>));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingPipelineBehavior<,>));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehaviour<,>));
-        services.AddFilterParsing();
+            // Pipeline Behaviors (Sıra önemli!)
+            // 1. Validation
+            cfg.AddOpenBehavior(typeof(ValidationPipelineBehavior<,>));
+
+            // 2. Logging
+            cfg.AddOpenBehavior(typeof(LoggingPipelineBehavior<,>));
+
+            // 3. Caching (en son, çünkü cache verisi döndürebilir)
+            cfg.AddOpenBehavior(typeof(CachingPipelineBehavior<,>));
+        });
+
+        return services;
+    }
+
+    private static IServiceCollection AddValidators(
+        this IServiceCollection services)
+    {
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
         return services;
     }
 }

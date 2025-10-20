@@ -7,17 +7,17 @@ namespace UniversityMS.Domain.Specifications;
 /// Filter string'ini accept eden base specification
 /// Tüm list spec'leri bu'dan inherit etmeli
 /// </summary>
-public abstract class FilteredSpecification<T> : BaseSpecification<T> where T : class
+public abstract class BaseFilteredSpecification<T> : BaseSpecification<T> where T : class
 {
-    protected FilteredSpecification() { }
-    protected FilteredSpecification(Expression<Func<T,bool>> filter) : base(filter) { }
+    protected BaseFilteredSpecification() { }
+    protected BaseFilteredSpecification(Expression<Func<T,bool>> filter) : base(filter) { }
 
-    protected FilteredSpecification(string? filterString, IFilterParser<T> filterParser)
+    protected BaseFilteredSpecification(string? filterString, IFilterParser<T> filterParser)
         : base(filterString != null ? filterParser.Parse(filterString) : x => true)
     {
     }
 
-    protected FilteredSpecification(
+    protected BaseFilteredSpecification(
         string? filterString,
         IFilterParser<T> filterParser,
         int pageNumber,

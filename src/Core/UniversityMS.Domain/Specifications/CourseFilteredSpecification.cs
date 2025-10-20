@@ -3,7 +3,7 @@ using UniversityMS.Domain.Filters;
 
 namespace UniversityMS.Domain.Specifications;
 
-public class CourseFilteredSpecification : FilteredSpecification<Course>
+public class CourseFilteredSpecification : BaseFilteredSpecification<Course>
 {
     /// <summary>
     /// Filter string ile Course listesi (soft delete kontrollü)

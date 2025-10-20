@@ -4,7 +4,7 @@ using UniversityMS.Domain.Filters;
 using UniversityMS.Domain.Interfaces;
 
 namespace UniversityMS.Domain.Specifications;
-public class EmployeeFilteredSpecification : FilteredSpecification<Employee>
+public class EmployeeFilteredSpecification : BaseFilteredSpecification<Employee>
 {
     public EmployeeFilteredSpecification(
         string? filterString,

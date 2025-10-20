@@ -7,7 +7,7 @@ namespace UniversityMS.Domain.Specifications;
 /// İzinleri filtreleme ve sayfalama için specification
 /// Çalışan, Status, İzin Türü ve tarih aralığı ile filtreleme yapabilir
 /// </summary>
-public class LeaveFilteredSpecification : FilteredSpecification<Leave>
+public class LeaveFilteredSpecification : BaseFilteredSpecification<Leave>
 {
     public LeaveFilteredSpecification(
         Guid? employeeId = null,

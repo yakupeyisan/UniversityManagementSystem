@@ -3,7 +3,7 @@ using UniversityMS.Domain.Filters;
 
 namespace UniversityMS.Domain.Specifications;
 
-public class StudentFilteredSpecification : FilteredSpecification<Student>
+public class StudentFilteredSpecification : BaseFilteredSpecification<Student>
 {
     public StudentFilteredSpecification(
         string? filterString,

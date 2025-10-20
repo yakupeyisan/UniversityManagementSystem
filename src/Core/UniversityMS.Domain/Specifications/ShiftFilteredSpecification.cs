@@ -7,7 +7,7 @@ namespace UniversityMS.Domain.Specifications;
 /// Vardiyaları filtreleme ve sayfalama için specification
 /// Çalışan, Status ve tarih aralığı ile filtreleme yapabilir
 /// </summary>
-public class ShiftFilteredSpecification : FilteredSpecification<Shift>
+public class ShiftFilteredSpecification : BaseFilteredSpecification<Shift>
 {
     public ShiftFilteredSpecification(
         Guid? employeeId = null,

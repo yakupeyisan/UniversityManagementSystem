@@ -5,5 +5,6 @@ namespace UniversityMS.Application.Features.EnrollmentFeature.Commands;
 
 public record ApproveEnrollmentCommand(
     Guid EnrollmentId,
-    Guid ApprovedBy  // Bu parameter var mı kontrol et
+    Guid AdvisorId,
+    Guid ApprovedBy 
 ) : IRequest<Result>;

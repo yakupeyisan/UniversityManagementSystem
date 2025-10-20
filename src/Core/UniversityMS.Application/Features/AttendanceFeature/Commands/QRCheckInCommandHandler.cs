@@ -42,12 +42,12 @@ public class QRCheckInCommandHandler : IRequestHandler<QRCheckInCommand, Result>
 
             var attendance = Attendance.Create(
                 request.CourseRegistrationId,
-                attendanceDto.StudentId,
+                request.StudentId,              // ✅ Fixed: attendanceDto → request.StudentId
                 request.CourseId,
                 DateTime.UtcNow,
                 request.WeekNumber,
-                true,  // QR ile check-in = present
-                AttendanceMethod.QR  // Enum value
+                true,                           // QR ile check-in = present
+                AttendanceMethod.QRCode         // ✅ Fixed: AttendanceMethod.QR → QRCode
             );
 
             await _attendanceRepository.AddAsync(attendance, cancellationToken);

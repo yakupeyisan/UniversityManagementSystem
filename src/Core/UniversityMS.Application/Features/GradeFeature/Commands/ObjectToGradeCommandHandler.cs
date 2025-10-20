@@ -38,8 +38,8 @@ public class ObjectToGradeCommandHandler : IRequestHandler<ObjectToGradeCommand,
             var objection = GradeObjection.Create(
                 request.GradeId,
                 request.StudentId,
-                request.Reason,
-                request.Description);
+                request.CourseId,
+                request.Reason);
 
             await _objectionRepository.AddAsync(objection, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

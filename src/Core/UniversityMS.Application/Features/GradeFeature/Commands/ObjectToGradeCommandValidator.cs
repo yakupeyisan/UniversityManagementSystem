@@ -15,8 +15,5 @@ public class ObjectToGradeCommandValidator : AbstractValidator<ObjectToGradeComm
         RuleFor(x => x.Reason)
             .NotEmpty().WithMessage("İtiraz nedeni boş olamaz.")
             .MaximumLength(200).WithMessage("İtiraz nedeni en fazla 200 karakter olabilir.");
-
-        RuleFor(x => x.Description)
-            .MaximumLength(1000).WithMessage("Açıklama en fazla 1000 karakter olabilir.");
     }
 }

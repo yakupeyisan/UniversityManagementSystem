@@ -6,6 +6,6 @@ namespace UniversityMS.Application.Features.GradeFeature.Commands;
 public record ObjectToGradeCommand(
     Guid GradeId,
     Guid StudentId,
-    string Reason,
-    string Description
+    Guid CourseId,
+    string Reason
 ) : IRequest<Result<Guid>>;

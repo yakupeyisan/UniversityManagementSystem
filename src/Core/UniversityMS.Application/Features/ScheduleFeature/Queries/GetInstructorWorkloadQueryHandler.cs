@@ -47,7 +47,7 @@ public class GetInstructorWorkloadQueryHandler :
 
             var totalHours = CalculateTotalHours(sessionsList);
             var coursesPerWeek = sessionsList
-                .GroupBy(s => new { s.DayOfWeek, s.StartTime })
+                .GroupBy(s => new { s.DayOfWeek, s.TimeSlot.StartTime })
                 .Count();
 
             var workload = new InstructorWorkloadDto
@@ -58,7 +58,8 @@ public class GetInstructorWorkloadQueryHandler :
                 TotalCourses = sessionsList.Select(s => s.CourseId).Distinct().Count(),
                 TotalHoursPerWeek = totalHours,
                 SessionsPerWeek = coursesPerWeek,
-                IsOverloaded = totalHours > 20
+                IsOverloaded = totalHours > 20,
+                
             };
 
             return Result<InstructorWorkloadDto>.Success(workload);
@@ -72,21 +73,9 @@ public class GetInstructorWorkloadQueryHandler :
 
     private int CalculateTotalHours(List<CourseSession> sessions)
     {
-        var totalMinutes = sessions.Sum(s =>
-        {
-            try
-            {
-                if (TimeSpan.TryParse(s.StartTime, out var start) &&
-                    TimeSpan.TryParse(s.EndTime, out var end))
-                    return (int)(end - start).TotalMinutes;
-                return 0;
-            }
-            catch
-            {
-                return 0;
-            }
-        });
+        var weeklyHours = sessions
+            .Sum(s => (s.TimeSlot.EndTime - s.TimeSlot.StartTime).TotalHours);
 
-        return totalMinutes / 60;
+        return (int)weeklyHours;
     }
 }

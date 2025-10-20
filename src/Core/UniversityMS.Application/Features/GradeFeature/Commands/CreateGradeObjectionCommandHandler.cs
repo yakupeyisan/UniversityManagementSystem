@@ -39,8 +39,8 @@ public class CreateGradeObjectionCommandHandler : IRequestHandler<CreateGradeObj
             var objection = GradeObjection.Create(
                 request.GradeId,
                 request.StudentId,
-                request.Reason,
-                string.Empty  // Açıklama boş string
+                request.CourseId,
+                request.Reason
             );
 
             await _objectionRepository.AddAsync(objection, cancellationToken);

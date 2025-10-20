@@ -82,31 +82,20 @@ public class CheckScheduleConflictsCommandHandler :
         // Öğretim üyesi çakışması
         if (session1.InstructorId.HasValue && session2.InstructorId.HasValue &&
             session1.InstructorId == session2.InstructorId)
-            return TimeConflict(session1.StartTime, session1.EndTime,
-                               session2.StartTime, session2.EndTime);
+            return TimeConflict(session1.TimeSlot.StartTime, session1.TimeSlot.EndTime,
+                               session2.TimeSlot.StartTime, session2.TimeSlot.EndTime);
 
         // Sınıf çakışması
         if (session1.ClassroomId == session2.ClassroomId)
-            return TimeConflict(session1.StartTime, session1.EndTime,
-                               session2.StartTime, session2.EndTime);
+            return TimeConflict(session1.TimeSlot.StartTime, session1.TimeSlot.EndTime,
+                               session2.TimeSlot.StartTime, session2.TimeSlot.EndTime);
 
         return false;
     }
 
-    private bool TimeConflict(string start1, string end1, string start2, string end2)
+    private bool TimeConflict(TimeSpan start1, TimeSpan end1, TimeSpan start2, TimeSpan end2)
     {
-        try
-        {
-            if (!TimeSpan.TryParse(start1, out var s1) || !TimeSpan.TryParse(end1, out var e1) ||
-                !TimeSpan.TryParse(start2, out var s2) || !TimeSpan.TryParse(end2, out var e2))
-                return false;
-
-            return !(e1 <= s2 || e2 <= s1);
-        }
-        catch
-        {
-            return false;
-        }
+        return !(end1 <= start2 || end2 <= start1);
     }
 
     private string DetermineConflictType(CourseSession session1, CourseSession session2)

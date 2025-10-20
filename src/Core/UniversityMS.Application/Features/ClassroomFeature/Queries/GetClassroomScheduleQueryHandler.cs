@@ -64,10 +64,10 @@ public class GetClassroomScheduleQueryHandler : IRequestHandler<GetClassroomSche
                     DayOfWeek = session.DayOfWeek,
                     DayName = session.DayOfWeek.ToString(),
                     // StartTime ve EndTime string olarak kaydedilmiş
-                    StartTime = session.StartTime,
-                    EndTime = session.EndTime,
+                    StartTime = session.TimeSlot.StartTime.ToString(@"HH:mm"),
+                    EndTime = session.TimeSlot.EndTime.ToString(@"hh:mm"),
                     // Hesapla: "09:00" ve "10:50" format'ında
-                    DurationMinutes = CalculateDuration(session.StartTime, session.EndTime),
+                    DurationMinutes = CalculateDuration(session.TimeSlot.StartTime, session.TimeSlot.EndTime),
                     SessionType = session.SessionType.ToString(),
                     Notes = session.Notes,
                     ScheduleId = session.ScheduleId
@@ -99,20 +99,9 @@ public class GetClassroomScheduleQueryHandler : IRequestHandler<GetClassroomSche
         }
     }
 
-    private int CalculateDuration(string startTime, string endTime)
+    private int CalculateDuration(TimeSpan startTime, TimeSpan endTime)
     {
-        try
-        {
-            if (TimeSpan.TryParse(startTime, out var start) && TimeSpan.TryParse(endTime, out var end))
-            {
-                return (int)(end - start).TotalMinutes;
-            }
-            return 0;
-        }
-        catch
-        {
-            return 0;
-        }
+        return (int)(endTime - startTime).TotalMinutes;
     }
 
     private int GetDayOrder(DayOfWeekEnum day)

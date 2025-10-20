@@ -52,7 +52,7 @@ public class GetWeeklyScheduleQueryHandler :
                 AcademicYear = schedule.AcademicYear,
                 Semester = schedule.Semester,
                 Sessions = _mapper.Map<List<CourseSessionExtendedDto>>(
-                    sessions.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime))
+                    sessions.OrderBy(s => s.DayOfWeek).ThenBy(s => s.TimeSlot.StartTime))
             };
 
             return Result<WeeklyScheduleDto>.Success(dto);

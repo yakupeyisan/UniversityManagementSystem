@@ -5,5 +5,6 @@ namespace UniversityMS.Application.Features.EnrollmentFeature.Commands;
 
 public record RejectEnrollmentCommand(
     Guid EnrollmentId,
-    string RejectionReason  
+    Guid AdvisorId,      
+    string Reason        
 ) : IRequest<Result>;

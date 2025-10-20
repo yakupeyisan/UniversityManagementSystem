@@ -3,6 +3,9 @@ using UniversityMS.Application.Common.Models;
 
 namespace UniversityMS.Application.Features.HRFeature.Commands;
 
+/// <summary>
+/// Sözleşme oluşturma command record'ı
+/// </summary>
 public record CreateContractCommand(
     Guid EmployeeId,
     string ContractNumber,
@@ -10,5 +13,5 @@ public record CreateContractCommand(
     DateTime StartDate,
     DateTime? EndDate,
     decimal BaseSalary,
-    string? Terms = null
+    string Terms
 ) : IRequest<Result<Guid>>;

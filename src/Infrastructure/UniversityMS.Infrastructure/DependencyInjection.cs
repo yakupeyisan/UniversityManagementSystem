@@ -50,6 +50,8 @@ public static class DependencyInjection
         services.AddScoped<IScheduleConflictService, ScheduleConflictService>();
         services.AddScoped<IGradeCalculationService, GradeCalculationService>();
         services.AddScoped<IEnrollmentValidationService, EnrollmentValidationService>();
+        services.AddScoped<ITaxCalculationService, TaxCalculationService>();
+        services.AddScoped<ISGKCalculationService, SGKCalculationService>();
 
         return services;
     }

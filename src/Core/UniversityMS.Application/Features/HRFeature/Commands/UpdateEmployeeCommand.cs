@@ -14,4 +14,3 @@ public record UpdateEmployeeCommand(
     int? WeeklyHours,
     string? Notes
 ) : IRequest<Result<EmployeeDto>>;
-

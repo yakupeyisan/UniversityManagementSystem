@@ -10,12 +10,12 @@ namespace UniversityMS.Application.Features.PayrollFeature.Queries;
 /// <summary>
 /// Bordroyu ID'ye göre getir
 /// </summary>
-public class GetPayrollByIdHandler : IRequestHandler<GetPayrollByIdQuery, Result<PayrollDto>>
+public class GetPayrollByIdQueryHandler : IRequestHandler<GetPayrollByIdQuery, Result<PayrollDto>>
 {
     private readonly IRepository<Payroll> _payrollRepository;
     private readonly IMapper _mapper;
 
-    public GetPayrollByIdHandler(IRepository<Payroll> payrollRepository, IMapper mapper)
+    public GetPayrollByIdQueryHandler(IRepository<Payroll> payrollRepository, IMapper mapper)
     {
         _payrollRepository = payrollRepository;
         _mapper = mapper;

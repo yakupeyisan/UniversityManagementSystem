@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -19,14 +20,16 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 {
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTime _dateTime;
+    private readonly IPublisher _mediator;
 
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
         ICurrentUserService currentUserService,
-        IDateTime dateTime) : base(options)
+        IDateTime dateTime, IPublisher mediator) : base(options)
     {
         _currentUserService = currentUserService;
         _dateTime = dateTime;
+        _mediator = mediator;
     }
 
     // DbSets
@@ -131,9 +134,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         domainEntities.ForEach(entity => entity.Entity.ClearDomainEvents());
 
         // Domain event dispatching will be implemented with MediatR
-        // foreach (var domainEvent in domainEvents)
-        // {
-        //     await _mediator.Publish(domainEvent, cancellationToken);
-        // }
+        foreach (var domainEvent in domainEvents)
+        {
+            await _mediator.Publish(domainEvent, cancellationToken);
+        }
     }
 }

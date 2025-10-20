@@ -1,9 +1,5 @@
 ﻿using System.Linq.Expressions;
-using UniversityMS.Domain.Entities.AcademicAggregate;
-using UniversityMS.Domain.Entities.EnrollmentAggregate;
 using UniversityMS.Domain.Entities.FacilityAggregate;
-using UniversityMS.Domain.Entities.PersonAggregate;
-using UniversityMS.Domain.Filters;
 using UniversityMS.Domain.Interfaces;
 
 namespace UniversityMS.Domain.Specifications;
@@ -78,73 +74,4 @@ public abstract class BaseSpecification<T> : ISpecification<T>
         IsOrderByDescending.Add(true);
     }
 
-}
-public class ClassroomFilteredSpecification : FilteredSpecification<Classroom>
-{
-    public ClassroomFilteredSpecification(
-        string? filterString,
-        int pageNumber,
-        int pageSize,
-        IFilterParser<Classroom> filterParser)
-        : base(filterString, filterParser, pageNumber, pageSize)
-    {
-        AddOrderBy(c => c.Building);
-        AddThenBy(c => c.Floor);
-        AddThenBy(c => c.Code);
-    }
-}
-public class StudentFilteredSpecification : FilteredSpecification<Student>
-{
-    public StudentFilteredSpecification(
-        string? filterString,
-        int pageNumber,
-        int pageSize,
-        IFilterParser<Student> filterParser)
-        : base(filterString, filterParser, pageNumber, pageSize)
-    {
-        AddInclude(s => s.Address!);
-        AddInclude(s => s.EmergencyContact!);
-        AddOrderBy(s => s.StudentNumber);
-    }
-}
-public class FacultyFilteredSpecification : FilteredSpecification<Faculty>
-{
-    public FacultyFilteredSpecification(
-        string? filterString,
-        int pageNumber,
-        int pageSize,
-        IFilterParser<Faculty> filterParser)
-        : base(filterString, filterParser, pageNumber, pageSize)
-    {
-        AddInclude(f => f.Departments);
-        AddOrderBy(f => f.Name);
-    }
-}
-public class DepartmentFilteredSpecification : FilteredSpecification<Department>
-{
-    public DepartmentFilteredSpecification(
-        string? filterString,
-        int pageNumber,
-        int pageSize,
-        IFilterParser<Department> filterParser)
-        : base(filterString, filterParser, pageNumber, pageSize)
-    {
-        AddInclude(d => d.Faculty);
-        AddOrderBy(d => d.Name);
-    }
-}
-public class EnrollmentFilteredSpecification : FilteredSpecification<Enrollment>
-{
-    public EnrollmentFilteredSpecification(
-        string? filterString,
-        int pageNumber,
-        int pageSize,
-        IFilterParser<Enrollment> filterParser)
-        : base(filterString, filterParser, pageNumber, pageSize)
-    {
-        AddInclude(e => e.Student);
-        AddInclude(e => e.CourseRegistrations);
-        AddOrderByDescending(e => e.AcademicYear);
-        AddOrderByDescending(e => e.Semester);
-    }
 }

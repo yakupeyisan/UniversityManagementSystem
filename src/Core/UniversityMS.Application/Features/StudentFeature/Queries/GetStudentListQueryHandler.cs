@@ -1,33 +1,30 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using UniversityMS.Application.Common.Extensions;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.StudentFeature.DTOs;
 using UniversityMS.Domain.Entities.PersonAggregate;
+using UniversityMS.Domain.Filters;
 using UniversityMS.Domain.Interfaces;
+using UniversityMS.Domain.Specifications;
 
 namespace UniversityMS.Application.Features.StudentFeature.Queries;
-
 public class GetStudentListQueryHandler
     : IRequestHandler<GetStudentListQuery, Result<PaginatedList<StudentDto>>>
 {
     private readonly IRepository<Student> _studentRepository;
+    private readonly IFilterParser<Student> _filterParser;
     private readonly IMapper _mapper;
     private readonly ILogger<GetStudentListQueryHandler> _logger;
 
     public GetStudentListQueryHandler(
         IRepository<Student> studentRepository,
+        IFilterParser<Student> filterParser,
         IMapper mapper,
         ILogger<GetStudentListQueryHandler> logger)
     {
         _studentRepository = studentRepository;
+        _filterParser = filterParser;
         _mapper = mapper;
         _logger = logger;
     }
@@ -38,36 +35,33 @@ public class GetStudentListQueryHandler
     {
         try
         {
-            Expression<Func<Student, bool>> predicate = s => !s.IsDeleted;
-
-            if (request.Status.HasValue)
-            {
-                var status = request.Status.Value;
-                predicate = predicate.And(s => s.Status == status);
-            }
-
-            if (request.DepartmentId.HasValue)
-            {
-                var deptId = request.DepartmentId.Value;
-                predicate = predicate.And(s => s.DepartmentId == deptId);
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.SearchTerm))
-            {
-                var searchTerm = request.SearchTerm.ToLower();
-                predicate = predicate.And(s =>
-                    s.FirstName.ToLower().Contains(searchTerm) ||
-                    s.LastName.ToLower().Contains(searchTerm) ||
-                    s.StudentNumber.ToLower().Contains(searchTerm));
-            }
-
-            var (students, totalCount) = await _studentRepository.GetPagedAsync(
+            _logger.LogInformation(
+                "Student list requested. PageNumber: {PageNumber}, PageSize: {PageSize}, Filter: {Filter}",
                 request.PageNumber,
                 request.PageSize,
-                predicate,
-                cancellationToken);
+                request.Filter ?? "None");
 
+            // ✅ SPECIFICATION PATTERN
+            var specification = new StudentFilteredSpecification(
+                filterString: request.Filter,
+                pageNumber: request.PageNumber,
+                pageSize: request.PageSize,
+                filterParser: _filterParser);
+
+            // ✅ Repository'den veri al (DATABASE'DE FILTRELEME)
+            var students = await _studentRepository.ListAsync(specification, cancellationToken);
+
+            // ✅ Total count (specification ile soft delete kontrol edilmiş)
+            var totalCount = await _studentRepository.CountAsync(specification, cancellationToken);
+
+            _logger.LogInformation(
+                "Students retrieved. TotalCount: {TotalCount}, Returned: {ReturnedCount}",
+                totalCount,
+                students.Count);
+
+            // DTO Mapping
             var studentDtos = _mapper.Map<List<StudentDto>>(students);
+
             var paginatedList = new PaginatedList<StudentDto>(
                 studentDtos,
                 totalCount,
@@ -76,10 +70,17 @@ public class GetStudentListQueryHandler
 
             return Result<PaginatedList<StudentDto>>.Success(paginatedList);
         }
+        catch (FilterParsingException ex)
+        {
+            _logger.LogWarning(ex, "Invalid filter format: {Filter}", request.Filter);
+            return Result<PaginatedList<StudentDto>>.Failure(
+                $"Geçersiz filter formatı: {ex.Message}");
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while retrieving student list");
-            return Result<PaginatedList<StudentDto>>.Failure("Öğrenci listesi alınırken bir hata oluştu.");
+            _logger.LogError(ex, "Error retrieving student list");
+            return Result<PaginatedList<StudentDto>>.Failure(
+                "Öğrenci listesi alınırken bir hata oluştu.");
         }
     }
 }

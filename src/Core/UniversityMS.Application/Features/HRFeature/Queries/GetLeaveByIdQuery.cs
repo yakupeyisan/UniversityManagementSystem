@@ -1,0 +1,8 @@
+﻿using MediatR;
+using UniversityMS.Application.Common.Models;
+using UniversityMS.Application.Features.HRFeature.DTOs;
+
+namespace UniversityMS.Application.Features.HRFeature.Queries;
+
+public record GetLeaveByIdQuery(Guid LeaveId)
+    : IRequest<Result<LeaveDetailDto>>;

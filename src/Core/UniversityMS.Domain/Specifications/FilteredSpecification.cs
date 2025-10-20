@@ -1,4 +1,5 @@
-﻿using UniversityMS.Domain.Filters;
+﻿using System.Linq.Expressions;
+using UniversityMS.Domain.Filters;
 
 namespace UniversityMS.Domain.Specifications;
 
@@ -9,6 +10,7 @@ namespace UniversityMS.Domain.Specifications;
 public abstract class FilteredSpecification<T> : BaseSpecification<T> where T : class
 {
     protected FilteredSpecification() { }
+    protected FilteredSpecification(Expression<Func<T,bool>> filter) : base(filter) { }
 
     protected FilteredSpecification(string? filterString, IFilterParser<T> filterParser)
         : base(filterString != null ? filterParser.Parse(filterString) : x => true)

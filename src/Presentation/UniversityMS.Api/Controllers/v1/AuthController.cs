@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using UniversityMS.Api.DTOs;
-using UniversityMS.Application.Features.Authentication.Commands;
-using UniversityMS.Application.Features.Authentication.DTOs;
+using UniversityMS.Application.Features.AuthenticationFeature.Commands;
+using UniversityMS.Application.Features.AuthenticationFeature.DTOs;
 
 namespace UniversityMS.Api.Controllers.v1;
 

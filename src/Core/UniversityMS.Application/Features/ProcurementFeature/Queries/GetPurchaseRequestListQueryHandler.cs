@@ -5,6 +5,7 @@ using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.ProcurementFeature.DTOs;
 using UniversityMS.Domain.Entities.ProcurementAggregate;
 using UniversityMS.Domain.Interfaces;
+using UniversityMS.Domain.Specifications;
 
 namespace UniversityMS.Application.Features.ProcurementFeature.Queries;
 

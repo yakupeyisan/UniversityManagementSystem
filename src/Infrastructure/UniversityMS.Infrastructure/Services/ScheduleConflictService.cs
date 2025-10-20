@@ -1,6 +1,7 @@
 ﻿using UniversityMS.Application.Common.Interfaces;
 using UniversityMS.Application.Features.ScheduleFeature.DTOs;
 using UniversityMS.Domain.Entities.ScheduleAggregate;
+using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Interfaces;
 
 namespace UniversityMS.Infrastructure.Services;
@@ -52,11 +53,14 @@ public class ScheduleConflictService : IScheduleConflictService
         TimeSpan end,
         CancellationToken cancellationToken)
     {
+        // DayOfWeek enum'ını DayOfWeekEnum'e dönüştür
+        var dayOfWeekEnum = (DayOfWeekEnum)(int)day;
+
         var sessions = await _courseSessionRepository.FindAsync(
-            cs => cs.InstructorId == instructorId && cs.DayOfWeek == day,
+            cs => cs.InstructorId == instructorId && cs.DayOfWeek == dayOfWeekEnum,
             cancellationToken);
 
-        return sessions.Any(s => TimeConflict(start, end, s.StartTime, s.EndTime));
+        return sessions.Any(s => TimeConflict(start, end, s.TimeSlot.StartTime, s.TimeSlot.EndTime));
     }
 
     public async Task<bool> HasClassroomConflictAsync(
@@ -66,26 +70,38 @@ public class ScheduleConflictService : IScheduleConflictService
         TimeSpan end,
         CancellationToken cancellationToken)
     {
+        // DayOfWeek enum'ını DayOfWeekEnum'e dönüştür
+        var dayOfWeekEnum = (DayOfWeekEnum)(int)day;
+
         var sessions = await _courseSessionRepository.FindAsync(
-            cs => cs.ClassroomId == classroomId && cs.DayOfWeek == day,
+            cs => cs.ClassroomId == classroomId && cs.DayOfWeek == dayOfWeekEnum,
             cancellationToken);
 
-        return sessions.Any(s => TimeConflict(start, end, s.StartTime, s.EndTime));
+        return sessions.Any(s => TimeConflict(start, end, s.TimeSlot.StartTime, s.TimeSlot.EndTime));
     }
 
     private bool HasConflict(CourseSession session1, CourseSession session2)
     {
+        // Aynı gün kontrol
         if (session1.DayOfWeek != session2.DayOfWeek)
             return false;
 
-        if (session1.WeekNumber != session2.WeekNumber)
-            return false;
+        // Öğretim üyesi çakışması
+        if (session1.InstructorId.HasValue && session2.InstructorId.HasValue &&
+            session1.InstructorId == session2.InstructorId)
+        {
+            return TimeConflict(
+                session1.TimeSlot.StartTime, session1.TimeSlot.EndTime,
+                session2.TimeSlot.StartTime, session2.TimeSlot.EndTime);
+        }
 
-        if (session1.InstructorId == session2.InstructorId)
-            return TimeConflict(session1.StartTime, session1.EndTime, session2.StartTime, session2.EndTime);
-
+        // Sınıf çakışması
         if (session1.ClassroomId == session2.ClassroomId)
-            return TimeConflict(session1.StartTime, session1.EndTime, session2.StartTime, session2.EndTime);
+        {
+            return TimeConflict(
+                session1.TimeSlot.StartTime, session1.TimeSlot.EndTime,
+                session2.TimeSlot.StartTime, session2.TimeSlot.EndTime);
+        }
 
         return false;
     }
@@ -97,7 +113,8 @@ public class ScheduleConflictService : IScheduleConflictService
 
     private string DetermineConflictType(CourseSession session1, CourseSession session2)
     {
-        if (session1.InstructorId == session2.InstructorId)
+        if (session1.InstructorId.HasValue && session2.InstructorId.HasValue &&
+            session1.InstructorId == session2.InstructorId)
             return "Instructor";
         if (session1.ClassroomId == session2.ClassroomId)
             return "Classroom";

@@ -21,7 +21,6 @@ public class ActivateScheduleCommandHandler : IRequestHandler<ActivateScheduleCo
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
-
     public async Task<Result> Handle(ActivateScheduleCommand request, CancellationToken cancellationToken)
     {
         try

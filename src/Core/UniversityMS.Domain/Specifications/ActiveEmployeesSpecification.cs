@@ -3,19 +3,22 @@ using UniversityMS.Domain.Enums;
 
 namespace UniversityMS.Domain.Specifications;
 
+/// <summary>
+/// Aktif çalışanları filtreleyen Specification
+/// </summary>
 public class ActiveEmployeesSpecification : BaseSpecification<Employee>
 {
-    public ActiveEmployeesSpecification(int pageNumber, int pageSize)
-        : base(e => e.Status == EmploymentStatus.Active && !e.Person.IsDeleted)
+    public ActiveEmployeesSpecification(
+        EmploymentStatus status,
+        int pageNumber,
+        int pageSize)
+        : base(e => e.Status == status)
     {
-        // Navigation properties yükle
         AddInclude(e => e.Person);
         AddInclude(e => e.Department);
-
-        // Sorting
         AddOrderBy(e => e.Person.LastName);
 
         // Pagination
-        ApplyPaging(skip: (pageNumber - 1) * pageSize, take: pageSize);
+        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
     }
 }

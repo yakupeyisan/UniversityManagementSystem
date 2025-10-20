@@ -8,8 +8,6 @@ public record CreatePurchaseRequestCommand(
     Guid DepartmentId,
     string Title,
     string Description,
-    List<PurchaseItemDto> Items,
-    string Urgency,
-    DateTime? RequiredDate,
+    DateTime RequiredDate,
     string Priority
-) : IRequest<Result<PurchaseRequestDto>>;
+) : IRequest<Result<Guid>>;

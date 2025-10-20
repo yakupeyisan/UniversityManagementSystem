@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
+using Microsoft.Extensions.Logging;
+using UniversityMS.Application.Common.Interfaces;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Application.Features.ProcurementFeature.DTOs;
 using UniversityMS.Domain.Entities.ProcurementAggregate;
@@ -9,60 +11,54 @@ using UniversityMS.Domain.ValueObjects;
 
 namespace UniversityMS.Application.Features.ProcurementFeature.Commands;
 
-public class CreatePurchaseRequestCommandHandler : IRequestHandler<CreatePurchaseRequestCommand, Result<PurchaseRequestDto>>
+public class CreatePurchaseRequestCommandHandler : IRequestHandler<CreatePurchaseRequestCommand, Result<Guid>>
 {
-    private readonly IRepository<PurchaseRequest> _purchaseRequestRepository;
+    private readonly IRepository<PurchaseRequest> _repository;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly ILogger<CreatePurchaseRequestCommandHandler> _logger;
 
     public CreatePurchaseRequestCommandHandler(
-        IRepository<PurchaseRequest> purchaseRequestRepository,
+        IRepository<PurchaseRequest> repository,
         IUnitOfWork unitOfWork,
-        IMapper mapper)
+        ICurrentUserService currentUserService,
+        ILogger<CreatePurchaseRequestCommandHandler> logger)
     {
-        _purchaseRequestRepository = purchaseRequestRepository;
+        _repository = repository;
         _unitOfWork = unitOfWork;
-        _mapper = mapper;
+        _currentUserService = currentUserService;
+        _logger = logger;
     }
 
-    public async Task<Result<PurchaseRequestDto>> Handle(
-        CreatePurchaseRequestCommand request,
-        CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreatePurchaseRequestCommand request, CancellationToken cancellationToken)
     {
-        var purchaseRequest = PurchaseRequest.Create(
-            requestNumber: $"PR-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString().Substring(0, 8)}",
-            requestorId: Guid.NewGuid(),  // veya İZLEME: Authentication'dan al
-            departmentId: request.DepartmentId,
-            requestDate: DateTime.UtcNow,
-            requiredDate: request.RequiredDate ?? DateTime.UtcNow.AddDays(7),
-            priority: Enum.Parse<PurchasePriority>(request.Priority),
-            justification: request.Description ?? "Purchase request"
-        );
-
-        foreach (var item in request.Items)
+        try
         {
-            // Value Object oluştur
-            var unitPrice = Money.Create(item.UnitPrice, "TRY");
+            // Generate request number: PR-2024001
+            var requestNumber = $"PR-{DateTime.UtcNow:yyyy}{DateTime.UtcNow.DayOfYear:D5}";
 
-            // ✅ PurchaseRequestItem.Create() factory method'u kullan
-            var requestItem = PurchaseRequestItem.Create(
-                purchaseRequestId: purchaseRequest.Id,
-                itemName: item.ItemName,
-                quantity: item.Quantity,
-                unit: item.Unit,
-                estimatedUnitPrice: unitPrice,
-                description: item.Description,
-                specifications: item.Specifications
+            var purchaseRequest = PurchaseRequest.Create(
+                requestNumber,
+                request.DepartmentId,
+                request.Title,
+                request.Description,
+                request.RequiredDate,
+                request.Priority,
+                _currentUserService.UserId
             );
 
-            // ✅ PurchaseRequestItem object'i geç
-            purchaseRequest.AddItem(requestItem);
+            await _repository.AddAsync(purchaseRequest, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Purchase request created: {RequestNumber} by {UserId}",
+                requestNumber, _currentUserService.UserId);
+
+            return Result<Guid>.Success(purchaseRequest.Id, "Satın alma talebi oluşturuldu.");
         }
-
-        await _purchaseRequestRepository.AddAsync(purchaseRequest, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        var dto = _mapper.Map<PurchaseRequestDto>(purchaseRequest);
-        return Result<PurchaseRequestDto>.Success(dto);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating purchase request");
+            return Result<Guid>.Failure($"Hata: {ex.Message}");
+        }
     }
 }

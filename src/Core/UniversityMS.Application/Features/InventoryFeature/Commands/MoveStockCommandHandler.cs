@@ -39,8 +39,8 @@ public class MoveStockCommandHandler : IRequestHandler<MoveStockCommand, Result<
             // ✅ FIX: StockMovement.Create() parametrelerini düzelt
             // Doğru sıra: stockItemId, type (enum), quantity, movementDate, referenceNumber, relatedEntityId
             var movement = StockMovement.Create(
-                stockItemId: request.StockItemId,                              // Guid
-                type: StockMovementType.Out,                                  // ✅ StockMovementType enum
+                stockItemId: request.StockItemId,                             // Guid
+                type: StockMovementType.Outbound,                             // ✅ StockMovementType enum
                 quantity: request.Quantity,                                   // ✅ decimal
                 movementDate: DateTime.UtcNow,                                // ✅ DateTime
                 referenceNumber: request.Reason,                              // string?

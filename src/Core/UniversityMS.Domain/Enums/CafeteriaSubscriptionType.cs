@@ -1,9 +1,13 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
+/// <summary>
+/// Cafeteria Abonelik Türü
+/// </summary>
 public enum CafeteriaSubscriptionType
 {
-    Daily = 0,
-    Weekly = 1,
-    Monthly = 2,
-    Semester = 3
+    Daily = 1,
+    Weekly = 2,
+    Monthly = 3,
+    Semester = 4,
+    Annual = 5
 }

@@ -54,14 +54,14 @@ public class CompleteShiftCommandHandler : IRequestHandler<CompleteShiftCommand,
             }
 
             // ========== 2. DURUM KONTROLÜ ==========
-            if (shift.Status != ShiftStatus.Scheduled)
+            if (shift.Status != ShiftStatus.Scheduled && shift.Status != ShiftStatus.InProgress)
             {
                 _logger.LogWarning(
                     "Vardiya tamamlamaya uygun değil. ShiftId: {ShiftId}, Status: {Status}",
                     request.ShiftId, shift.Status);
 
                 return Result<ShiftDto>.Failure(
-                    $"Sadece Scheduled durumundaki vardiyalar tamamlanabilir. Mevcut durum: {shift.Status}");
+                    $"Sadece Scheduled veya InProgress durumundaki vardiyalar tamamlanabilir. Mevcut durum: {shift.Status}");
             }
 
             // ========== 3. ZAMAN KONTROLÜ ==========
@@ -75,31 +75,40 @@ public class CompleteShiftCommandHandler : IRequestHandler<CompleteShiftCommand,
                     "Vardiya bitiş saati, başlangıç saatinden sonra olmalıdır.");
             }
 
-            if (request.ActualEndTime > shift.EndTime.AddHours(2)) // 2 saat tolerans
+            // ========== 4. FAZLA MESAI SAATİ KONTROLÜ ==========
+            // Fazla mesai = ActualEndTime - EndTime
+            decimal? overtimeHours = null;
+            if (request.ActualEndTime > shift.EndTime)
             {
-                _logger.LogWarning(
-                    "Vardiya bitiş saati çok gecikmiş. ShiftId: {ShiftId}",
-                    request.ShiftId);
+                var overtimeMinutes = (request.ActualEndTime.ToTimeSpan() - shift.EndTime.ToTimeSpan()).TotalMinutes;
+                overtimeHours = (decimal)(overtimeMinutes / 60.0);
 
-                return Result<ShiftDto>.Failure(
-                    "Vardiya bitiş saati, planlanan saati 2 saatten fazla aşamaz.");
+                // 2 saat tolerans
+                if (overtimeHours > 2)
+                {
+                    _logger.LogWarning(
+                        "Vardiya bitiş saati çok gecikmiş. ShiftId: {ShiftId}, OvertimeHours: {Hours}",
+                        request.ShiftId, overtimeHours);
+
+                    return Result<ShiftDto>.Failure(
+                        "Vardiya bitiş saati, planlanan saati 2 saatten fazla aşamaz.");
+                }
             }
 
-            // ========== 4. VARDIYA TAMAMLAMA ==========
-            shift.Complete(request.ActualEndTime, request.Notes);
+            // ========== 5. VARDIYA TAMAMLAMA (FIX: Complete sadece overtimeHours alıyor) ==========
+            shift.Complete(overtimeHours);
 
             _logger.LogInformation(
-                "Vardiya tamamlandı. ShiftId: {ShiftId}, Duration: {Duration}",
-                request.ShiftId,
-                (request.ActualEndTime.ToTimeSpan() - shift.StartTime.ToTimeSpan()).TotalHours);
+                "Vardiya tamamlandı. ShiftId: {ShiftId}, OvertimeHours: {OvertimeHours}",
+                request.ShiftId, overtimeHours ?? 0);
 
-            // ========== 5. VERITABANINA KAYDETME ==========
+            // ========== 6. VERITABANINA KAYDETME ==========
             await _shiftRepository.UpdateAsync(shift, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Vardiya tamamlaması başarıyla kaydedildi. ShiftId: {ShiftId}", request.ShiftId);
 
-            // ========== 6. DTO HAZIRLAMA VE DÖNÜŞ ==========
+            // ========== 7. DTO HAZIRLAMA VE DÖNÜŞ ==========
             var dto = _mapper.Map<ShiftDto>(shift);
 
             return Result<ShiftDto>.Success(
@@ -113,4 +122,3 @@ public class CompleteShiftCommandHandler : IRequestHandler<CompleteShiftCommand,
         }
     }
 }
-

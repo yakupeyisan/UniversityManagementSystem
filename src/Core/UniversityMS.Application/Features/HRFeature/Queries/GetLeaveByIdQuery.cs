@@ -10,3 +10,4 @@ namespace UniversityMS.Application.Features.HRFeature.Queries;
 public record GetLeaveByIdQuery(
     Guid LeaveId
 ) : IRequest<Result<LeaveDetailDto>>;
+

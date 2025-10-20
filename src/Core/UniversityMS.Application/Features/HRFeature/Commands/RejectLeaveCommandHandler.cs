@@ -76,7 +76,7 @@ public class RejectLeaveCommandHandler : IRequestHandler<RejectLeaveCommand, Res
                 return Result<LeaveDetailDto>.Failure("Kullanıcı bilgisi alınamadı.");
             }
 
-            // ========== 4. ÇALIŞANı BULMA ==========
+            // ========== 4. ÇALIŞAN BİLGİSİ ALMA ==========
             var employee = await _employeeRepository.GetByIdAsync(leave.EmployeeId, cancellationToken);
 
             if (employee == null)
@@ -85,7 +85,7 @@ public class RejectLeaveCommandHandler : IRequestHandler<RejectLeaveCommand, Res
                 return Result<LeaveDetailDto>.Failure("İzin sahibi çalışan bulunamadı.");
             }
 
-            // ========== 5. İZİN REDDETME ==========
+            // ========== 5. İZİN REDDETME (Entity metodu) ==========
             leave.Reject(rejectorId, request.RejectionReason);
 
             // ========== 6. ÇALIŞAN ÜZERİNDEN İZİN İADE ETME ==========

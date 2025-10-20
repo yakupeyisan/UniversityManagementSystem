@@ -74,3 +74,4 @@ public class GetShiftListQueryHandler : IRequestHandler<GetShiftListQuery, Resul
         }
     }
 }
+

@@ -83,8 +83,8 @@ public class ApproveLeaveCommandHandler : IRequestHandler<ApproveLeaveCommand, R
                 return Result<LeaveDetailDto>.Failure("Onaylayıcı bilgisi alınamadı.");
             }
 
-            // ========== 5. İZİN ONAYLAMA ==========
-            leave.Approve(approverId, request.ApprovalNotes);
+            // ========== 5. İZİN ONAYLAMA (FIX: Approve sadece approverId alıyor) ==========
+            leave.Approve(approverId);
 
             // ========== 6. ÇALIŞAN ÜZERİNDEN ONAYLA ==========
             employee.ApproveLeave(leave.Id, approverId);
@@ -114,3 +114,4 @@ public class ApproveLeaveCommandHandler : IRequestHandler<ApproveLeaveCommand, R
         }
     }
 }
+

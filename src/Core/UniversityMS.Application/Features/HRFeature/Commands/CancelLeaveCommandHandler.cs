@@ -86,13 +86,12 @@ public class CancelLeaveCommandHandler : IRequestHandler<CancelLeaveCommand, Res
                 return Result<LeaveDetailDto>.Failure("İzin sahibi çalışan bulunamadı.");
             }
 
-            // ========== 5. İZİN İPTAL ETME ==========
-            leave.Cancel(cancelledById, request.CancellationReason);
+            // ========== 5. İZİN İPTAL ETME (FIX: Cancel sadece reason alıyor) ==========
+            leave.Cancel(request.CancellationReason);
 
             // ========== 6. ÇALIŞAN ÜZERİNDEN İZİN İADE ETME ==========
             // İzin iptal edildiğinde, kullanılan izin günleri geri iade edilir
-            var durationDays = (int)(leave.EndDate - leave.StartDate).TotalDays + 1;
-            employee.AnnualLeaveBalance = employee.AnnualLeaveBalance.RefundLeave(durationDays);
+            employee.RejectLeave(leave.Id, cancelledById, request.CancellationReason);
 
             _logger.LogInformation(
                 "İzin iptal edildi. LeaveId: {LeaveId}, CancelledById: {CancelledById}",

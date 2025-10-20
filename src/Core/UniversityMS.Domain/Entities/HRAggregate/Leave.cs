@@ -100,7 +100,7 @@ public class Leave : AuditableEntity
         RejectionReason = reason;
     }
 
-    public void Cancel()
+    public void Cancel(string reason)
     {
         if (Status == LeaveStatus.Cancelled)
             throw new DomainException("İzin zaten iptal edilmiş.");
@@ -113,6 +113,7 @@ public class Leave : AuditableEntity
 
         Status = LeaveStatus.Cancelled;
         CancelledDate = DateTime.UtcNow;
+        Reason = reason;
     }
 
     public void MarkAsCompleted()

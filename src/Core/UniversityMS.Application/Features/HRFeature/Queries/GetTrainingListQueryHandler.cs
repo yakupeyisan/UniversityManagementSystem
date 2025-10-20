@@ -43,8 +43,9 @@ public class GetTrainingListQueryHandler : IRequestHandler<GetTrainingListQuery,
             // ========== FİLTRELEME ==========
             var filtered = allTrainings.AsEnumerable();
 
+            // FIX: Training.Participants yerine IsEmployeeEnrolled() metodu kullan
             if (request.EmployeeId.HasValue && request.EmployeeId != Guid.Empty)
-                filtered = filtered.Where(t => t.Participants.Any(p => p.EmployeeId == request.EmployeeId));
+                filtered = filtered.Where(t => t.IsEmployeeEnrolled(request.EmployeeId.Value));
 
             if (!string.IsNullOrEmpty(request.Status))
                 filtered = filtered.Where(t => t.Status.ToString() == request.Status);

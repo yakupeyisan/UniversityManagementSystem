@@ -4,5 +4,9 @@ using UniversityMS.Application.Features.HRFeature.DTOs;
 
 namespace UniversityMS.Application.Features.HRFeature.Queries;
 
-public record GetLeaveByIdQuery(Guid LeaveId)
-    : IRequest<Result<LeaveDetailDto>>;
+/// <summary>
+/// İzin talebini ID'ye göre getir
+/// </summary>
+public record GetLeaveByIdQuery(
+    Guid LeaveId
+) : IRequest<Result<LeaveDetailDto>>;

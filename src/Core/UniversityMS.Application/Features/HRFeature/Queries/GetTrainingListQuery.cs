@@ -5,14 +5,13 @@ using UniversityMS.Application.Features.HRFeature.DTOs;
 namespace UniversityMS.Application.Features.HRFeature.Queries;
 
 /// <summary>
-/// Eğitim programları listesi sorgu record'ı
+/// Eğitimleri listele
 /// </summary>
 public record GetTrainingListQuery(
     int PageNumber = 1,
     int PageSize = 10,
+    Guid? EmployeeId = null,
     string? Status = null,
-    string? TrainingType = null,
     DateTime? FromDate = null,
-    DateTime? ToDate = null,
-    Guid? EmployeeId = null
+    DateTime? ToDate = null
 ) : IRequest<Result<PaginatedList<TrainingDto>>>;

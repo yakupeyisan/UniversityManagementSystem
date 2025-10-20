@@ -4,60 +4,45 @@ using UniversityMS.Application.Features.StaffFeature.Commands;
 namespace UniversityMS.Application.Features.HRFeature.Commands;
 
 /// <summary>
-/// İzin Talep Command Validator'ı
+/// İzin başvurusu validator
 /// </summary>
 public class ApplyLeaveCommandValidator : AbstractValidator<ApplyLeaveCommand>
 {
     public ApplyLeaveCommandValidator()
     {
-        // ========== EMPLOYEE ID VALIDASYONU ==========
+        // ========== ÇALIŞANı KONTROLÜ ==========
         RuleFor(x => x.EmployeeId)
-            .NotEmpty().WithMessage("Çalışan ID boş olamaz.")
-            .NotEqual(Guid.Empty).WithMessage("Geçerli bir çalışan ID'si giriniz.");
+            .NotEmpty().WithMessage("Çalışan ID'si boş olamaz.")
+            .NotEqual(Guid.Empty).WithMessage("Çalışan ID'si geçerli olmalıdır.");
 
-        // ========== LEAVE TYPE VALIDASYONU ==========
+        // ========== İZİN TİPİ KONTROLÜ ==========
         RuleFor(x => x.LeaveTypeId)
-            .GreaterThan(0).WithMessage("İzin tipi ID'si geçerli olmalıdır.")
-            .LessThanOrEqualTo(5).WithMessage("Geçersiz izin tipi.");
+            .GreaterThan(0).WithMessage("Geçerli bir izin türü seçiniz.")
+            .LessThan(100).WithMessage("İzin türü geçersiz.");
 
-        // ========== TARIH VALIDASYONU ==========
+        // ========== TARİH KONTROLÜ ==========
         RuleFor(x => x.StartDate)
             .NotEmpty().WithMessage("Başlangıç tarihi boş olamaz.")
-            .GreaterThanOrEqualTo(DateTime.UtcNow.Date).WithMessage("Başlangıç tarihi bugüne eşit veya sonra olmalıdır.")
-            .LessThanOrEqualTo(DateTime.UtcNow.AddYears(1)).WithMessage("Başlangıç tarihi 1 yıl ileri olamaz.");
+            .GreaterThanOrEqualTo(DateTime.UtcNow.Date)
+            .WithMessage("Başlangıç tarihi geçmiş olamaz.");
 
         RuleFor(x => x.EndDate)
             .NotEmpty().WithMessage("Bitiş tarihi boş olamaz.")
-            .GreaterThanOrEqualTo(x => x.StartDate).WithMessage("Bitiş tarihi başlangıç tarihine eşit veya sonra olmalıdır.")
-            .LessThanOrEqualTo(DateTime.UtcNow.AddYears(1)).WithMessage("Bitiş tarihi 1 yıl ileri olamaz.");
+            .GreaterThanOrEqualTo(x => x.StartDate)
+            .WithMessage("Bitiş tarihi, başlangıç tarihinden sonra olmalıdır.");
 
-        // ========== TARİH ARALIĞI VALIDASYONU ==========
-        RuleFor(x => x)
-            .Custom((request, context) =>
+        // ========== SÜRELİLİK KONTROLÜ ==========
+        RuleFor(x => new { x.StartDate, x.EndDate })
+            .Must(x =>
             {
-                var duration = (request.EndDate.Date - request.StartDate.Date).Days + 1;
+                var duration = (x.EndDate.Date - x.StartDate.Date).Days + 1;
+                return duration >= 1 && duration <= 365;
+            })
+            .WithMessage("İzin süresi 1 gün ile 1 yıl arasında olmalıdır.");
 
-                // Maximum 30 gün izin talep edilebilir
-                if (duration > 30)
-                {
-                    context.AddFailure(
-                        "Bir seferde maksimum 30 gün izin talep edilebilir.");
-                }
-
-                // Minimum 1 gün
-                if (duration < 1)
-                {
-                    context.AddFailure(
-                        "Minimum 1 gün izin talep edilmelidir.");
-                }
-            });
-
-        // ========== REASON VALIDASYONU ==========
+        // ========== AÇIKLAMA KONTROLÜ ==========
         RuleFor(x => x.Reason)
             .NotEmpty().WithMessage("İzin nedeni boş olamaz.")
-            .MinimumLength(5).WithMessage("İzin nedeni en az 5 karakter olmalıdır.")
-            .MaximumLength(500).WithMessage("İzin nedeni maksimum 500 karakter olabilir.")
-            .Matches(@"^[a-zA-ZçğıöşüÇĞİÖŞÜ\s0-9.,;:-]*$")
-            .WithMessage("İzin nedeni geçerli karakterler içermelidir.");
+            .MaximumLength(500).WithMessage("İzin nedeni en fazla 500 karakter olabilir.");
     }
 }

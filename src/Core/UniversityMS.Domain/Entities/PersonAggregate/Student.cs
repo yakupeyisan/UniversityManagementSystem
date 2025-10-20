@@ -22,6 +22,8 @@ public class Student : Person
     public string? QRCode { get; private set; }
     public string? CardNumber { get; private set; }
     public Money Balance { get; private set; }
+    public Guid? AdvisorId { get; private set; }
+    public Staff? Advisor { get; private set; }
     private readonly List<Grade> _grades = new();
     public IReadOnlyCollection<Grade> Grades => _grades.AsReadOnly();
 

@@ -100,7 +100,11 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
             .WithOne(g => g.Student)
             .HasForeignKey(g => g.StudentId)
             .OnDelete(DeleteBehavior.Restrict);
-
+        builder
+            .HasOne(s => s.Advisor)
+            .WithMany()
+            .HasForeignKey(s => s.AdvisorId)
+            .OnDelete(DeleteBehavior.SetNull);
         builder.Ignore(s => s.DomainEvents);
     }
 }

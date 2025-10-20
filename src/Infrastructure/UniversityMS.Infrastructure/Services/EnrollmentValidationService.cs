@@ -1,6 +1,7 @@
 ﻿using UniversityMS.Application.Common.Interfaces;
 using UniversityMS.Domain.Entities.AcademicAggregate;
 using UniversityMS.Domain.Entities.EnrollmentAggregate;
+using UniversityMS.Domain.Entities.ScheduleAggregate;
 using UniversityMS.Domain.Interfaces;
 
 namespace UniversityMS.Infrastructure.Services;
@@ -12,19 +13,22 @@ public class EnrollmentValidationService : IEnrollmentValidationService
     private readonly IRepository<Prerequisite> _prerequisiteRepository;
     private readonly IRepository<Grade> _gradeRepository;
     private readonly IRepository<CourseRegistration> _courseRegistrationRepository;
+    private readonly IRepository<Schedule> _scheduleRepository;
 
     public EnrollmentValidationService(
         IRepository<Enrollment> enrollmentRepository,
         IRepository<Course> courseRepository,
         IRepository<Prerequisite> prerequisiteRepository,
         IRepository<Grade> gradeRepository,
-        IRepository<CourseRegistration> courseRegistrationRepository)
+        IRepository<CourseRegistration> courseRegistrationRepository, 
+        IRepository<Schedule> scheduleRepository)
     {
         _enrollmentRepository = enrollmentRepository;
         _courseRepository = courseRepository;
         _prerequisiteRepository = prerequisiteRepository;
         _gradeRepository = gradeRepository;
         _courseRegistrationRepository = courseRegistrationRepository;
+        _scheduleRepository = scheduleRepository;
     }
 
     public async Task<bool> CanStudentEnrollAsync(Guid studentId, Guid courseId, CancellationToken cancellationToken)
@@ -71,19 +75,19 @@ public class EnrollmentValidationService : IEnrollmentValidationService
             var registeredCourseIds = registrations.Select(r => r.CourseId).ToList();
 
             // Her ön koşul dersi tamamlanmış mı?
-            foreach (var prereq in prerequisites)
+            foreach (var prerequisite in prerequisites)
             {
-                if (!registeredCourseIds.Contains(prereq.PrerequisiteCourseId))
+                if (!registeredCourseIds.Contains(prerequisite.PrerequisiteCourseId))
                     return false;
 
-                // Dersten geçmiş mi (en az 50)?
-                var grades = await _gradeRepository.FindAsync(
-                    g => g.CourseRegistration.EnrollmentId == enrollment.Id
-                         && g.CourseRegistration.CourseId == prereq.PrerequisiteCourseId
-                         && g.NumericGrade >= 50,
-                    cancellationToken);
+                // Ön koşul dersinden geçme notu alınmış mı?
+                var grade = (await _gradeRepository.FindAsync(
+                    g => g.CourseRegistration.Enrollment.StudentId == studentId &&
+                         g.CourseRegistration.CourseId == prerequisite.PrerequisiteCourseId,
+                    cancellationToken)).FirstOrDefault();
 
-                if (!grades.Any())
+                // DÜZELTME: Grade.NumericScore property kullan
+                if (grade == null || grade.NumericScore < 50)
                     return false;
             }
         }
@@ -93,44 +97,33 @@ public class EnrollmentValidationService : IEnrollmentValidationService
 
     public async Task<bool> IsEnrollmentPeriodActiveAsync(string academicYear, int semester, CancellationToken cancellationToken)
     {
-        // Kayıt dönemi kontrolü (örnek: Eylül 1 - 30)
-        var now = DateTime.UtcNow;
-        var currentMonth = now.Month;
-
-        if (semester == 1)
-        {
-            // Güz yarıyılı: Eylül-Ekim
-            return currentMonth is 9 or 10;
-        }
-        else
-        {
-            // Bahar yarıyılı: Şubat-Mart
-            return currentMonth is 2 or 3;
-        }
-    }
-
-    public async Task<int> GetStudentCourseLoadAsync(
-        Guid studentId,
-        string academicYear,
-        int semester,
-        CancellationToken cancellationToken)
-    {
         var enrollments = await _enrollmentRepository.FindAsync(
-            e => e.StudentId == studentId && e.AcademicYear == academicYear && e.Semester == semester,
+            e => e.AcademicYear == academicYear && e.Semester == semester,
             cancellationToken);
 
         if (!enrollments.Any())
-            return 0;
+            return false;
 
-        var courseRegistrations = new List<CourseRegistration>();
-        foreach (var enrollment in enrollments)
-        {
-            var registrations = await _courseRegistrationRepository.FindAsync(
-                cr => cr.EnrollmentId == enrollment.Id,
-                cancellationToken);
-            courseRegistrations.AddRange(registrations);
-        }
+        var schedule = (await _scheduleRepository.FindAsync(
+            s => s.AcademicYear == academicYear && s.Semester == semester,
+            cancellationToken)).FirstOrDefault();
 
-        return courseRegistrations.Sum(cr => cr.Course.Credits);
+        if (schedule == null)
+            return false;
+
+        var now = DateTime.UtcNow;
+        return now >= schedule.StartDate && now <= schedule.EndDate;
+    }
+
+    public async Task<int> GetStudentCourseLoadAsync(Guid studentId, string academicYear, int semester, CancellationToken cancellationToken)
+    {
+        var registrations = await _courseRegistrationRepository.FindAsync(
+            cr => cr.Enrollment.StudentId == studentId &&
+                  cr.Enrollment.AcademicYear == academicYear &&
+                  cr.Enrollment.Semester == semester,
+            cancellationToken);
+
+        // DÜZELTME: Course.ECTS property kullan
+        return registrations.Sum(r => r.Course.ECTS);
     }
 }

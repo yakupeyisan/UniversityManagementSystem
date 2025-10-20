@@ -1,13 +1,9 @@
-﻿using AutoMapper;
-using MediatR;
+﻿using MediatR;
 using Microsoft.Extensions.Logging;
 using UniversityMS.Application.Common.Interfaces;
 using UniversityMS.Application.Common.Models;
-using UniversityMS.Application.Features.ProcurementFeature.DTOs;
 using UniversityMS.Domain.Entities.ProcurementAggregate;
-using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Interfaces;
-using UniversityMS.Domain.ValueObjects;
 
 namespace UniversityMS.Application.Features.ProcurementFeature.Commands;
 

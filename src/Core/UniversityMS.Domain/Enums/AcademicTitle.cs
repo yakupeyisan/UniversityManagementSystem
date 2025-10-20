@@ -14,3 +14,5 @@ public enum AcademicTitle
     TeachingAssistant = 6,   // Öğretim asistanı
     PostDoc = 7              // Postdoc
 }
+
+// Security Eklenti Enums

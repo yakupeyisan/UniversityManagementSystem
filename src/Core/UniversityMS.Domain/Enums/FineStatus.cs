@@ -9,5 +9,7 @@ public enum FineStatus
     Paid = 1,                // Ödendi
     Partial = 2,             // Kısmen ödendi
     Forgiven = 3,            // Affedildi
-    WriteOff = 4             // Terkedildi
+    WriteOff = 4,            // Terkedildi
+    Waived = 5,              // ✅ Affedildi (Çalışmalı af) 
+    Cancelled = 6            // ✅ İptal edildi 
 }

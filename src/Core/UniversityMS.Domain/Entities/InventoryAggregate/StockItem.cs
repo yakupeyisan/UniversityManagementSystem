@@ -87,9 +87,9 @@ public class StockItem : AuditableEntity
         _movements.Add(movement);
 
         // Stok miktarını güncelle
-        if (movement.Type == StockMovementType.In)
+        if (movement.Type == StockMovementType.Inbound)
             Quantity += movement.Quantity;
-        else if (movement.Type == StockMovementType.Out)
+        else if (movement.Type == StockMovementType.Outbound)
             Quantity -= movement.Quantity;
 
         LastStockDate = DateTime.UtcNow;

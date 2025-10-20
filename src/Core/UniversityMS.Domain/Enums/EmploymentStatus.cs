@@ -12,5 +12,6 @@ public enum EmploymentStatus
     Probation = 4,           // Deneme süresi
     Suspended = 5,           // Askıya alındı
     Terminated = 6,          // İşten çıkarıldı
-    Retired = 7              // Emekli
+    Retired = 7,             // Emekli
+    Resigned = 8             // İstifa etti
 }

@@ -1,5 +1,6 @@
 ﻿using UniversityMS.Domain.Entities.Common;
 using UniversityMS.Domain.Enums;
+using UniversityMS.Domain.Events.SecurityEvents;
 using UniversityMS.Domain.Exceptions;
 using UniversityMS.Domain.Interfaces;
 

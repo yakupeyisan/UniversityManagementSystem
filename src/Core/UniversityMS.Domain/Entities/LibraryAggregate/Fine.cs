@@ -110,7 +110,7 @@ public class Fine : AuditableEntity
         }
         else
         {
-            Status = FineStatus.PartiallyPaid;
+            Status = FineStatus.Partial;
         }
     }
 

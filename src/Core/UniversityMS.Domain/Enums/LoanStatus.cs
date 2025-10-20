@@ -10,5 +10,7 @@ public enum LoanStatus
     Returned = 2,            // İade edildi
     Lost = 3,                // Kayıp
     Cancelled = 4,           // İptal
-    ClaimedLost = 5          // Kayıp iddıası
+    ClaimedLost = 5,         // Kayıp iddıası
+    Renewed = 6,     // ✅ Yenilendi
+    Damaged = 7      // ✅ Hasarlı
 }

@@ -52,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<IEnrollmentValidationService, EnrollmentValidationService>();
         services.AddScoped<ITaxCalculationService, TaxCalculationService>();
         services.AddScoped<ISGKCalculationService, SGKCalculationService>();
+        services.AddScoped<ICacheService, RedisCacheService>();
 
         return services;
     }

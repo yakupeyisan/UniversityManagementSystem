@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using UniversityMS.Application.Common.Models;
 using UniversityMS.Domain.Exceptions;
+using InvalidOperationException = UniversityMS.Domain.Exceptions.InvalidOperationException;
 
 namespace UniversityMS.Application.Common.Behaviours;
 
@@ -34,7 +35,7 @@ public class ExceptionHandlingBehaviour<TRequest, TResponse>
             // DomainException'ı Result.Failure() olarak dönebiliriz
             // Result<T> dönen handlers için
             var result = CreateFailureResult(ex.Message);
-            return result as TResponse ?? throw new InvalidOperationException();
+            return result as TResponse ?? throw new InvalidOperationException("Bilinmeyen hata.");
         }
         catch (Exception ex)
         {

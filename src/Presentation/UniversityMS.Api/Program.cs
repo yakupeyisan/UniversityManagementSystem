@@ -159,7 +159,7 @@ try
     // ===== 4. CONFIGURE MIDDLEWARE PIPELINE =====
 
     // Global Error Handling
-    app.UseMiddleware<ErrorHandlingMiddleware>();
+    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
     // Swagger - Development & Production
     if (app.Environment.IsDevelopment() || app.Environment.IsProduction())

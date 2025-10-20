@@ -7,6 +7,7 @@ using UniversityMS.Domain.Events.HREvents;
 using UniversityMS.Domain.Exceptions;
 using UniversityMS.Domain.Interfaces;
 using UniversityMS.Domain.ValueObjects;
+using InvalidOperationException = UniversityMS.Domain.Exceptions.InvalidOperationException;
 
 namespace UniversityMS.Domain.Entities.HRAggregate;
 

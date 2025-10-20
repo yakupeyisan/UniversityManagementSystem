@@ -7,6 +7,7 @@ public class ShiftDto
 {
     public Guid Id { get; set; }
     public Guid EmployeeId { get; set; }
+    public string EmployeeNumber { get; set; } = null!;
     public string EmployeeName { get; set; } = null!;
     public DateOnly Date { get; set; }
     public TimeOnly StartTime { get; set; }

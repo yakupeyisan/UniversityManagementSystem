@@ -28,7 +28,7 @@ public class HRMappingProfile : Profile
             .ForMember(dest => dest.BaseSalary,
                 opt => opt.MapFrom(src => src.Salary.GetGrossSalary()))
             .ForMember(dest => dest.Department,
-                opt => opt.MapFrom(src => src.Department.Name))
+                opt => opt.MapFrom(src => src.Department != null ? src.Department.Name : "N/A"))
             .ReverseMap();
 
         CreateMap<Employee, EmployeeListDto>()
@@ -39,7 +39,7 @@ public class HRMappingProfile : Profile
             .ForMember(dest => dest.Email,
                 opt => opt.MapFrom(src => src.Person.Email.Value))
             .ForMember(dest => dest.Department,
-                opt => opt.MapFrom(src => src.Department.Name))
+                opt => opt.MapFrom(src => src.Department != null ? src.Department.Name : "N/A"))
             .ForMember(dest => dest.Status,
                 opt => opt.MapFrom(src => src.Status.ToString()));
 
@@ -148,24 +148,28 @@ public class HRMappingProfile : Profile
         // ============================================================
 
         CreateMap<Training, TrainingDto>()
+            .ForMember(dest => dest.TrainingType,
+                opt => opt.MapFrom(src => src.Type.ToString()))
             .ForMember(dest => dest.Status,
                 opt => opt.MapFrom(src => src.Status.ToString()))
             .ForMember(dest => dest.Duration,
                 opt => opt.MapFrom(src => src.Duration.Hours))
             .ForMember(dest => dest.ParticipantCount,
-                opt => opt.MapFrom(src => src.Participants.Count));
+                opt => opt.MapFrom(src => src.Enrollments.Count));
 
         CreateMap<Training, TrainingDetailDto>()
+            .ForMember(dest => dest.TrainingType,
+                opt => opt.MapFrom(src => src.Type.ToString()))
             .ForMember(dest => dest.Status,
                 opt => opt.MapFrom(src => src.Status.ToString()))
             .ForMember(dest => dest.Duration,
                 opt => opt.MapFrom(src => src.Duration.Hours))
             .ForMember(dest => dest.ParticipantCount,
-                opt => opt.MapFrom(src => src.Participants.Count))
-            .ForMember(dest => dest.Participants,
-                opt => opt.MapFrom(src => src.Participants));
+                opt => opt.MapFrom(src => src.Enrollments.Count))
+            .ForMember(dest => dest.Enrollments,
+                opt => opt.MapFrom(src => src.Enrollments));
 
-        CreateMap<TrainingParticipant, TrainingParticipantDto>()
+        CreateMap<TrainingEnrollment, TrainingEnrollmentDto>()
             .ForMember(dest => dest.EmployeeName,
                 opt => opt.MapFrom(src => $"{src.Employee.Person.FirstName} {src.Employee.Person.LastName}"))
             .ForMember(dest => dest.EmployeeNumber,

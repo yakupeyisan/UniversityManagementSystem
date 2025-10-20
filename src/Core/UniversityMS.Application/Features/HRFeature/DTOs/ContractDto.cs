@@ -7,6 +7,7 @@ public class ContractDto
 {
     public Guid Id { get; set; }
     public Guid EmployeeId { get; set; }
+    public string EmployeeNumber { get; set; } = null!;
     public string EmployeeName { get; set; } = null!;
     public string ContractNumber { get; set; } = null!;
     public string ContractType { get; set; } = null!;

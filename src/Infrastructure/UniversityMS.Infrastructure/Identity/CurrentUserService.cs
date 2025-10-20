@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using UniversityMS.Application.Common.Interfaces;
 
+namespace UniversityMS.Infrastructure.Identity;
 public class CurrentUserService : ICurrentUserService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;

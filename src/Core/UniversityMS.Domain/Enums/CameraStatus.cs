@@ -5,9 +5,10 @@
 /// </summary>
 public enum CameraStatus
 {
-    Online = 1,               // Çevrimiçi
-    Offline = 2,              // Çevrimdışı
-    Recording = 3,            // Kayıt yapıyor
-    Maintenance = 4,          // Bakımda
-    Faulty = 5                // Arızalı
+    Offline = 0,             // Çevrimdışı
+    Online = 1,              // Çevrimiçi
+    Recording = 2,           // Kayıt yapıyor
+    Standby = 3,             // Bekleme
+    Maintenance = 4,         // Bakımda
+    Faulty = 5               // Arızalı
 }

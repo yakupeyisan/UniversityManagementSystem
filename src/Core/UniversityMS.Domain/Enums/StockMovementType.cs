@@ -1,13 +1,15 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
+/// <summary>
+/// Stok Hareketi Türü - NEW
+/// </summary>
 public enum StockMovementType
 {
-    In = 1,               // Giriş
-    Out = 2,              // Çıkış
-    Transfer = 3,         // Transfer
-    Adjustment = 4,       // Düzeltme
-    Return = 5,           // İade
-    Damaged = 6,          // Hasarlı
-    Expired = 7,          // Vadesi geçmiş
-    Lost = 8              // Kayıp
+    Inbound = 0,             // Gelen
+    Outbound = 1,            // Giden
+    Transfer = 2,            // Transfer
+    Adjustment = 3,          // Ayarlama
+    Loss = 4,                // Kayıp
+    Return = 5,              // İade
+    Scrapping = 6            // Hurda
 }

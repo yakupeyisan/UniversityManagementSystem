@@ -1,13 +1,16 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
+/// <summary>
+/// Depo Türü - Mevcut (Tutuldu)
+/// </summary>
 public enum WarehouseType
 {
-    Main = 1,             // Ana depo
-    Department = 2,       // Birim deposu
-    Laboratory = 3,       // Laboratuvar deposu
-    IT = 4,               // IT deposu
-    Maintenance = 5,      // Bakım deposu
-    Archive = 6,          // Arşiv
-    Cold = 7,             // Soğuk depo
-    Hazardous = 8         // Tehlikeli madde deposu
+    Main = 0,                // Ana
+    Department = 1,          // Birim
+    Laboratory = 2,          // Laboratuvar
+    IT = 3,                  // IT
+    Maintenance = 4,         // Bakım
+    Archive = 5,             // Arşiv
+    Cold = 6,                // Soğuk
+    Hazardous = 7            // Tehlikeli
 }

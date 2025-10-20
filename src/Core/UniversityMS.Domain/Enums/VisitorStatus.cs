@@ -1,15 +1,15 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
+
 /// <summary>
-/// Ziyaretçi Durumu
+/// Ziyaretçi Durumu - NEW
 /// </summary>
 public enum VisitorStatus
 {
-    PreRegistered = 1,        // Ön kayıtlı
-    CheckedIn = 2,            // Giriş yaptı
-    InBuilding = 3,           // Binada
-    CheckedOut = 4,           // Çıkış yaptı
-    Expired = 5,              // Süresi doldu
-    Denied = 6,               // Reddedildi
-    Blacklisted = 7           // Kara listede
+    CheckedIn = 0,           // Giriş yaptı
+    CheckedOut = 1,          // Çıkış yaptı
+    NoShow = 2,              // Gelmedi
+    EarlyCheckOut = 3,       // Erken çıkış
+    Banned = 4,              // Yasaklı
+    Suspended = 5            // Askıya alındı
 }

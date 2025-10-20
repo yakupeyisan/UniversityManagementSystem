@@ -1,13 +1,15 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
 /// <summary>
-/// Rezervasyon Durumu
+/// Rezervasyon Durumu - NEW
 /// </summary>
 public enum ReservationStatus
 {
-    Active = 1,               // Aktif
-    Ready = 2,                // Hazır (alınmayı bekliyor)
-    Completed = 3,            // Tamamlandı
-    Cancelled = 4,            // İptal edildi
-    Expired = 5               // Süresi doldu
+    Queued = 0,              // Sırada
+    NotificationSent = 1,    // Bildirim gönderildi
+    Fulfilled = 2,           // Karşılandı
+    Cancelled = 3,           // İptal
+    Expired = 4,             // Süresi doldu
+    PickupExpired = 5,       // Alma süresi doldu
+    OnHold = 6               // Beklemede
 }

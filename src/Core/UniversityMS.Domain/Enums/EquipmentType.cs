@@ -1,26 +1,26 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
 /// <summary>
-/// Ekipman Tipi
+/// Ekipman Tipi - Harmonized (Mevcut yapıdan)
 /// </summary>
 public enum EquipmentType
 {
-    Computer = 1,             // Bilgisayar
-    Projector = 2,            // Projeksiyon
-    Printer = 3,              // Yazıcı
-    Scanner = 4,              // Tarayıcı
-    Whiteboard = 5,           // Akıllı tahta
-    AudioSystem = 6,          // Ses sistemi
-    VideoConference = 7,      // Video konferans
-    Laboratory = 8,           // Laboratuvar ekipmanı
-    MedicalDevice = 9,        // Tıbbi cihaz
-    NetworkDevice = 10,       // Ağ cihazı
-    SecurityDevice = 11,      // Güvenlik cihazı
-    HVAC = 12,                // Isıtma/Soğutma
-    Elevator = 13,            // Asansör
-    Generator = 14,           // Jeneratör
-    Furniture = 15,           // Mobilya
-    Vehicle = 16,             // Araç
-    Tool = 17,                // Alet
-    Other = 99                // Diğer
+    Computer = 0,            // Bilgisayar
+    Projector = 1,           // Projeksiyon
+    Printer = 2,             // Yazıcı
+    Scanner = 3,             // Tarayıcı
+    Whiteboard = 4,          // Akıllı tahta
+    AudioSystem = 5,         // Ses sistemi
+    VideoConference = 6,     // Video konferans
+    Laboratory = 7,          // Laboratuvar ekipmanı
+    MedicalDevice = 8,       // Tıbbi cihaz
+    NetworkDevice = 9,       // Ağ cihazı
+    SecurityDevice = 10,     // Güvenlik cihazı
+    HVAC = 11,               // Isıtma/Soğutma
+    Elevator = 12,           // Asansör
+    Generator = 13,          // Jeneratör
+    Furniture = 14,          // Mobilya
+    Vehicle = 15,            // Araç
+    Tool = 16,               // Alet
+    Other = 99               // Diğer
 }

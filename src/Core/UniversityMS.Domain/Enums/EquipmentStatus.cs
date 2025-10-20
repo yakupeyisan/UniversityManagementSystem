@@ -1,15 +1,15 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
 /// <summary>
-/// Ekipman Durumu
+/// Ekipman Durumu - NEW
 /// </summary>
 public enum EquipmentStatus
 {
-    Available = 1,            // Müsait
-    InUse = 2,                // Kullanımda
-    Reserved = 3,             // Rezerve
-    UnderMaintenance = 4,     // Bakımda
-    OutOfService = 5,         // Hizmet dışı
-    Damaged = 6,              // Hasarlı
-    Retired = 7               // Emekliye ayrılmış
+    Operational = 0,         // Operasyonel
+    NeedsRepair = 1,         // Onarım gerekli
+    InRepair = 2,            // Onarımda
+    OutOfService = 3,        // Hizmet dışı
+    Decommissioned = 4,      // Hizmetinden çekildi
+    Calibrating = 5,         // Kalibrasyon yapılıyor
+    Reserved = 6             // Rezerve
 }

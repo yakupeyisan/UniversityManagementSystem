@@ -1,9 +1,15 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
+/// <summary>
+/// Ödeme Yöntemi - NEW
+/// </summary>
 public enum PaymentMethod
 {
-    Cash = 1,             // Nakit
-    BankTransfer = 2,     // Havale/EFT
-    Check = 3,            // Çek
-    DirectDeposit = 4     // Otomatik ödeme
+    CreditCard = 0,          // Kredi kartı
+    DebitCard = 1,           // Banka kartı
+    BankTransfer = 2,        // Banka transferi
+    Cash = 3,                // Nakit
+    Check = 4,               // Çek
+    MobilePayment = 5,       // Mobil ödeme
+    Cryptocurrency = 6       // Kripto para
 }

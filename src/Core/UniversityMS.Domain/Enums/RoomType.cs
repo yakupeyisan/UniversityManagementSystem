@@ -1,27 +1,27 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
 /// <summary>
-/// Oda Tipi
+/// Oda Tipi - Mevcut (Tutuldu)
 /// </summary>
 public enum RoomType
 {
-    Classroom = 1,            // Sınıf
-    LectureHall = 2,          // Amfi
-    Laboratory = 3,           // Laboratuvar
-    Office = 4,               // Ofis
-    MeetingRoom = 5,          // Toplantı odası
-    ConferenceRoom = 6,       // Konferans salonu
-    Library = 7,              // Kütüphane
-    StudyRoom = 8,            // Çalışma odası
-    ComputerLab = 9,          // Bilgisayar laboratuvarı
-    Studio = 10,              // Stüdyo
-    Workshop = 11,            // Atölye
-    Storage = 12,             // Depo
-    Cafeteria = 13,           // Kantin
-    Restroom = 14,            // Tuvalet
-    Lounge = 15,              // Dinlenme salonu
-    ServerRoom = 16,          // Sunucu odası
-    SecurityRoom = 17,        // Güvenlik odası
-    HealthRoom = 18,          // Sağlık odası
-    Other = 99                // Diğer
+    Classroom = 0,           // Sınıf
+    LectureHall = 1,         // Amfi
+    Laboratory = 2,          // Laboratuvar
+    Office = 3,              // Ofis
+    MeetingRoom = 4,         // Toplantı
+    ConferenceRoom = 5,      // Konferans
+    Library = 6,             // Kütüphane
+    StudyRoom = 7,           // Çalışma
+    ComputerLab = 8,         // Bilgisayar lab
+    Studio = 9,              // Stüdyo
+    Workshop = 10,           // Atölye
+    Storage = 11,            // Depo
+    Cafeteria = 12,          // Kafeterya
+    Restroom = 13,           // Tuvalet
+    Lounge = 14,             // Dinlenme
+    ServerRoom = 15,         // Sunucu
+    SecurityRoom = 16,       // Güvenlik
+    HealthRoom = 17,         // Sağlık
+    Other = 99               // Diğer
 }

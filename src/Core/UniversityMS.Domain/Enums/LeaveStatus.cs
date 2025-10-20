@@ -1,10 +1,13 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
+/// <summary>
+/// İzin Durumu - Mevcut (Tutuldu, 1→0)
+/// </summary>
 public enum LeaveStatus
 {
-    Pending = 1,
-    Approved = 2,
-    Rejected = 3,
-    Cancelled = 4,
-    Completed = 5
+    Pending = 0,             // Beklemede
+    Approved = 1,            // Onaylandı
+    Rejected = 2,            // Reddedildi
+    Cancelled = 3,           // İptal
+    Completed = 4            // Tamamlandı
 }

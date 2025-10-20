@@ -1,19 +1,22 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
+/// <summary>
+/// Stok Kategorisi - Mevcut (Tutuldu, 1→0)
+/// </summary>
 public enum StockCategory
 {
-    OfficeSuplies = 1,        // Ofis malzemeleri
-    Cleaning = 2,             // Temizlik malzemeleri
-    Laboratory = 3,           // Laboratuvar malzemeleri
-    IT = 4,                   // Bilgisayar ve elektronik
-    Furniture = 5,            // Mobilya
-    Equipment = 6,            // Teknik ekipman
-    Stationery = 7,           // Kırtasiye
-    Consumables = 8,          // Sarf malzemeler
-    ChemicalReagents = 9,     // Kimyasal reaktifler
-    MedicalSupplies = 10,     // Tıbbi malzemeler
-    Food = 11,                // Gıda maddeleri
-    MaintenanceTools = 12,    // Bakım araçları
-    SafetyEquipment = 13,     // Güvenlik ekipmanları
-    Other = 99
+    OfficeSupplies = 0,      // Ofis malzemeleri
+    Cleaning = 1,            // Temizlik
+    Laboratory = 2,          // Laboratuvar
+    IT = 3,                  // Bilgisayar
+    Furniture = 4,           // Mobilya
+    Equipment = 5,           // Ekipman
+    Stationery = 6,          // Kırtasiye
+    Consumables = 7,         // Sarf malzeme
+    ChemicalReagents = 8,    // Kimyasal reaktif
+    MedicalSupplies = 9,     // Tıbbi malzeme
+    Food = 10,               // Gıda
+    MaintenanceTools = 11,   // Bakım araçları
+    SafetyEquipment = 12,    // Güvenlik ekipmanı
+    Other = 99               // Diğer
 }

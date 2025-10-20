@@ -3,164 +3,104 @@ using UniversityMS.Domain.Entities.PersonAggregate;
 using UniversityMS.Domain.Enums;
 using UniversityMS.Domain.Events.SecurityEvents;
 using UniversityMS.Domain.Exceptions;
+using UniversityMS.Domain.Interfaces;
 
 namespace UniversityMS.Domain.Entities.SecurityAggregate;
 
 /// <summary>
-/// Ziyaretçi (Visitor) Entity
+/// Ziyaretçi (Visitor) - Aggregate Root (YENİ)
+/// Kampüs ziyaretçilerini ve badge'lerini yönetir
 /// </summary>
-public class Visitor : AuditableEntity
+public class Visitor : AuditableEntity, IAggregateRoot
 {
-    public string FullName { get; private set; } = null!;
-    public string? Company { get; private set; }
-    public string? PhoneNumber { get; private set; }
-    public string? Email { get; private set; }
-    public string? IdentificationNumber { get; private set; }
-    public VisitorType Type { get; private set; }
-    public VisitorStatus Status { get; private set; }
-    public Guid HostId { get; private set; }
-    public Guid? DepartmentId { get; private set; }
-    public DateTime? ExpectedArrival { get; private set; }
-    public DateTime? CheckInTime { get; private set; }
+    public string VisitorNumber { get; private set; } = null!;
+    public string FirstName { get; private set; } = null!;
+    public string LastName { get; private set; } = null!;
+    public string Email { get; private set; } = null!;
+    public string PhoneNumber { get; private set; } = null!;
+    public string CompanyName { get; private set; } = null!;
+    public Guid? CampusId { get; private set; }
+    public Guid? HostUserId { get; private set; }
+    public DateTime CheckInTime { get; private set; }
     public DateTime? CheckOutTime { get; private set; }
-    public DateTime? ValidUntil { get; private set; }
-    public string? BadgeNumber { get; private set; }
-    public string? PurposeOfVisit { get; private set; }
+    public VisitorStatus Status { get; private set; }
+    public string? IDNumber { get; private set; }
+    public string? IDType { get; private set; }
+    public string? Purpose { get; private set; }
     public string? Notes { get; private set; }
-    public string? PhotoUrl { get; private set; }
-    public bool RequiresEscort { get; private set; }
-    public string? EscortedBy { get; private set; }
 
-    // Navigation Properties
-    public Person Host { get; private set; } = null!;
+    private readonly List<VisitorBadge> _badges = new();
+    public IReadOnlyCollection<VisitorBadge> Badges => _badges.AsReadOnly();
 
     private Visitor() { }
 
-    private Visitor(
-        string fullName,
-        VisitorType type,
-        Guid hostId,
-        string? purposeOfVisit = null,
-        DateTime? expectedArrival = null,
-        bool requiresEscort = false)
-    {
-        FullName = fullName;
-        Type = type;
-        HostId = hostId;
-        PurposeOfVisit = purposeOfVisit;
-        ExpectedArrival = expectedArrival;
-        RequiresEscort = requiresEscort;
-        Status = expectedArrival.HasValue ? VisitorStatus.PreRegistered : VisitorStatus.CheckedIn;
-    }
-
     public static Visitor Create(
-        string fullName,
-        VisitorType type,
-        Guid hostId,
-        string? purposeOfVisit = null,
-        DateTime? expectedArrival = null,
-        bool requiresEscort = false)
+        string firstName,
+        string lastName,
+        string email,
+        string phoneNumber,
+        string companyName,
+        Guid? campusId = null,
+        Guid? hostUserId = null,
+        string? purpose = null)
     {
-        if (string.IsNullOrWhiteSpace(fullName))
-            throw new DomainException("Ziyaretçi adı boş olamaz.");
+        if (string.IsNullOrWhiteSpace(firstName))
+            throw new DomainException("Adı boş olamaz.");
+        if (string.IsNullOrWhiteSpace(lastName))
+            throw new DomainException("Soyadı boş olamaz.");
+        if (string.IsNullOrWhiteSpace(email))
+            throw new DomainException("Email boş olamaz.");
 
-        return new Visitor(fullName, type, hostId, purposeOfVisit, expectedArrival, requiresEscort);
+        var visitor = new Visitor
+        {
+            FirstName = firstName,
+            LastName = lastName,
+            Email = email,
+            PhoneNumber = phoneNumber,
+            CompanyName = companyName,
+            CampusId = campusId,
+            HostUserId = hostUserId,
+            Purpose = purpose,
+            CheckInTime = DateTime.UtcNow,
+            Status = VisitorStatus.CheckedIn
+        };
+
+        visitor.GenerateVisitorNumber();
+        visitor.AddDomainEvent(new VisitorCheckInEvent(visitor.Id, campusId));
+        return visitor;
     }
 
-    public void UpdateContactInfo(string? phoneNumber, string? email, string? company = null)
+    private void GenerateVisitorNumber()
     {
-        PhoneNumber = phoneNumber;
-        Email = email;
-        Company = company;
-    }
-
-    public void CheckIn(string? badgeNumber = null, int validityHours = 8)
-    {
-        if (Status == VisitorStatus.CheckedIn || Status == VisitorStatus.InBuilding)
-            throw new DomainException("Ziyaretçi zaten giriş yapmış.");
-
-        if (Status == VisitorStatus.Denied || Status == VisitorStatus.Blacklisted)
-            throw new DomainException("Ziyaretçinin girişi engellenmiş.");
-
-        CheckInTime = DateTime.UtcNow;
-        ValidUntil = DateTime.UtcNow.AddHours(validityHours);
-        Status = VisitorStatus.CheckedIn;
-        BadgeNumber = badgeNumber;
-
-        AddDomainEvent(new VisitorCheckedInEvent(Id, FullName, HostId, CheckInTime.Value));
+        VisitorNumber = $"VIS{DateTime.Now:yyyyMMddHHmmss}{Random.Shared.Next(1000, 9999)}";
     }
 
     public void CheckOut()
     {
-        if (Status != VisitorStatus.CheckedIn && Status != VisitorStatus.InBuilding)
-            throw new DomainException("Ziyaretçi giriş yapmamış.");
+        if (Status != VisitorStatus.CheckedIn)
+            throw new DomainException("Ziyaretçi zaten işlem görmüştür.");
 
         CheckOutTime = DateTime.UtcNow;
         Status = VisitorStatus.CheckedOut;
-
-        AddDomainEvent(new VisitorCheckedOutEvent(Id, FullName, CheckOutTime.Value));
+        AddDomainEvent(new VisitorCheckOutEvent(Id, CampusId));
     }
 
-    public void Deny(string reason)
+    public void AddBadge(VisitorBadge badge)
     {
-        Status = VisitorStatus.Denied;
-        Notes = $"Giriş reddedildi: {reason}";
+        if (badge.VisitorId != Id)
+            throw new DomainException("Badge bu ziyaretçiye ait değil.");
+        _badges.Add(badge);
     }
 
-    public void Blacklist(string reason)
+    public void IssueBadge(DateTime expiresAt)
     {
-        Status = VisitorStatus.Blacklisted;
-        Notes = $"Kara listeye alındı: {reason}";
+        var badge = new VisitorBadge(Id, GenerateBadgeNumber(), expiresAt);
+        AddBadge(badge);
+        AddDomainEvent(new VisitorBadgeIssuedEvent(Id, badge.BadgeNumber));
     }
 
-    public void AssignEscort(string escortName)
+    private string GenerateBadgeNumber()
     {
-        if (!RequiresEscort)
-            throw new DomainException("Bu ziyaretçi için refakat gerekmiyor.");
-
-        EscortedBy = escortName;
-    }
-
-    public void SetIdentification(string idNumber, string? photoUrl = null)
-    {
-        IdentificationNumber = idNumber;
-        PhotoUrl = photoUrl;
-    }
-
-    public void ExtendValidity(int additionalHours)
-    {
-        if (!ValidUntil.HasValue)
-            throw new DomainException("Geçerlilik süresi belirlenmemiş.");
-
-        ValidUntil = ValidUntil.Value.AddHours(additionalHours);
-    }
-
-    public void CheckExpiry()
-    {
-        if (Status == VisitorStatus.CheckedIn &&
-            ValidUntil.HasValue &&
-            DateTime.UtcNow > ValidUntil.Value)
-        {
-            Status = VisitorStatus.Expired;
-        }
-    }
-
-    public bool IsExpired()
-    {
-        return ValidUntil.HasValue && DateTime.UtcNow > ValidUntil.Value;
-    }
-
-    public bool IsInBuilding()
-    {
-        return Status == VisitorStatus.CheckedIn || Status == VisitorStatus.InBuilding;
-    }
-
-    public TimeSpan? GetVisitDuration()
-    {
-        if (!CheckInTime.HasValue)
-            return null;
-
-        var endTime = CheckOutTime ?? DateTime.UtcNow;
-        return endTime - CheckInTime.Value;
+        return $"VB{DateTime.Now:yyyyMMddHHmmss}{Random.Shared.Next(1000, 9999)}";
     }
 }

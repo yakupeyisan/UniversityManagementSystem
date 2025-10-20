@@ -1,16 +1,16 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
 /// <summary>
-/// Erişim Kayıt Tipi
+/// Erişim Kayıt Türü - Harmonized
 /// </summary>
 public enum AccessLogType
 {
-    Entry = 1,                // Giriş
-    Exit = 2,                 // Çıkış
-    Denied = 3,               // Reddedildi
-    ForcedEntry = 4,          // Zorla giriş
-    DoorHeldOpen = 5,         // Kapı açık tutuldu
-    Tailgating = 6,           // Yetkisiz takip
-    Emergency = 7,            // Acil durum
-    Manual = 8                // Manuel açma
+    Entry = 0,               // Giriş
+    Exit = 1,                // Çıkış
+    Denied = 2,              // Reddedildi
+    ForcedEntry = 3,         // Zorla giriş
+    DoorHeldOpen = 4,        // Kapı açık tutuldu
+    Tailgating = 5,          // Yetkisiz takip
+    Emergency = 6,           // Acil durum
+    Manual = 7               // Manuel açma
 }

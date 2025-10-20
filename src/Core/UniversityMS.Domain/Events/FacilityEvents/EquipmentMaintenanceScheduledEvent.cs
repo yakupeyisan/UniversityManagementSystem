@@ -6,10 +6,10 @@ namespace UniversityMS.Domain.Events.FacilityEvents;
 public class EquipmentMaintenanceScheduledEvent : BaseDomainEvent
 {
     public Guid EquipmentId { get; }
-    public MaintenanceType Type { get; }
+    public EquipmentMaintenanceType Type { get; }
     public DateTime ScheduledDate { get; }
 
-    public EquipmentMaintenanceScheduledEvent(Guid equipmentId, MaintenanceType type, DateTime scheduledDate)
+    public EquipmentMaintenanceScheduledEvent(Guid equipmentId, EquipmentMaintenanceType type, DateTime scheduledDate)
     {
         EquipmentId = equipmentId;
         Type = type;

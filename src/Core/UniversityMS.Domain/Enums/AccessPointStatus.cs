@@ -1,14 +1,14 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
 /// <summary>
-/// Erişim Noktası Durumu
+/// Erişim Noktası Durumu - Harmonized
 /// </summary>
 public enum AccessPointStatus
 {
-    Active = 1,               // Aktif
-    Inactive = 2,             // Pasif
-    Maintenance = 3,          // Bakımda
-    Faulty = 4,               // Arızalı
-    Locked = 5,               // Kilitli
-    EmergencyOpen = 6         // Acil durum açık
+    Inactive = 0,            // Pasif
+    Active = 1,              // Aktif
+    Maintenance = 2,         // Bakımda
+    Faulty = 3,              // Arızalı
+    Locked = 4,              // Kilitli
+    EmergencyOpen = 5        // Acil durum açık
 }

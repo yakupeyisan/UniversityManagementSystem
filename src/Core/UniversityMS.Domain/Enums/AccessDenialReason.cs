@@ -1,16 +1,17 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
 /// <summary>
-/// Erişim Reddetme Sebebi
+/// Erişim Reddedilme Nedeni
 /// </summary>
 public enum AccessDenialReason
 {
-    InvalidCredential = 1,    // Geçersiz kimlik
-    ExpiredAccess = 2,        // Süresi dolmuş erişim
-    NoPermission = 3,         // Yetkisiz
-    TimeRestriction = 4,      // Zaman kısıtlaması
-    Blacklisted = 5,          // Kara listede
-    DuplicateEntry = 6,       // Çift giriş
-    SystemError = 7,          // Sistem hatası
-    ManualLock = 8            // Manuel kilit
+    InvalidCredential = 0,       // Geçersiz kimlik
+    AccessLevelInsufficient = 1, // Yetersiz yetki
+    TimeRestriction = 2,         // Zaman kısıtlaması
+    ZoneRestriction = 3,         // Bölge kısıtlaması
+    CredentialExpired = 4,       // Kimlik süresi doldu
+    CredentialBlacklisted = 5,   // Kimlik kara listeye alındı
+    SystemError = 6,             // Sistem hatası
+    EmergencyLock = 7,           // Acil kilit
+    UnknownReason = 8            // Bilinmeyen neden
 }

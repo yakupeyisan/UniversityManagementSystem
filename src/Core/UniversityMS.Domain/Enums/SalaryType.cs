@@ -1,9 +1,12 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
+/// <summary>
+/// Maaş Türü - Mevcut (Tutuldu, 1→0)
+/// </summary>
 public enum SalaryType
 {
-    Monthly = 1,
-    Hourly = 2,
-    Daily = 3,
-    Annual = 4
+    Monthly = 0,             // Aylık
+    Hourly = 1,              // Saatlik
+    Daily = 2,               // Günlük
+    Annual = 3               // Yıllık
 }

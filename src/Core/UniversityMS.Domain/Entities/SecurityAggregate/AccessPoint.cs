@@ -28,6 +28,7 @@ public class AccessPoint : AuditableEntity, IAggregateRoot
     public string? Description { get; private set; }
     public DateTime? LastMaintenanceDate { get; private set; }
     public DateTime? NextMaintenanceDate { get; private set; }
+    public Guid? SecurityZoneId { get; private set; } 
 
     // Collections
     private readonly List<AccessLog> _accessLogs = new();
@@ -105,6 +106,15 @@ public class AccessPoint : AuditableEntity, IAggregateRoot
     {
         Status = AccessPointStatus.Faulty;
         Description = $"Arıza: {description}";
+    }
+    public void AssignToSecurityZone(Guid securityZoneId)
+    {
+        SecurityZoneId = securityZoneId;
+        AddDomainEvent(new AccessPointAssignedToZoneEvent(Id, securityZoneId));
+    }
+    public void UnassignFromSecurityZone()
+    {
+        SecurityZoneId = null;
     }
 
     public void SetAccessHours(TimeOnly startTime, TimeOnly endTime)

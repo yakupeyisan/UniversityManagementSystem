@@ -1,13 +1,13 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
 /// <summary>
-/// Ceza Durumu
+/// Ceza Durumu - NEW
 /// </summary>
 public enum FineStatus
 {
-    Pending = 1,              // Beklemede
-    Paid = 2,                 // Ödendi
-    Waived = 3,               // Affedildi
-    PartiallyPaid = 4,        // Kısmen ödendi
-    Cancelled = 5             // İptal edildi
+    Pending = 0,             // Beklemede
+    Paid = 1,                // Ödendi
+    Partial = 2,             // Kısmen ödendi
+    Forgiven = 3,            // Affedildi
+    WriteOff = 4             // Terkedildi
 }

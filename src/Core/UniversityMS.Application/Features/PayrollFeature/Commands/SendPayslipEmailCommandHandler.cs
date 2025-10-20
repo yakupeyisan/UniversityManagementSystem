@@ -6,7 +6,7 @@ using UniversityMS.Domain.Entities.HRAggregate;
 using UniversityMS.Domain.Entities.PayrollAggregate;
 using UniversityMS.Domain.Interfaces;
 
-namespace UniversityMS.Application.Features.PayrollFeature.DTOs;
+namespace UniversityMS.Application.Features.PayrollFeature.Commands;
 
 public class SendPayslipEmailCommandHandler : IRequestHandler<SendPayslipEmailCommand, Result<bool>>
 {

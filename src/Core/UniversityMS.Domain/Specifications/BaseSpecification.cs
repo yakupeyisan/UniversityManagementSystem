@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using UniversityMS.Domain.Entities.FacilityAggregate;
 using UniversityMS.Domain.Interfaces;
 
 namespace UniversityMS.Domain.Specifications;

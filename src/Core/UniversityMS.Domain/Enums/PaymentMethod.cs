@@ -1,15 +1,37 @@
 ﻿namespace UniversityMS.Domain.Enums;
 
 /// <summary>
-/// Ödeme Yöntemi - NEW
+/// Kafeteria Ödeme Yöntemi
 /// </summary>
 public enum PaymentMethod
 {
-    CreditCard = 0,          // Kredi kartı
-    DebitCard = 1,           // Banka kartı
-    BankTransfer = 2,        // Banka transferi
-    Cash = 3,                // Nakit
-    Check = 4,               // Çek
-    MobilePayment = 5,       // Mobil ödeme
-    Cryptocurrency = 6       // Kripto para
+    /// <summary>
+    /// Kafeteria Kartı - Ön yüklü kart (bakiye kullan)
+    /// </summary>
+    CafeteriaCard = 1,
+
+    /// <summary>
+    /// Nakit - Direkt ödeme
+    /// </summary>
+    Cash = 2,
+
+    /// <summary>
+    /// Kredi Kartı - Online ödeme
+    /// </summary>
+    CreditCard = 3,
+
+    /// <summary>
+    /// Banka Transferi - Toplu yükleme (kurum tarafından)
+    /// </summary>
+    BankTransfer = 4,
+
+    /// <summary>
+    /// Mobil Ödeme - Telefon ile ödeme
+    /// </summary>
+    MobilePayment = 5,
+
+    /// <summary>
+    /// QR Kodu - QR kodu tarayarak ödeme
+    /// </summary>
+    QRCode = 6
 }

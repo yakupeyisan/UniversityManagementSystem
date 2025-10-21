@@ -49,18 +49,6 @@ public class StaffConfiguration : IEntityTypeConfiguration<Staff>
                 .HasMaxLength(11);
         });
 
-        builder.OwnsOne(s => s.Balance, money =>
-        {
-            money.Property(m => m.Amount)
-                .HasColumnName("Balance")
-                .HasColumnType("decimal(18,2)")
-                .IsRequired();
-
-            money.Property(m => m.Currency)
-                .HasColumnName("BalanceCurrency")
-                .HasMaxLength(3)
-                .IsRequired();
-        });
 
         // Staff specific fields
         builder.Property(s => s.JobTitle)
@@ -71,7 +59,6 @@ public class StaffConfiguration : IEntityTypeConfiguration<Staff>
         builder.Property(s => s.HireDate).IsRequired();
         builder.Property(s => s.TerminationDate);
         builder.Property(s => s.IsActive).IsRequired();
-        builder.Property(s => s.QRCode).HasMaxLength(200);
         builder.Property(s => s.WeeklyWorkload);
         builder.Property(s => s.AdviseeCount);
 

@@ -52,19 +52,6 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
                 .HasMaxLength(11);
         });
 
-        builder.OwnsOne(s => s.Balance, money =>
-        {
-            money.Property(m => m.Amount)
-                .HasColumnName("Balance")
-                .HasColumnType("decimal(18,2)")
-                .IsRequired();
-
-            money.Property(m => m.Currency)
-                .HasColumnName("BalanceCurrency")
-                .HasMaxLength(3)
-                .IsRequired();
-        });
-
         // Student specific fields
         builder.Property(s => s.DepartmentId).IsRequired();
         builder.Property(s => s.EducationLevel).IsRequired();
@@ -72,8 +59,6 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
         builder.Property(s => s.Status).IsRequired();
         builder.Property(s => s.CGPA).HasColumnType("decimal(3,2)");
         builder.Property(s => s.SGPA).HasColumnType("decimal(3,2)");
-        builder.Property(s => s.QRCode).HasMaxLength(200);
-        builder.Property(s => s.CardNumber).HasMaxLength(16);
         builder.Property(s => s.ProfilePhotoUrl).HasMaxLength(500);
 
         // Soft Delete

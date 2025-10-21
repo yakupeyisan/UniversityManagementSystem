@@ -25,12 +25,10 @@ public class PersonProfile : Profile
                 opt => opt.MapFrom(src => src.PhoneNumber.Value))
             .ForMember(dest => dest.Age,
                 opt => opt.MapFrom(src => DateTime.UtcNow.Year - src.BirthDate.Year))
-            .ForMember(dest => dest.Balance,
-                opt => opt.MapFrom(src => src.Balance.Amount))
             .ReverseMap()
             .ForMember(dest => dest.Email, opt => opt.Ignore())
-            .ForMember(dest => dest.PhoneNumber, opt => opt.Ignore())
-            .ForMember(dest => dest.Balance, opt => opt.Ignore());
+            .ForMember(dest => dest.PhoneNumber, opt => opt.Ignore());
+        ;
 
         // ============= STAFF MAPPING =============
         CreateMap<Staff, StaffDto>()
@@ -44,12 +42,9 @@ public class PersonProfile : Profile
                 opt => opt.MapFrom(src => DateTime.UtcNow.Year - src.BirthDate.Year))
             .ForMember(dest => dest.YearsOfService,
                 opt => opt.MapFrom(src => DateTime.UtcNow.Year - src.HireDate.Year))
-            .ForMember(dest => dest.Balance,
-                opt => opt.MapFrom(src => src.Balance.Amount))
             .ReverseMap()
             .ForMember(dest => dest.Email, opt => opt.Ignore())
-            .ForMember(dest => dest.PhoneNumber, opt => opt.Ignore())
-            .ForMember(dest => dest.Balance, opt => opt.Ignore());
+            .ForMember(dest => dest.PhoneNumber, opt => opt.Ignore());
 
         // ============= USER MAPPING =============
         CreateMap<User, UserDto>()

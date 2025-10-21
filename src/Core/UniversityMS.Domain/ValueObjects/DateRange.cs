@@ -2,46 +2,67 @@
 
 namespace UniversityMS.Domain.ValueObjects;
 
-public sealed class DateRange : ValueObject
+/// <summary>
+/// Tarih Aralığı - Value Object
+/// Başlangıç ve bitiş tarihleri arasındaki dönem
+/// </summary>
+public class DateRange
 {
-    public DateTime StartDate { get; }
-    public DateTime EndDate { get; }
+    public Guid Id { get; private set; }
+    public DateTime StartDate { get; private set; }
+    public DateTime EndDate { get; private set; }
+    public string Name { get; private set; } = null!;
+    public string? Description { get; private set; }
+    public DateTime CreatedAt { get; private set; }
 
-    private DateRange(DateTime startDate, DateTime endDate)
+    private DateRange() { }
+
+    private DateRange(DateTime startDate, DateTime endDate, string name)
     {
-        StartDate = startDate;
-        EndDate = endDate;
+        StartDate = startDate.Date;
+        EndDate = endDate.Date;
+        Name = name;
+        Id = Guid.NewGuid();
+        CreatedAt = DateTime.UtcNow;
     }
 
-    public static DateRange Create(DateTime startDate, DateTime endDate)
+    public static DateRange Create(DateTime startDate, DateTime endDate, string name)
     {
         if (startDate > endDate)
-            throw new DomainException("Başlangıç tarihi bitiş tarihinden sonra olamaz.");
+            throw new ArgumentException("Başlangıç tarihi bitiş tarihinden önce olmalı.");
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Ad boş olamaz.");
 
-        return new DateRange(startDate.Date, endDate.Date);
+        return new DateRange(startDate, endDate, name);
     }
 
-    public int GetDurationInDays()
+    /// <summary>
+    /// Verilen tarih bu aralıkta mı?
+    /// </summary>
+    public bool IsInRange(DateTime date)
     {
-        return (EndDate - StartDate).Days + 1;
+        var dateOnly = date.Date;
+        return dateOnly >= StartDate && dateOnly <= EndDate;
     }
 
-    public bool Contains(DateTime date)
+    /// <summary>
+    /// Kaç gün sürecek?
+    /// </summary>
+    public int GetDayCount()
     {
-        var checkDate = date.Date;
-        return checkDate >= StartDate && checkDate <= EndDate;
+        return (int)(EndDate - StartDate).TotalDays + 1;
     }
 
+    /// <summary>
+    /// Aralıkların çakışıp çakışmadığını kontrol et
+    /// </summary>
     public bool Overlaps(DateRange other)
     {
         return StartDate <= other.EndDate && EndDate >= other.StartDate;
     }
 
-    protected override IEnumerable<object> GetEqualityComponents()
+    public override string ToString()
     {
-        yield return StartDate;
-        yield return EndDate;
+        return $"{Name} ({StartDate:d} - {EndDate:d})";
     }
-
-    public override string ToString() => $"{StartDate:dd.MM.yyyy} - {EndDate:dd.MM.yyyy}";
 }

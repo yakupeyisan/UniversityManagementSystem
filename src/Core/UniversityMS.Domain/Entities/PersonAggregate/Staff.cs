@@ -16,9 +16,6 @@ public class Staff : Person
     public DateTime HireDate { get; private set; }
     public DateTime? TerminationDate { get; private set; }
     public bool IsActive { get; private set; }
-    public Money Balance { get; private set; }
-    public string? QRCode { get; private set; }
-
     // Akademik personel için
     public int? WeeklyWorkload { get; private set; } // Haftalık ders saati
     public int? AdviseeCount { get; private set; } // Danışman öğrenci sayısı
@@ -54,11 +51,8 @@ public class Staff : Person
         DepartmentId = departmentId;
         AcademicTitle = academicTitle;
         IsActive = true;
-        Balance = Money.Zero();
         WeeklyWorkload = 0;
         AdviseeCount = 0;
-
-        GenerateQRCode();
     }
 
     public static Staff Create(
@@ -79,13 +73,6 @@ public class Staff : Person
         return new Staff(firstName, lastName, nationalId, birthDate, gender, email, phoneNumber,
             employeeNumber, jobTitle, hireDate, departmentId, academicTitle);
     }
-
-    private void GenerateQRCode()
-    {
-        // QR Code: STF_{StaffId}_{Timestamp}
-        QRCode = $"STF_{Id}_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
-    }
-
     public void UpdateJobTitle(string newJobTitle)
     {
         if (string.IsNullOrWhiteSpace(newJobTitle))
@@ -139,16 +126,6 @@ public class Staff : Person
 
         IsActive = false;
         TerminationDate = terminationDate;
-    }
-
-    public void AddBalance(Money amount)
-    {
-        Balance = Balance.Add(amount);
-    }
-
-    public void DeductBalance(Money amount)
-    {
-        Balance = Balance.Subtract(amount);
     }
 
     public bool IsAcademicStaff()

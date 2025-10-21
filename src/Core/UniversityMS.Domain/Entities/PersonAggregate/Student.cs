@@ -19,9 +19,6 @@ public class Student : Person
     public int CompletedCredits { get; private set; }
     public DateTime EnrollmentDate { get; private set; }
     public DateTime? GraduationDate { get; private set; }
-    public string? QRCode { get; private set; }
-    public string? CardNumber { get; private set; }
-    public Money Balance { get; private set; }
     public Guid? AdvisorId { get; private set; }
     public Staff? Advisor { get; private set; }
     private readonly List<Grade> _grades = new();
@@ -45,10 +42,6 @@ public class Student : Person
         TotalCredits = 0;
         CompletedCredits = 0;
         EnrollmentDate = DateTime.UtcNow;
-        Balance = Money.Zero();
-
-        GenerateQRCode();
-        GenerateCardNumber();
 
         // Domain Event
         AddDomainEvent(new StudentEnrolledEvent(Id, StudentNumber, DepartmentId));
@@ -67,18 +60,6 @@ public class Student : Person
 
         return new Student(firstName, lastName, nationalId, birthDate, gender, email, phoneNumber,
             studentNumber, departmentId, educationLevel);
-    }
-
-    private void GenerateQRCode()
-    {
-        // QR Code: STU_{StudentId}_{Timestamp}
-        QRCode = $"STU_{Id}_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
-    }
-
-    private void GenerateCardNumber()
-    {
-        // Card Number: 16 haneli benzersiz numara
-        CardNumber = $"{DateTime.UtcNow.Ticks:0000000000000000}";
     }
 
     public void UpdateGPA(double cgpa, double sgpa)
@@ -120,27 +101,12 @@ public class Student : Person
         }
     }
 
-    public void AddBalance(Money amount)
-    {
-        Balance = Balance.Add(amount);
-    }
-
-    public void DeductBalance(Money amount)
-    {
-        Balance = Balance.Subtract(amount);
-    }
-
     public void BlockCard()
     {
         // Kart bloke işlemi
         Status = StudentStatus.Suspended;
     }
 
-    public void RequestNewCard()
-    {
-        GenerateQRCode();
-        GenerateCardNumber();
-    }
 
     public bool IsEligibleForGraduation()
     {
